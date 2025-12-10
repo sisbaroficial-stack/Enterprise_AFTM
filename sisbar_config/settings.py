@@ -19,7 +19,11 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-key-change-in-product
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
+ALLOWED_HOSTS = ['*']   # ✔ Esto permite que Render no bloquee la app
+# ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
@@ -85,14 +89,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sisbar_config.wsgi.application'
 
-# Database - SQLite por defecto (Django)
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL', default='sqlite:///db.sqlite3'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+# -------------------------
+# BASE DE DATOS PARA LOCAL + RENDER
+# -------------------------
+
+# Detectar si estamos ejecutando en Render
+IS_RENDER = "RENDER" in os.environ
+
+if IS_RENDER:
+    # Render usa PostgreSQL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    # Local usa SQLite como antes
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
