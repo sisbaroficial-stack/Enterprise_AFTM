@@ -69,6 +69,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sisbar_config.wsgi.application'
 
+<<<<<<< HEAD
 # ===================== DATABASE =====================
 DATABASES = {
     'default': {
@@ -76,6 +77,51 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+=======
+# -------------------------
+# BASE DE DATOS PARA LOCAL + RENDER
+# -------------------------
+
+# Detectar si estamos ejecutando en Render
+IS_RENDER = "RENDER" in os.environ
+
+if IS_RENDER:
+    # Render usa PostgreSQL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    # Local usa SQLite como antes
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# Password validation
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+>>>>>>> 7ecd77349a71072c91d17b0fb9594e591aae1e62
 
 # ===================== INTERNACIONALIZACIÓN =====================
 LANGUAGE_CODE = 'es-co'
@@ -97,6 +143,35 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 
 
+<<<<<<< HEAD
 LOGIN_URL = 'usuarios:login'  # SIN barra inicial
 LOGIN_REDIRECT_URL = 'dashboard:home'  # ✅ BIEN - Con comillas
 LOGOUT_REDIRECT_URL = 'index'  # Redirige al index principal
+=======
+# Login/Logout URLs
+LOGIN_URL = 'usuarios:login'
+LOGIN_REDIRECT_URL = 'dashboard:home'
+LOGOUT_REDIRECT_URL = 'usuarios:login'
+
+# Messages Framework
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
+
+# Security Settings (para producción)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+>>>>>>> 7ecd77349a71072c91d17b0fb9594e591aae1e62
