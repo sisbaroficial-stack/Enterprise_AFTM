@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Categoria, Subcategoria
 from usuarios.views import registrar_actividad
+from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 
 
 @login_required
@@ -18,9 +20,9 @@ def listar_categorias_view(request):
 
 @login_required
 def crear_categoria_view(request):
-    if not request.user.puede_gestionar_inventario():
-        messages.error(request, '❌ No tienes permisos para crear categorías.')
-        return redirect('categorias:listar')
+        # 🔒 BLOQUEO REAL POR ROL
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos para crear categoria")
     
     if request.method == 'POST':
         nombre = request.POST.get('nombre').strip()
@@ -55,10 +57,9 @@ def crear_categoria_view(request):
 
 @login_required
 def crear_subcategoria_view(request, categoria_id):
-    """Crear subcategoría"""
-    if not request.user.puede_gestionar_inventario():
-        messages.error(request, '❌ No tienes permisos.')
-        return redirect('categorias:listar')
+        # 🔒 BLOQUEO REAL POR ROL
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos para crear sudcategorias")
     
     categoria = get_object_or_404(Categoria, id=categoria_id)
     
@@ -89,10 +90,9 @@ def crear_subcategoria_view(request, categoria_id):
 
 @login_required
 def editar_categoria_view(request, categoria_id):
-    """Editar categoría"""
-    if not request.user.puede_gestionar_inventario():
-        messages.error(request, '❌ No tienes permisos.')
-        return redirect('categorias:listar')
+        # 🔒 BLOQUEO REAL POR ROL
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos para editar categoria")
     
     categoria = get_object_or_404(Categoria, id=categoria_id)
     
@@ -120,9 +120,9 @@ def editar_categoria_view(request, categoria_id):
 @login_required
 def eliminar_categoria_view(request, categoria_id):
     """Desactivar categoría"""
-    if not request.user.puede_eliminar():
-        messages.error(request, '❌ No tienes permisos.')
-        return redirect('categorias:listar')
+        # 🔒 BLOQUEO REAL POR ROL
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos para eliminar categoria")
     
     categoria = get_object_or_404(Categoria, id=categoria_id)
     

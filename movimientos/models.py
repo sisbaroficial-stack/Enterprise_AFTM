@@ -18,7 +18,7 @@ class Movimiento(models.Model):
     producto = models.ForeignKey(
         Producto,
         on_delete=models.CASCADE,
-        related_name='movimientos',
+        related_name='movimientos_antiguos',
         verbose_name='Producto'
     )
     

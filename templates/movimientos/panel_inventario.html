@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Inventario - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- ====== Cabecera ====== -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">📊 Panel de Inventario</h1>
+            <p class="text-muted">Alertas y movimientos recientes</p>
+        </div>
+    </div>
+
+    <!-- ====== Alertas ====== -->
+    <div class="row g-4 mb-4">
+        {% if alertas %}
+            {% for alerta in alertas %}
+            <div class="col-md-6">
+                <div class="card card-custom border-0 border-start border-{{ alerta.producto.get_estado_color }} border-4">
+                    <div class="card-body d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="mb-1">{{ alerta.get_tipo_display }}</h5>
+                            <p class="mb-2"><strong>{{ alerta.producto.nombre }}</strong></p>
+                            <p class="text-muted mb-0">{{ alerta.mensaje }}</p>
+                            <small class="text-muted">{{ alerta.fecha_generada|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <a href="{% url 'inventario:ver_producto' alerta.producto.id %}" 
+                           class="btn btn-sm btn-outline-primary">
+                            Ver Producto
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card card-custom border-0">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-check-circle fs-1 text-success d-block mb-3"></i>
+                        <h5>No hay alertas pendientes</h5>
+                        <p class="text-muted">Todo está en orden por ahora.</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ====== Filtro de Movimientos ====== -->
+    <div class="card card-custom border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Período</label>
+                    <select name="dias" class="form-select" onchange="this.form.submit()">
+                        <option value="7" {% if dias == 7 %}selected{% endif %}>Últimos 7 días</option>
+                        <option value="15" {% if dias == 15 %}selected{% endif %}>Últimos 15 días</option>
+                        <option value="30" {% if dias == 30 %}selected{% endif %}>Últimos 30 días</option>
+                        <option value="60" {% if dias == 60 %}selected{% endif %}>Últimos 60 días</option>
+                        <option value="90" {% if dias == 90 %}selected{% endif %}>Últimos 90 días</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== Tabla de Movimientos ====== -->
+    <div class="card card-custom border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Stock</th>
+                            <th>Usuario</th>
+                            <th>Motivo</th>
+                            {% if user.rol in "ADMIN,SUPER_ADMIN" %}
+                            <th>Sucursal</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if movimientos %}
+                            {% for mov in movimientos %}
+                            <tr>
+                                <td><small>{{ mov.fecha|date:"d/m/Y H:i" }}</small></td>
+                                <td>
+                                    <span class="badge bg-{% if mov.tipo == 'ENTRADA' %}success{% else %}danger{% endif %}">
+                                        {{ mov.get_tipo_icono }} {{ mov.get_tipo_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>{{ mov.producto.nombre }}</strong>
+                                    <br><small class="text-muted">{{ mov.producto.codigo }}</small>
+                                </td>
+                                <td>
+                                    <strong class="{% if mov.tipo == 'ENTRADA' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if mov.tipo == 'ENTRADA' %}+{% else %}-{% endif %}{{ mov.cantidad }}
+                                    </strong>
+                                </td>
+                                <td><small>{{ mov.cantidad_anterior }} → {{ mov.cantidad_nueva }}</small></td>
+                                <td><small>{{ mov.usuario.username }}</small></td>
+                                <td><small>{{ mov.motivo|default:"-" }}</small></td>
+                                {% if user.rol in "ADMIN,SUPER_ADMIN" %}
+                                <td><small>{{ mov.sucursal.nombre }}</small></td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="{% if user.rol in 'ADMIN,SUPER_ADMIN' %}8{% else %}7{% endif %}" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                    No hay movimientos en este período
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

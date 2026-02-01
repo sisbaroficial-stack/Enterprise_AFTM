@@ -63,12 +63,14 @@
                                     <span class="badge bg-success">
                                         <i class="bi bi-check-circle me-1"></i>Aprobado
                                     </span>
-                                    <small class="text-muted ms-2">
-                                        por {{ usuario_obj.aprobado_por.get_full_name }} 
-                                        el {{ usuario_obj.fecha_aprobacion|date:"d/m/Y H:i" }}
-                                    </small>
+                                    {% if usuario_obj.aprobado_por %}
+                                        <small class="text-muted ms-2">
+                                            por {{ usuario_obj.aprobado_por.get_full_name }} 
+                                            el {{ usuario_obj.fecha_aprobacion|date:"d/m/Y H:i" }}
+                                        </small>
+                                    {% endif %}
                                 {% else %}
-                                    <span class="badge bg-warning">
+                                    <span class="badge bg-warning text-dark">
                                         <i class="bi bi-clock me-1"></i>Pendiente de Aprobación
                                     </span>
                                 {% endif %}
@@ -87,9 +89,24 @@
                     <form method="post">
                         {% csrf_token %}
                         
+                        <!-- Asignar Sucursal -->
+                        <div class="mb-3">
+                            <label for="{{ form.sucursal.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-building me-2"></i>{{ form.sucursal.label }}
+                            </label>
+                            {{ form.sucursal }}
+                            <small class="text-muted d-block mt-1">
+                                <strong>⚠️ Obligatorio:</strong> El usuario trabajará en la sucursal que selecciones aquí.
+                            </small>
+                            {% if form.sucursal.errors %}
+                                <div class="text-danger small mt-1">{{ form.sucursal.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Rol -->
                         <div class="mb-3">
                             <label for="{{ form.rol.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-person-badge me-2"></i>Rol Asignado
+                                <i class="bi bi-person-badge me-2"></i>{{ form.rol.label }}
                             </label>
                             {{ form.rol }}
                             <small class="text-muted d-block mt-1">
@@ -100,12 +117,13 @@
                             {% endif %}
                         </div>
                         
+                        <!-- Aprobar -->
                         <div class="mb-4">
                             <div class="form-check form-switch">
                                 {{ form.aprobado }}
                                 <label class="form-check-label fw-semibold" for="{{ form.aprobado.id_for_label }}">
                                     <i class="bi bi-check-circle me-2"></i>
-                                    Aprobar este usuario
+                                    {{ form.aprobado.label }}
                                 </label>
                                 <small class="text-muted d-block mt-1">
                                     Al aprobar, el usuario recibirá un correo de confirmación y podrá acceder al sistema.
@@ -120,19 +138,26 @@
                         <div class="alert alert-light border mb-4">
                             <strong>📝 Descripción de Roles:</strong>
                             <ul class="mb-0 mt-2 small">
-                                <li><strong>👑 Super Administrador:</strong> Control total del sistema</li>
-                                <li><strong>👨‍💼 Administrador:</strong> Gestiona inventario y usuarios</li>
-                                <li><strong>👤 Empleado:</strong> Registra y descuenta productos</li>
-                                <li><strong>👁️ Auditor/Contador:</strong> Solo visualización y reportes</li>
+                                <li><strong>👑 Super Administrador:</strong> Control total del sistema, puede trabajar sin sucursal</li>
+                                <li><strong>👨‍💼 Administrador:</strong> Gestiona inventario y usuarios, puede seleccionar sucursales</li>
+                                <li><strong>👤 Empleado:</strong> Registra y descuenta productos solo en su sucursal asignada</li>
+                                <li><strong>👁️ Auditor/Contador:</strong> Solo visualización y reportes en su sucursal asignada</li>
                             </ul>
                         </div>
+
+                        <!-- Errores generales del formulario -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
                         
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success flex-grow-1">
+                            <button type="submit" class="btn btn-success flex-grow-1 py-3">
                                 <i class="bi bi-check-circle me-2"></i>
                                 Guardar Cambios
                             </button>
-                            <a href="{% url 'usuarios:gestionar_usuarios' %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'usuarios:gestionar_usuarios' %}" class="btn btn-outline-secondary py-3">
                                 <i class="bi bi-x-circle me-2"></i>
                                 Cancelar
                             </a>

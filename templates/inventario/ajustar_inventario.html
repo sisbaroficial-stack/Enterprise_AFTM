@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajustar Inventario - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">⚙️ Ajustar Inventario</h1>
+            <p class="text-muted">
+                <span class="badge bg-primary">{{ sucursal.nombre }}</span>
+                Merma, devoluciones, ajustes
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'inventario:detalle_producto' producto.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Información del producto -->
+            <div class="card card-custom border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3">
+                            {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" 
+                                 alt="{{ producto.nombre }}"
+                                 style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
+                            {% else %}
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-box-seam fs-1 text-white"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="mb-2">{{ producto.nombre }}</h4>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-secondary">{{ producto.codigo }}</span>
+                                <span class="badge bg-light text-dark">{{ producto.categoria.nombre }}</span>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Stock Actual</small>
+                                    <h3 class="mb-0">{{ inventario.cantidad }}</h3>
+                                    <small class="text-muted">{{ producto.unidad_medida }}</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Stock Mínimo</small>
+                                    <h5 class="mb-0">{{ inventario.cantidad_minima }}</h5>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Estado</small>
+                                    {% if inventario.estado == 'AGOTADO' %}
+                                        <span class="badge bg-danger">🔴 Agotado</span>
+                                    {% elif inventario.estado == 'POR_AGOTAR' %}
+                                        <span class="badge bg-warning text-dark">🟡 Por Agotarse</span>
+                                    {% else %}
+                                        <span class="badge bg-success">🟢 Disponible</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de ajuste -->
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Tipo de Ajuste *</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="tipo_ajuste" id="entrada" value="ENTRADA" checked>
+                                <label class="btn btn-outline-success" for="entrada">
+                                    <i class="bi bi-plus-circle me-2"></i>ENTRADA
+                                    <br><small>Agregar al stock</small>
+                                </label>
+
+                                <input type="radio" class="btn-check" name="tipo_ajuste" id="salida" value="SALIDA">
+                                <label class="btn btn-outline-danger" for="salida">
+                                    <i class="bi bi-dash-circle me-2"></i>SALIDA
+                                    <br><small>Quitar del stock</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Motivo del Ajuste *</label>
+                            <select name="motivo" class="form-select" required id="selectMotivo">
+                                <option value="">Seleccionar motivo...</option>
+                                {% for valor, texto in motivos %}
+                                <option value="{{ valor }}">{{ texto }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Cantidad *</label>
+                            <input type="number" 
+                                   name="cantidad" 
+                                   class="form-control form-control-lg" 
+                                   required 
+                                   min="1"
+                                   id="inputCantidad"
+                                   placeholder="Ingrese cantidad">
+                            <div id="alertaStock" class="alert alert-warning mt-2" style="display: none;">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <span id="mensajeAlerta"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Observaciones *</label>
+                            <textarea name="observaciones" 
+                                      class="form-control" 
+                                      rows="4" 
+                                      required
+                                      placeholder="Describe el motivo del ajuste. Ej: Se rompieron 3 botellas al caer del estante"></textarea>
+                            <small class="text-muted">Esta información quedará registrada en el historial</small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Importante:</strong> Este ajuste quedará registrado permanentemente en el historial de movimientos.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="btnGuardar">
+                                <i class="bi bi-check-lg me-2"></i>
+                                Registrar Ajuste
+                            </button>
+                            <a href="{% url 'inventario:detalle_producto' producto.id %}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card border-0 shadow-sm bg-light mt-4">
+                <div class="card-body">
+                    <h6 class="mb-3">📋 Casos comunes de ajuste:</h6>
+                    <ul class="small mb-0">
+                        <li><strong>Merma:</strong> Productos rotos, dañados o en mal estado</li>
+                        <li><strong>Devolución:</strong> Cliente devuelve productos</li>
+                        <li><strong>Vencido:</strong> Productos que expiraron y se retiraron</li>
+                        <li><strong>Robo:</strong> Pérdida por hurto</li>
+                        <li><strong>Ajuste:</strong> Corrección de errores de registro o conteo físico</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const stockActual = {{ inventario.cantidad }};
+const inputCantidad = document.getElementById('inputCantidad');
+const tipoEntrada = document.getElementById('entrada');
+const tipoSalida = document.getElementById('salida');
+const alertaStock = document.getElementById('alertaStock');
+const mensajeAlerta = document.getElementById('mensajeAlerta');
+
+// Validar cantidad según tipo
+function validarCantidad() {
+    const cantidad = parseInt(inputCantidad.value) || 0;
+    
+    if (tipoSalida.checked && cantidad > stockActual) {
+        alertaStock.style.display = 'block';
+        mensajeAlerta.textContent = `No puedes descontar ${cantidad} unidades. Stock actual: ${stockActual}`;
+        return false;
+    } else {
+        alertaStock.style.display = 'none';
+        return true;
+    }
+}
+
+inputCantidad.addEventListener('input', validarCantidad);
+tipoEntrada.addEventListener('change', validarCantidad);
+tipoSalida.addEventListener('change', validarCantidad);
+
+// Validar antes de enviar
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!validarCantidad()) {
+        e.preventDefault();
+        alert('⚠️ La cantidad ingresada excede el stock disponible');
+        return false;
+    }
+    
+    const cantidad = parseInt(inputCantidad.value);
+    const tipo = tipoSalida.checked ? 'SALIDA' : 'ENTRADA';
+    const motivo = document.getElementById('selectMotivo').options[document.getElementById('selectMotivo').selectedIndex].text;
+    
+    if (!confirm(`¿Confirmar ajuste de ${tipo}?\n\nCantidad: ${cantidad}\nMotivo: ${motivo}`)) {
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
+{% endblock %}

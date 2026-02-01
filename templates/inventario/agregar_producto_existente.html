@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Producto Existente - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">📦 Agregar Producto a Mi Inventario</h1>
+            <p class="text-muted">
+                <span class="badge bg-primary">{{ sucursal.nombre }}</span>
+                Selecciona productos del catálogo global
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'inventario:listar_productos' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Buscador -->
+        <div class="col-lg-5 mb-4">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header pt-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-search me-2"></i>Buscar Producto
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Código o Nombre</label>
+                        <input type="text" 
+                               id="busquedaProducto" 
+                               class="form-control form-control-lg" 
+                               placeholder="Escribe para buscar..."
+                               autocomplete="off">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Busca productos que NO tienes en tu inventario
+                        </small>
+                    </div>
+
+                    <!-- Resultados autocomplete -->
+                    <div id="resultadosBusqueda" style="display: none;"></div>
+
+                    <!-- Producto seleccionado -->
+                    <div id="productoSeleccionado" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6 id="nombreProducto" class="mb-1"></h6>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-secondary" id="codigoProducto"></span>
+                                <span class="badge bg-light text-dark" id="categoriaProducto"></span>
+                            </div>
+                            <small id="proveedorProducto"></small>
+                        </div>
+
+                        <form method="post" id="formAgregar">
+                            {% csrf_token %}
+                            <input type="hidden" name="producto_id" id="producto_id">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Cantidad Inicial</label>
+                                <input type="number" 
+                                       name="cantidad_inicial" 
+                                       class="form-control" 
+                                       value="0" 
+                                       min="0"
+                                       required>
+                                <small class="text-muted">Puedes dejarla en 0 y agregar stock después</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Cantidad Mínima (Alerta)</label>
+                                <input type="number" 
+                                       name="cantidad_minima" 
+                                       class="form-control" 
+                                       value="5" 
+                                       min="0"
+                                       required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Ubicación (Opcional)</label>
+                                <input type="text" 
+                                       name="ubicacion" 
+                                       class="form-control" 
+                                       placeholder="Ej: Estante A-3">
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-plus-circle me-2"></i>
+                                    Agregar a Mi Inventario
+                                </button>
+                                <button type="button" onclick="cancelarSeleccion()" class="btn btn-outline-secondary">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de productos disponibles -->
+        <div class="col-lg-7">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">
+                        <i class="bi bi-box-seam me-2"></i>Productos Disponibles en Catálogo
+                    </h5>
+                    <small class="text-muted">{{ productos_disponibles.count }} productos que NO tienes</small>
+                </div>
+                <div class="card-body">
+                    {% if productos_disponibles %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Proveedor</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in productos_disponibles %}
+                                <tr>
+                                    <td>
+                                        <code class="badge bg-secondary">{{ p.codigo }}</code>
+                                    </td>
+                                    <td>
+                                        <strong>{{ p.nombre }}</strong>
+                                        {% if p.descripcion %}
+                                        <br><small class="text-muted">{{ p.descripcion|truncatewords:8 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ p.categoria.nombre }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>{{ p.proveedor.nombre|default:"Sin proveedor" }}</small>
+                                    </td>
+                                    <td>
+                                        <button onclick="seleccionarProducto({{ p.id }}, '{{ p.codigo }}', '{{ p.nombre }}', '{{ p.categoria.nombre }}', '{{ p.proveedor.nombre|default:"Sin proveedor" }}')" 
+                                                class="btn btn-sm btn-primary">
+                                            <i class="bi bi-plus-circle"></i> Seleccionar
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success text-center">
+                        <i class="bi bi-check-circle fs-1 d-block mb-3"></i>
+                        <h5>¡Ya tienes todos los productos!</h5>
+                        <p class="mb-0">Todos los productos del catálogo ya están en tu inventario.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function seleccionarProducto(id, codigo, nombre, categoria, proveedor) {
+    document.getElementById('producto_id').value = id;
+    document.getElementById('nombreProducto').textContent = nombre;
+    document.getElementById('codigoProducto').textContent = codigo;
+    document.getElementById('categoriaProducto').textContent = categoria;
+    document.getElementById('proveedorProducto').textContent = 'Proveedor: ' + proveedor;
+    
+    document.getElementById('productoSeleccionado').style.display = 'block';
+    document.getElementById('busquedaProducto').value = codigo + ' - ' + nombre;
+    
+    // Scroll a formulario
+    document.getElementById('productoSeleccionado').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelarSeleccion() {
+    document.getElementById('productoSeleccionado').style.display = 'none';
+    document.getElementById('busquedaProducto').value = '';
+    document.getElementById('busquedaProducto').focus();
+}
+
+// Búsqueda en tiempo real
+let timeoutBusqueda;
+document.getElementById('busquedaProducto').addEventListener('input', function() {
+    clearTimeout(timeoutBusqueda);
+    const query = this.value.trim();
+    
+    if (query.length < 2) {
+        document.getElementById('resultadosBusqueda').style.display = 'none';
+        return;
+    }
+    
+    timeoutBusqueda = setTimeout(() => {
+        fetch(`{% url 'inventario:buscar_productos_globales_ajax' %}?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('resultadosBusqueda');
+                
+                if (data.productos.length > 0) {
+                    container.innerHTML = data.productos.map(p => `
+                        <div class="list-group-item list-group-item-action" 
+                             style="cursor: pointer;"
+                             onclick="seleccionarProducto(${p.id}, '${p.codigo}', '${p.nombre}', '${p.categoria}', '${p.proveedor}')">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>${p.nombre}</strong><br>
+                                    <small class="text-muted">${p.codigo} | ${p.categoria}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    container.style.display = 'block';
+                } else {
+                    container.innerHTML = '<div class="alert alert-warning mb-0">No se encontraron productos</div>';
+                    container.style.display = 'block';
+                }
+            });
+    }, 300);
+});
+
+// Cerrar resultados al hacer clic fuera
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('busquedaProducto').contains(e.target) && 
+        !document.getElementById('resultadosBusqueda').contains(e.target)) {
+        document.getElementById('resultadosBusqueda').style.display = 'none';
+    }
+});
+</script>
+
+<style>
+#resultadosBusqueda {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:hover {
+    background-color: rgba(102, 126, 234, 0.1);
+}
+
+body.modo-oscuro #resultadosBusqueda {
+    background: #1a1a2e;
+    border-color: #667eea;
+}
+
+body.modo-oscuro .list-group-item {
+    background: #1a1a2e;
+    color: #e4e4e4;
+    border-color: #333;
+}
+
+body.modo-oscuro .list-group-item:hover {
+    background-color: rgba(102, 126, 234, 0.2);
+}
+</style>
+{% endblock %}

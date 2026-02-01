@@ -194,6 +194,13 @@
                                         class="btn btn-info" title="Ver detalles">
                                             <i class="bi bi-eye"></i>
                                         </a>
+                                    <!-- 💡 BOTÓN NUEVO: ASIGNAR SUCURSAL -->
+                                    {% if user.rol in 'SUPER_ADMIN,ADMIN' and usuario.rol != 'SUPER_ADMIN' %}
+                                        <a href="{% url 'usuarios:asignar_sucursal_usuario' usuario.id %}" 
+                                        class="btn btn-secondary" title="Asignar Sucursal">
+                                            <i class="bi bi-building"></i>
+                                        </a>
+                                    {% endif %}
 
 
                                     </div>

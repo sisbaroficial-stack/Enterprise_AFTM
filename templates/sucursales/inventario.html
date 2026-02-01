@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventario - {{ sucursal.nombre }} - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">
+                📦 Inventario - {{ sucursal.nombre }}
+            </h1>
+            <p class="text-muted">
+                <span class="badge bg-info">{{ sucursal.codigo }}</span>
+                {{ sucursal.get_tipo_display }}
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'sucursales:seleccionar' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-right"></i> Cambiar Sucursal
+            </a>
+            <a href="{% url 'sucursales:crear_transferencia' %}" class="btn btn-primary">
+                <i class="bi bi-truck"></i> Nueva Transferencia
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Total Productos</h6>
+                    <h3 class="mb-0">{{ stats.total_productos }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-danger border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">🔴 Agotados</h6>
+                    <h3 class="mb-0 text-danger">{{ stats.agotados }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-warning border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">🟡 Por Agotarse</h6>
+                    <h3 class="mb-0 text-warning">{{ stats.por_agotar }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Búsqueda -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="🔍 Buscar por nombre o código..." 
+                           value="{{ busqueda }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de inventario -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Stock</th>
+                            <th>Mínimo</th>
+                            <th>Estado</th>
+                            <th>Ubicación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in inventarios %}
+                        <tr>
+                            <td><code>{{ inv.producto.codigo }}</code></td>
+                            <td>
+                                <strong>{{ inv.producto.nombre }}</strong>
+                            </td>
+                            <td>{{ inv.producto.categoria.nombre }}</td>
+                            <td>
+                                <strong class="fs-5">{{ inv.cantidad }}</strong>
+                            </td>
+                            <td>{{ inv.cantidad_minima }}</td>
+                            <td>
+                                {% if inv.estado == 'AGOTADO' %}
+                                <span class="badge bg-danger">🔴 Agotado</span>
+                                {% elif inv.estado == 'POR_AGOTAR' %}
+                                <span class="badge bg-warning">🟡 Por Agotarse</span>
+                                {% else %}
+                                <span class="badge bg-success">🟢 Disponible</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ inv.ubicacion|default:"-" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-primary" 
+                                            onclick="transferirProducto({{ inv.producto.id }}, '{{ inv.producto.nombre }}', {{ inv.cantidad }})">
+                                        <i class="bi bi-truck"></i> Transferir
+                                    </button>
+                                    <a href="{% url 'inventario:editar_producto' inv.producto.id %}" 
+                                       class="btn btn-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No hay productos en esta sucursal
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para transferencia rápida -->
+<div class="modal fade" id="modalTransferencia" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transferir Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Producto:</strong> <span id="nombreProducto"></span></p>
+                <p><strong>Stock disponible:</strong> <span id="stockDisponible"></span></p>
+                <p class="text-muted">Para realizar una transferencia completa, 
+                   <a href="{% url 'sucursales:crear_transferencia' %}">haz click aquí</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function transferirProducto(productoId, nombre, stock) {
+    document.getElementById('nombreProducto').textContent = nombre;
+    document.getElementById('stockDisponible').textContent = stock;
+    new bootstrap.Modal(document.getElementById('modalTransferencia')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Sucursal - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">➕ Crear Nueva Sucursal</h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'sucursales:gestionar' %}" class="btn btn-outline-secondary">
+                ← Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre de la Sucursal *</label>
+                            <input type="text" name="nombre" class="form-control" required
+                                   placeholder="Ej: Tienda Centro, Bodega Principal">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Código *</label>
+                                <input type="text" name="codigo" class="form-control" required
+                                       placeholder="Ej: TDA-001, BOD-001">
+                                <small class="text-muted">Debe ser único</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Tipo *</label>
+                                <select name="tipo" class="form-select" required>
+                                    <option value="TIENDA">🏪 Tienda</option>
+                                    <option value="BODEGA">🏭 Bodega</option>
+                                    <option value="PUNTO_VENTA">🛒 Punto de Venta</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Dirección</label>
+                            <textarea name="direccion" class="form-control" rows="2"
+                                      placeholder="Dirección completa"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Teléfono</label>
+                                <input type="text" name="telefono" class="form-control"
+                                       placeholder="Ej: 3001234567">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Encargado</label>
+                                <select name="encargado" class="form-select">
+                                    <option value="">Sin encargado</option>
+                                    {% for usuario in usuarios %}
+                                    <option value="{{ usuario.id }}">
+                                        {{ usuario.get_full_name }} - {{ usuario.get_rol_display }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="es_principal" id="esPrincipal">
+                            <label class="form-check-label" for="esPrincipal">
+                                ⭐ Marcar como Bodega Principal
+                            </label>
+                            <small class="text-muted d-block">
+                                Solo puede haber una bodega principal
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-lg"></i> Crear Sucursal
+                            </button>
+                            <a href="{% url 'sucursales:gestionar' %}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">💡 Consejos</h5>
+                    
+                    <h6 class="mt-3">Tipos de Sucursal:</h6>
+                    <ul class="small">
+                        <li><strong>🏭 Bodega:</strong> Almacenamiento principal</li>
+                        <li><strong>🏪 Tienda:</strong> Punto de venta permanente</li>
+                        <li><strong>🛒 Punto de Venta:</strong> Venta temporal</li>
+                    </ul>
+
+                    <h6 class="mt-3">Códigos sugeridos:</h6>
+                    <ul class="small">
+                        <li>BOD-001, BOD-002 (Bodegas)</li>
+                        <li>TDA-A, TDA-B (Tiendas)</li>
+                        <li>PV-001 (Puntos de venta)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

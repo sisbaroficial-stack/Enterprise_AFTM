@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Reportes - SISBAR {% endblock %}
+{% block title %}Reportes - SISBAR{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -15,7 +15,7 @@
     <!-- Estadísticas rápidas -->
     <div class="row g-4 mb-4">
         <div class="col-md-4">
-            <div class="card card-custom border-0">
+            <div class="card card-custom border-0 shadow-sm">
                 <div class="card-body text-center">
                     <i class="bi bi-box-seam fs-1 text-primary mb-3"></i>
                     <h3 class="mb-1">{{ total_productos }}</h3>
@@ -25,7 +25,7 @@
         </div>
         
         <div class="col-md-4">
-            <div class="card card-custom border-0">
+            <div class="card card-custom border-0 shadow-sm">
                 <div class="card-body text-center">
                     <i class="bi bi-tags fs-1 text-success mb-3"></i>
                     <h3 class="mb-1">{{ categorias_count }}</h3>
@@ -35,7 +35,7 @@
         </div>
         
         <div class="col-md-4">
-            <div class="card card-custom border-0">
+            <div class="card card-custom border-0 shadow-sm">
                 <div class="card-body text-center">
                     <i class="bi bi-arrow-left-right fs-1 text-warning mb-3"></i>
                     <h3 class="mb-1">{{ movimientos_mes }}</h3>
@@ -45,11 +45,11 @@
         </div>
     </div>
     
-    <!-- Reportes disponibles -->
-    <div class="row g-4">
+    <!-- Reportes principales -->
+    <div class="row g-4 mb-4">
         <!-- Reporte de Inventario -->
         <div class="col-lg-6">
-            <div class="card card-custom border-0 h-100">
+            <div class="card card-custom border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-3 me-3" 
@@ -58,35 +58,29 @@
                         </div>
                         <div>
                             <h5 class="mb-0">Reporte de Inventario</h5>
-                            <p class="text-muted mb-0">Listado completo de productos</p>
+                            <p class="text-muted mb-0 small">Listado completo de productos</p>
                         </div>
                     </div>
                     
-                    <p class="mb-4">
-                        Exporta un listado completo de todos los productos activos con su información detallada: 
-                        código, nombre, categoría, cantidad, estado, precio y proveedor.
+                    <p class="mb-3">
+                        Exporta todos los productos activos con stock real de todas las sucursales, 
+                        categorías, precios y proveedores.
                     </p>
                     
-                    <div class="alert alert-light">
+                    <div class="alert alert-light small">
                         <strong>Incluye:</strong>
                         <ul class="mb-0 mt-2">
-                            <li>Todos los productos activos</li>
-                            <li>Información completa de cada producto</li>
-                            <li>Estado actual del inventario</li>
-                            <li>Datos de categorías y proveedores</li>
+                            <li>Stock total consolidado</li>
+                            <li>Estado actual por producto</li>
+                            <li>Información de categorías y proveedores</li>
                         </ul>
                     </div>
                     
-                    <div class="d-grid gap-2 mt-4">
+                    <div class="d-grid">
                         <a href="{% url 'reportes:exportar_productos_excel' %}" 
                            class="btn btn-success btn-lg">
                             <i class="bi bi-file-earmark-excel me-2"></i>
                             Descargar Excel
-                        </a>
-                        <a href="{% url 'reportes:exportar_productos_pdf' %}" 
-                           class="btn btn-outline-danger btn-lg">
-                            <i class="bi bi-file-earmark-pdf me-2"></i>
-                            Descargar PDF
                         </a>
                     </div>
                 </div>
@@ -95,7 +89,7 @@
         
         <!-- Reporte de Movimientos -->
         <div class="col-lg-6">
-            <div class="card card-custom border-0 h-100">
+            <div class="card card-custom border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-3 me-3" 
@@ -104,33 +98,29 @@
                         </div>
                         <div>
                             <h5 class="mb-0">Reporte de Movimientos</h5>
-                            <p class="text-muted mb-0">Historial de entradas y salidas</p>
+                            <p class="text-muted mb-0 small">Historial de entradas y salidas</p>
                         </div>
                     </div>
                     
-                    <p class="mb-4">
-                        Exporta el historial completo de movimientos de inventario con detalles de fecha, 
-                        tipo de movimiento, producto, cantidad y usuario responsable.
+                    <p class="mb-3">
+                        Exporta el historial completo de movimientos con fecha, tipo, 
+                        producto, cantidad, motivo y usuario responsable.
                     </p>
                     
-                    <div class="alert alert-light">
+                    <div class="alert alert-light small">
                         <strong>Selecciona el período:</strong>
-                        <div class="mt-3">
-                            <form id="formMovimientos" method="get">
-                                <select name="dias" class="form-select mb-3">
-                                    <option value="7">Últimos 7 días</option>
-                                    <option value="15">Últimos 15 días</option>
-                                    <option value="30" selected>Últimos 30 días</option>
-                                    <option value="60">Últimos 60 días</option>
-                                    <option value="90">Últimos 90 días</option>
-                                    <option value="365">Último año</option>
-                                </select>
-                            </form>
-                        </div>
+                        <select name="dias" class="form-select mt-2" id="selectDias">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="15">Últimos 15 días</option>
+                            <option value="30" selected>Últimos 30 días</option>
+                            <option value="60">Últimos 60 días</option>
+                            <option value="90">Últimos 90 días</option>
+                            <option value="365">Último año</option>
+                        </select>
                     </div>
                     
-                    <div class="d-grid gap-2 mt-4">
-                        <button onclick="exportarMovimientos()" class="btn btn-success btn-lg">
+                    <div class="d-grid">
+                        <button onclick="exportarMovimientos()" class="btn btn-warning btn-lg">
                             <i class="bi bi-file-earmark-excel me-2"></i>
                             Descargar Excel
                         </button>
@@ -138,81 +128,141 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Más reportes próximamente -->
-        <div class="col-lg-6">
-            <div class="card card-custom border-0 h-100">
-                <div class="card-body p-4 text-center">
-                    <div class="rounded-circle p-3 mx-auto mb-3" 
-                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-graph-up text-white fs-1"></i>
+    </div>
+
+    <!-- Reportes analíticos -->
+    <h5 class="mb-3">
+        <i class="bi bi-graph-up me-2"></i>Reportes Analíticos
+    </h5>
+    
+    <div class="row g-3 mb-4">
+        <!-- Reporte ABC -->
+        <div class="col-md-4">
+            <div class="card card-custom border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-bar-chart-line fs-3 text-info me-3"></i>
+                        <div>
+                            <h6 class="mb-0">Reporte ABC</h6>
+                            <small class="text-muted">Clasificación por ventas</small>
+                        </div>
                     </div>
-                    <h5 class="mb-2">Reporte de Estadísticas</h5>
-                    <p class="text-muted">
-                        Análisis detallado con gráficas y tendencias
+                    <p class="small mb-3">
+                        Identifica productos Clase A (80% ventas), B (15%) y C (5%). 
+                        Prioriza tu inversión en stock.
                     </p>
-                    <span class="badge bg-info">Próximamente</span>
+                    <a href="{% url 'reportes:reporte_abc' %}" class="btn btn-info w-100">
+                        <i class="bi bi-eye me-2"></i>Ver Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rotación -->
+        <div class="col-md-4">
+            <div class="card card-custom border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-arrow-repeat fs-3 text-primary me-3"></i>
+                        <div>
+                            <h6 class="mb-0">Rotación de Inventario</h6>
+                            <small class="text-muted">Velocidad de venta</small>
+                        </div>
+                    </div>
+                    <p class="small mb-3">
+                        Mide qué tan rápido se venden tus productos. 
+                        Identifica productos de alta y baja rotación.
+                    </p>
+                    <a href="{% url 'reportes:reporte_rotacion' %}" class="btn btn-primary w-100">
+                        <i class="bi bi-eye me-2"></i>Ver Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sin Movimiento -->
+        <div class="col-md-4">
+            <div class="card card-custom border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-exclamation-triangle fs-3 text-danger me-3"></i>
+                        <div>
+                            <h6 class="mb-0">Sin Movimiento</h6>
+                            <small class="text-muted">Productos estancados</small>
+                        </div>
+                    </div>
+                    <p class="small mb-3">
+                        Detecta productos sin actividad. 
+                        Identifica capital inmovilizado y toma decisiones.
+                    </p>
+                    <a href="{% url 'reportes:sin_movimiento' %}" class="btn btn-danger w-100">
+                        <i class="bi bi-eye me-2"></i>Ver Reporte
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Próximamente -->
+    <h5 class="mb-3">
+        <i class="bi bi-clock-history me-2"></i>Próximamente
+    </h5>
+    
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-graph-up fs-1 text-secondary mb-3"></i>
+                    <h6 class="mb-2">Reporte de Estadísticas</h6>
+                    <p class="text-muted small mb-0">Análisis con gráficas y tendencias</p>
+                    <span class="badge bg-secondary mt-2">En desarrollo</span>
                 </div>
             </div>
         </div>
         
-        <div class="col-lg-6">
-            <div class="card card-custom border-0 h-100">
-                <div class="card-body p-4 text-center">
-                    <div class="rounded-circle p-3 mx-auto mb-3" 
-                         style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-receipt text-white fs-1"></i>
-                    </div>
-                    <h5 class="mb-2">Reporte de Valorización</h5>
-                    <p class="text-muted">
-                        Valor total del inventario por categorías
-                    </p>
-                    <span class="badge bg-info">Próximamente</span>
+        <div class="col-md-6">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-receipt fs-1 text-secondary mb-3"></i>
+                    <h6 class="mb-2">Reporte de Valorización</h6>
+                    <p class="text-muted small mb-0">Valor del inventario por categorías</p>
+                    <span class="badge bg-secondary mt-2">En desarrollo</span>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Información adicional -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card card-custom border-0">
-                <div class="card-body">
-                    <h5 class="mb-3">
-                        <i class="bi bi-info-circle text-primary me-2"></i>
-                        Información sobre Reportes
-                    </h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <h6>📄 Formato Excel</h6>
-                            <p class="small text-muted mb-0">
-                                Los archivos Excel incluyen formato profesional con colores, 
-                                bordes y estilos para facilitar la lectura. Puedes editarlos 
-                                después de descargarlos.
-                            </p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <h6>📑 Formato PDF</h6>
-                            <p class="small text-muted mb-0">
-                                Los archivos PDF son ideales para impresión y presentaciones. 
-                                Incluyen estadísticas resumidas al final del documento.
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>🔒 Seguridad</h6>
-                            <p class="small text-muted mb-0">
-                                Todas las exportaciones quedan registradas en el historial 
-                                de actividad para fines de auditoría.
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>⚡ Rendimiento</h6>
-                            <p class="small text-muted mb-0">
-                                Los reportes se generan en tiempo real con los datos más 
-                                actualizados del sistema.
-                            </p>
-                        </div>
-                    </div>
+    <!-- Información -->
+    <div class="card card-custom border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <h6 class="mb-3">
+                <i class="bi bi-info-circle text-primary me-2"></i>
+                Información sobre Reportes
+            </h6>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <strong class="d-block mb-1">📄 Formato Excel</strong>
+                    <small class="text-muted">
+                        Con formato profesional, colores y estilos. Editables.
+                    </small>
+                </div>
+                <div class="col-md-3">
+                    <strong class="d-block mb-1">🔒 Seguridad</strong>
+                    <small class="text-muted">
+                        Todas las exportaciones quedan registradas.
+                    </small>
+                </div>
+                <div class="col-md-3">
+                    <strong class="d-block mb-1">⚡ Tiempo Real</strong>
+                    <small class="text-muted">
+                        Datos actualizados al momento de generar.
+                    </small>
+                </div>
+                <div class="col-md-3">
+                    <strong class="d-block mb-1">📊 Precisión</strong>
+                    <small class="text-muted">
+                        Stock consolidado de todas las sucursales.
+                    </small>
                 </div>
             </div>
         </div>
@@ -220,9 +270,9 @@
 </div>
 
 <script>
-    function exportarMovimientos() {
-        const dias = document.querySelector('select[name="dias"]').value;
-        window.location.href = `{% url 'reportes:exportar_movimientos_excel' %}?dias=${dias}`;
-    }
+function exportarMovimientos() {
+    const dias = document.getElementById('selectDias').value;
+    window.location.href = `{% url 'reportes:exportar_movimientos_excel' %}?dias=${dias}`;
+}
 </script>
 {% endblock %}

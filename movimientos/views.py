@@ -1,20 +1,20 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from .models import Movimiento, AlertaInventario
 from datetime import timedelta
 from django.utils import timezone
 
+# Importar los modelos correctos desde la app inventario
+from inventario.models import MovimientoInventario, AlertaInventario
 
 @login_required
 def listar_movimientos_view(request):
     """Lista todos los movimientos"""
-    # Filtro por período
     dias = int(request.GET.get('dias', 7))
     fecha_desde = timezone.now() - timedelta(days=dias)
     
-    movimientos = Movimiento.objects.filter(
+    movimientos = MovimientoInventario.objects.filter(
         fecha__gte=fecha_desde
-    ).select_related('producto', 'usuario').order_by('-fecha')
+    ).select_related('producto', 'usuario', 'sucursal').order_by('-fecha')
     
     context = {
         'movimientos': movimientos,
@@ -34,3 +34,34 @@ def listar_alertas_view(request):
         'alertas': alertas,
     }
     return render(request, 'movimientos/alertas.html', context)
+
+
+@login_required
+def panel_inventario(request):
+    """Panel general de inventario y alertas"""
+    dias = int(request.GET.get('dias', 7))
+    fecha_inicio = timezone.now() - timedelta(days=dias)
+
+    # Movimientos
+    if request.user.rol in ['ADMIN', 'SUPER_ADMIN']:
+        movimientos = MovimientoInventario.objects.filter(
+            fecha__gte=fecha_inicio
+        ).select_related('producto', 'usuario', 'sucursal').order_by('-fecha')
+        
+        alertas = AlertaInventario.objects.all().order_by('-fecha_generada')
+    else:
+        sucursal_id = request.session.get('sucursal_actual')
+        movimientos = MovimientoInventario.objects.filter(
+            fecha__gte=fecha_inicio,
+            sucursal_id=sucursal_id
+        ).select_related('producto', 'usuario').order_by('-fecha')
+        
+        alertas = AlertaInventario.objects.filter(
+            producto__inventariosucursal__sucursal_id=sucursal_id
+        ).order_by('-fecha_generada')
+
+    return render(request, 'inventario/panel_inventario.html', {
+        'movimientos': movimientos,
+        'alertas': alertas,
+        'dias': dias
+    })

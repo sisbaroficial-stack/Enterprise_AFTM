@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Transferencias{% if sucursal %} - {{ sucursal.nombre }}{% else %} - Todas las sucursales{% endif %} - SISBAR
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">📦 Transferencias</h1>
+            {% if sucursal %}
+                <p class="text-muted">{{ sucursal.nombre }}</p>
+            {% else %}
+                <p class="text-muted">Todas las sucursales</p>
+            {% endif %}
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'sucursales:crear_transferencia' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Nueva Transferencia
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    <select name="estado" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos los estados</option>
+                        <option value="PENDIENTE" {% if estado_filtro == 'PENDIENTE' %}selected{% endif %}>⏳ Pendientes</option>
+                        <option value="EN_TRANSITO" {% if estado_filtro == 'EN_TRANSITO' %}selected{% endif %}>🚚 En Tránsito</option>
+                        <option value="RECIBIDA" {% if estado_filtro == 'RECIBIDA' %}selected{% endif %}>✅ Recibidas</option>
+                        <option value="RECHAZADA" {% if estado_filtro == 'RECHAZADA' %}selected{% endif %}>❌ Rechazadas</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'sucursales:lista_transferencias' %}" class="btn btn-outline-secondary w-100">
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de transferencias -->
+    {% if transferencias %}
+        {% for trans in transferencias %}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-2">
+                        <h6 class="mb-1">{{ trans.codigo }}</h6>
+                        <small class="text-muted">{{ trans.fecha_solicitud|date:"d/m/Y H:i" }}</small>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <strong>{{ trans.producto.nombre }}</strong><br>
+                        <small class="text-muted">{{ trans.producto.codigo }}</small>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div>
+                                <small class="text-muted d-block">Origen</small>
+                                <strong>{{ trans.sucursal_origen.codigo }}</strong>
+                            </div>
+                            <div>
+                                <i class="bi bi-arrow-right text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Destino</small>
+                                <strong>{{ trans.sucursal_destino.codigo }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <strong class="fs-4">{{ trans.cantidad }}</strong>
+                            <small class="d-block text-muted">unidades</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2 text-end">
+                        {% if trans.estado == 'PENDIENTE' %}
+                            <span class="badge bg-warning mb-2">⏳ Pendiente</span>
+                        {% elif trans.estado == 'EN_TRANSITO' %}
+                            <span class="badge bg-info mb-2">🚚 En Tránsito</span>
+                            {% if sucursal and trans.sucursal_destino == sucursal %}
+                            <form method="post" action="{% url 'sucursales:recibir_transferencia' trans.id %}" 
+                                  onsubmit="return confirm('¿Confirmar recepción de {{ trans.cantidad }} unidades?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm w-100">✓ Recibir</button>
+                            </form>
+                            {% endif %}
+                        {% elif trans.estado == 'RECIBIDA' %}
+                            <span class="badge bg-success mb-2">✅ Recibida</span>
+                            <small class="text-muted d-block">{{ trans.fecha_recepcion|date:"d/m/Y" }}</small>
+                        {% elif trans.estado == 'RECHAZADA' %}
+                            <span class="badge bg-danger mb-2">❌ Rechazada</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if trans.motivo %}
+                <div class="row mt-3">
+                    <div class="col">
+                        <small class="text-muted"><strong>Motivo:</strong> {{ trans.motivo }}</small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+            <h5>No hay transferencias</h5>
+            <p class="mb-0">Crea tu primera transferencia entre sucursales</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

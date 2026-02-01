@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos Sin Movimiento - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">⚠️ Productos Sin Movimiento</h1>
+            <p class="text-muted">Productos que no han tenido actividad</p>
+        </div>
+        <div class="col-auto">
+            <form method="get" class="d-flex gap-2">
+                <select name="dias" class="form-select" onchange="this.form.submit()">
+                    <option value="30" {% if dias == 30 %}selected{% endif %}>30 días</option>
+                    <option value="60" {% if dias == 60 %}selected{% endif %}>60 días</option>
+                    <option value="90" {% if dias == 90 %}selected{% endif %}>90 días</option>
+                    <option value="180" {% if dias == 180 %}selected{% endif %}>180 días</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm border-start border-warning border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Total Productos Sin Movimiento</h6>
+                    <h2 class="mb-0 text-warning">{{ total_productos }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm border-start border-danger border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Valor Total Inmovilizado</h6>
+                    <h2 class="mb-0 text-danger">${{ valor_total|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card card-custom border-0 shadow-sm">
+        <div class="card-body">
+            {% if productos %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Estos productos llevan <strong>{{ dias }} días sin movimiento</strong>. Considera liquidarlos o transferirlos.
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Proveedor</th>
+                            <th class="text-center">Stock Total</th>
+                            <th class="text-end">Valor Stock</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in productos %}
+                        <tr>
+                            <td>
+                                <code class="badge bg-secondary">{{ item.producto.codigo }}</code>
+                            </td>
+                            <td>
+                                <strong>{{ item.producto.nombre }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ item.producto.categoria.nombre }}</span>
+                            </td>
+                            <td>
+                                <small>{{ item.producto.proveedor.nombre|default:"Sin proveedor" }}</small>
+                            </td>
+                            <td class="text-center">
+                                <strong>{{ item.stock_total }}</strong>
+                                <br><small class="text-muted">{{ item.producto.unidad_medida }}</small>
+                            </td>
+                            <td class="text-end">
+                                <strong>${{ item.valor_stock|floatformat:2 }}</strong>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'inventario:detalle_producto' item.producto.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <th colspan="5" class="text-end">TOTAL INMOVILIZADO:</th>
+                            <th class="text-end">${{ valor_total|floatformat:2 }}</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-success text-center">
+                <i class="bi bi-check-circle fs-1 d-block mb-3"></i>
+                <h5>¡Excelente!</h5>
+                <p class="mb-0">Todos los productos han tenido movimiento en los últimos {{ dias }} días</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recomendaciones -->
+    {% if productos %}
+    <div class="card border-0 shadow-sm bg-light mt-4">
+        <div class="card-body">
+            <h6 class="mb-3">💡 Recomendaciones:</h6>
+            <ul class="small mb-0">
+                <li>Considera <strong>liquidar</strong> estos productos con descuentos</li>
+                <li>Evalúa <strong>transferir</strong> a otras sucursales que los necesiten</li>
+                <li><strong>Descontinuar</strong> compra de productos que no rotan</li>
+                <li>Realizar <strong>promociones</strong> para activar ventas</li>
+                <li>Verificar si están <strong>bien ubicados</strong> en la tienda</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

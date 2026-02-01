@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte ABC - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">📊 Reporte ABC de Productos</h1>
+            <p class="text-muted">Clasificación por importancia de ventas</p>
+        </div>
+        <div class="col-auto">
+            <form method="get" class="d-flex gap-2">
+                <select name="dias" class="form-select" onchange="this.form.submit()">
+                    <option value="7" {% if dias == 7 %}selected{% endif %}>Últimos 7 días</option>
+                    <option value="15" {% if dias == 15 %}selected{% endif %}>Últimos 15 días</option>
+                    <option value="30" {% if dias == 30 %}selected{% endif %}>Últimos 30 días</option>
+                    <option value="60" {% if dias == 60 %}selected{% endif %}>Últimos 60 días</option>
+                    <option value="90" {% if dias == 90 %}selected{% endif %}>Últimos 90 días</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen por clase -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-success border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Clase A - MUY IMPORTANTES</h6>
+                    <h2 class="mb-1 text-success">{{ clase_a }}</h2>
+                    <small class="text-muted">80% de las ventas</small>
+                    <p class="small mb-0 mt-2">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Nunca pueden faltar
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-warning border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Clase B - IMPORTANTES</h6>
+                    <h2 class="mb-1 text-warning">{{ clase_b }}</h2>
+                    <small class="text-muted">15% de las ventas</small>
+                    <p class="small mb-0 mt-2">
+                        <i class="bi bi-dash-circle me-1"></i>
+                        Control moderado
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-secondary border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Clase C - MENOS IMPORTANTES</h6>
+                    <h2 class="mb-1 text-secondary">{{ clase_c }}</h2>
+                    <small class="text-muted">5% de las ventas</small>
+                    <p class="small mb-0 mt-2">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Puede quedarse sin stock
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="card card-custom border-0 shadow-sm">
+        <div class="card-body">
+            {% if productos %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 8%;">Clase</th>
+                            <th style="width: 10%;">Código</th>
+                            <th style="width: 35%;">Producto</th>
+                            <th style="width: 12%;" class="text-end">Unidades Vendidas</th>
+                            <th style="width: 12%;" class="text-end">Valor Total</th>
+                            <th style="width: 10%;" class="text-end">% Ventas</th>
+                            <th style="width: 13%;" class="text-end">% Acumulado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in productos %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-{{ item.color }} fs-6">
+                                    {{ item.clase }}
+                                </span>
+                            </td>
+                            <td>
+                                <code class="badge bg-secondary">{{ item.producto.codigo }}</code>
+                            </td>
+                            <td>
+                                <strong>{{ item.producto.nombre }}</strong>
+                                <br><small class="text-muted">{{ item.producto.categoria.nombre }}</small>
+                            </td>
+                            <td class="text-end">
+                                <strong>{{ item.total_vendido }}</strong>
+                                <br><small class="text-muted">{{ item.producto.unidad_medida }}</small>
+                            </td>
+                            <td class="text-end">
+                                <strong>${{ item.valor_total|floatformat:2 }}</strong>
+                            </td>
+                            <td class="text-end">
+                                <span class="badge bg-light text-dark">{{ item.porcentaje }}%</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="badge bg-primary">{{ item.acumulado }}%</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <th colspan="4" class="text-end">TOTAL:</th>
+                            <th class="text-end">${{ total_ventas|floatformat:2 }}</th>
+                            <th class="text-end">100%</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-warning text-center">
+                <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                <h5>No hay datos de ventas</h5>
+                <p class="mb-0">No se registraron ventas en los últimos {{ dias }} días</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Explicación -->
+    <div class="card border-0 shadow-sm bg-light mt-4">
+        <div class="card-body">
+            <h6 class="mb-3">📖 ¿Qué es el Reporte ABC?</h6>
+            <p class="small mb-2">
+                Es una técnica de clasificación de productos basada en el <strong>Principio de Pareto (80/20)</strong>:
+            </p>
+            <ul class="small mb-0">
+                <li><strong>Clase A:</strong> 20% de productos que generan 80% de ventas → Alta prioridad, nunca faltar</li>
+                <li><strong>Clase B:</strong> 30% de productos que generan 15% de ventas → Control moderado</li>
+                <li><strong>Clase C:</strong> 50% de productos que generan 5% de ventas → Puede faltar ocasionalmente</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

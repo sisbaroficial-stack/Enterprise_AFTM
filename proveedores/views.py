@@ -3,10 +3,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Proveedor
 from usuarios.views import registrar_actividad
+from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 
 
 @login_required
 def listar_proveedores_view(request):
+        # 🔒 BLOQUEO REAL POR ROL
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos")
+
     """Lista todos los proveedores"""
     proveedores = Proveedor.objects.filter(activo=True).order_by('nombre')
     
@@ -18,10 +24,10 @@ def listar_proveedores_view(request):
 
 @login_required
 def crear_proveedor_view(request):
-    """Crear nuevo proveedor"""
-    if not request.user.puede_gestionar_inventario():
-        messages.error(request, '❌ No tienes permisos.')
-        return redirect('proveedores:listar')
+   
+       # 🔒 BLOQUEO REAL POR ROL
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos ")
     
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -64,7 +70,10 @@ def crear_proveedor_view(request):
 
 @login_required
 def ver_proveedor_view(request, proveedor_id):
-    """Ver detalles del proveedor"""
+          # 🔒 BLOQUEO REAL POR ROL
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos para eliminar productos")
+
     proveedor = get_object_or_404(Proveedor, id=proveedor_id)
     productos = proveedor.productos.filter(activo=True)[:10]
     
@@ -78,9 +87,8 @@ def ver_proveedor_view(request, proveedor_id):
 @login_required
 def editar_proveedor_view(request, proveedor_id):
     """Editar proveedor"""
-    if not request.user.puede_gestionar_inventario():
-        messages.error(request, '❌ No tienes permisos.')
-        return redirect('proveedores:listar')
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos para eliminar productos")
     
     proveedor = get_object_or_404(Proveedor, id=proveedor_id)
     
@@ -113,9 +121,8 @@ def editar_proveedor_view(request, proveedor_id):
 @login_required
 def eliminar_proveedor_view(request, proveedor_id):
     """Desactivar proveedor"""
-    if not request.user.puede_eliminar():
-        messages.error(request, '❌ No tienes permisos.')
-        return redirect('proveedores:listar')
+    if request.user.rol not in ['SUPER_ADMIN', 'ADMIN']:
+        return HttpResponseForbidden("No tienes permisos")
     
     proveedor = get_object_or_404(Proveedor, id=proveedor_id)
     

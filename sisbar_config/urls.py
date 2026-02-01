@@ -2,27 +2,25 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import RedirectView
-from . import views
+from . import views  # Tu index_view
 
 urlpatterns = [
     # Admin
     path('admin/', admin.site.urls),
 
-    # Mantener redirección al login
+    # Página principal / login
     path('', views.index_view, name='index'),
-
-    # Página index
     path('index/', views.index_view, name='index'),
 
     # Apps
-    path('usuarios/', include('usuarios.urls')),
-    path('dashboard/', include('dashboard.urls')),
-    path('inventario/', include('inventario.urls')),
-    path('categorias/', include('categorias.urls')),
-    path('proveedores/', include('proveedores.urls')),
-    path('movimientos/', include('movimientos.urls')),
-    path('reportes/', include('reportes.urls')),
+    path('usuarios/', include('usuarios.urls', namespace='usuarios')),
+    path('dashboard/', include('dashboard.urls', namespace='dashboard')),  # ✅ CORRECTO
+    path('inventario/', include('inventario.urls', namespace='inventario')),
+    path('categorias/', include('categorias.urls', namespace='categorias')),
+    path('proveedores/', include('proveedores.urls', namespace='proveedores')),
+    path('movimientos/', include('movimientos.urls', namespace='movimientos')),
+    path('reportes/', include('reportes.urls', namespace='reportes')),
+    path('sucursales/', include('sucursales.urls', namespace='sucursales')),
 ]
 
 # Media & Static

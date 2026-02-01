@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} - SISBAR {% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'inventario:listar_productos' %}" class="btn btn-outline-secondary mb-3">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+            <h1 class="h2 mb-1">{{ titulo }}</h1>
+            <p class="text-muted">Completa la información del producto</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Identificación -->
+                <div class="card card-custom border-0 mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">🔖 Identificación</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.codigo.id_for_label }}" class="form-label fw-semibold">
+                                    Código / Referencia *
+                                </label>
+                                {{ form.codigo }}
+                                <small class="text-muted">Código único del producto</small>
+                                {% if form.codigo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.codigo.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.codigo_barras.id_for_label }}" class="form-label fw-semibold">
+                                    Código de Barras
+                                </label>
+                                {{ form.codigo_barras }}
+                                <small class="text-muted">Para escaneo (opcional)</small>
+                                {% if form.codigo_barras.errors %}
+                                    <div class="text-danger small mt-1">{{ form.codigo_barras.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Básica -->
+                <div class="card card-custom border-0 mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">📝 Información Básica</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label fw-semibold">
+                                Nombre del Producto *
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                                <div class="text-danger small mt-1">{{ form.nombre.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-semibold">
+                                Descripción
+                            </label>
+                            {{ form.descripcion }}
+                            <small class="text-muted">Descripción detallada del producto</small>
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger small mt-1">{{ form.descripcion.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.imagen.id_for_label }}" class="form-label fw-semibold">
+                                Imagen del Producto
+                            </label>
+                            {{ form.imagen }}
+                            {% if producto and producto.imagen %}
+                                <div class="mt-2">
+                                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" 
+                                         width="150" class="img-thumbnail">
+                                </div>
+                            {% endif %}
+                            {% if form.imagen.errors %}
+                                <div class="text-danger small mt-1">{{ form.imagen.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Categorización -->
+                <div class="card card-custom border-0 mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">🏷️ Categorización</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.categoria.id_for_label }}" class="form-label fw-semibold">
+                                    Categoría *
+                                </label>
+                                {{ form.categoria }}
+                                {% if form.categoria.errors %}
+                                    <div class="text-danger small mt-1">{{ form.categoria.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.subcategoria.id_for_label }}" class="form-label fw-semibold">
+                                    Subcategoría
+                                </label>
+                                {{ form.subcategoria }}
+                                <small class="text-muted">Opcional</small>
+                                {% if form.subcategoria.errors %}
+                                    <div class="text-danger small mt-1">{{ form.subcategoria.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventario -->
+                <div class="card card-custom border-0 mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">📊 Inventario</h5>
+                        {% if producto %}
+                            <a href="{% url 'inventario:agregar_stock' producto.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-box-seam me-1"></i>Gestionar Stock
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.cantidad_minima.id_for_label }}" class="form-label fw-semibold">
+                                    Cantidad Mínima *
+                                </label>
+                                {{ form.cantidad_minima }}
+                                <small class="text-muted">Alerta cuando llegue a este nivel</small>
+                                {% if form.cantidad_minima.errors %}
+                                    <div class="text-danger small mt-1">{{ form.cantidad_minima.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.unidad_medida.id_for_label }}" class="form-label fw-semibold">
+                                    Unidad de Medida *
+                                </label>
+                                {{ form.unidad_medida }}
+                                {% if form.unidad_medida.errors %}
+                                    <div class="text-danger small mt-1">{{ form.unidad_medida.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="id_cantidad_inicial" class="form-label fw-semibold">
+                                    Cantidad Inicial en Sucursal *
+                                </label>
+                                <input type="number"
+                                    name="cantidad_inicial"
+                                    id="id_cantidad_inicial"
+                                    class="form-control"
+                                    value="0"
+                                    min="0">
+                                <small class="text-muted">Cantidad inicial que tendrá esta sucursal</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.ubicacion.id_for_label }}" class="form-label fw-semibold">
+                                    Ubicación en Bodega
+                                </label>
+                                {{ form.ubicacion }}
+                                <small class="text-muted">Ej: Estante A-3, Bodega 1</small>
+                                {% if form.ubicacion.errors %}
+                                    <div class="text-danger small mt-1">{{ form.ubicacion.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Precio y Proveedor -->
+                <div class="card card-custom border-0 mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">💰 Precio y Proveedor</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.precio_compra.id_for_label }}" class="form-label fw-semibold">
+                                    Precio de Compra *
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.precio_compra }}
+                                </div>
+                                <small class="text-muted">Solo para control interno</small>
+                                {% if form.precio_compra.errors %}
+                                    <div class="text-danger small mt-1">{{ form.precio_compra.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.proveedor.id_for_label }}" class="form-label fw-semibold">
+                                    Proveedor
+                                </label>
+                                {{ form.proveedor }}
+                                <small class="text-muted">Opcional</small>
+                                {% if form.proveedor.errors %}
+                                    <div class="text-danger small mt-1">{{ form.proveedor.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <!-- Botones -->
+                <div class="card card-custom border-0 mb-4">
+                    <div class="card-body d-flex gap-2">
+                        <button type="submit" class="btn btn-gradient flex-grow-1 py-3">
+                            <i class="bi bi-save me-2"></i>
+                            {% if producto %}Actualizar Producto{% else %}Crear Producto{% endif %}
+                        </button>
+                        <a href="{% url 'inventario:listar_productos' %}" class="btn btn-outline-secondary py-3">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Cargar subcategorías dinámicamente
+    const categoriaSelect = document.getElementById('id_categoria');
+    const subcategoriaSelect = document.getElementById('id_subcategoria');
+    if (categoriaSelect) {
+        categoriaSelect.addEventListener('change', function() {
+            const categoriaId = this.value;
+            if (!categoriaId) {
+                subcategoriaSelect.innerHTML = '<option value="">---------</option>';
+                return;
+            }
+            // Aquí podrías agregar lógica AJAX para cargar subcategorías dinámicamente
+        });
+    }
+</script>
+{% endblock %}

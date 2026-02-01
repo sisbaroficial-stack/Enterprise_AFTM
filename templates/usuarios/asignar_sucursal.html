@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Asignar Sucursal - SISBAR{% endblock %}
+
+{% block content %}
+<h2>Asignar Sucursal a {{ usuario.username }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="sucursal" class="form-label">Sucursal</label>
+        <select name="sucursal" id="sucursal" class="form-select">
+            {% for s in sucursales %}
+                <option value="{{ s.id }}" {% if usuario.sucursal and usuario.sucursal.id == s.id %}selected{% endif %}>
+                    {{ s.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Asignar</button>
+</form>
+{% endblock %}

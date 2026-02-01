@@ -1,207 +1,141 @@
 {% extends 'base.html' %}
 
-{% block title %}Descontar Producto - SISBAR {% endblock %}
+{% block title %}Descontar Producto - SISBAR{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Encabezado -->
     <div class="row mb-4">
         <div class="col">
-            <h1 class="h2 mb-1">📤 Descontar Producto</h1>
-            <p class="text-muted">Registra salidas de inventario</p>
+            <h1 class="h2 mb-1">➖ Descontar Producto</h1>
+            <p class="text-muted">{{ sucursal.nombre }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'inventario:listar_productos' %}" class="btn btn-outline-secondary">
+                ← Volver
+            </a>
         </div>
     </div>
-    
+
     <div class="row">
-        <!-- Formulario de descuento -->
-        <div class="col-lg-6 mb-4">
-            <div class="card card-custom border-0">
-                <div class="card-body p-4">
-                    <div class="alert alert-info mb-4">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Tip:</strong> Escanea el código de barras o escribe el código del producto.
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4 border-start border-primary border-4">
+                <div class="card-body">
+                    <h5>📦 {{ producto.nombre }}</h5>
+                    <p class="text-muted mb-0"><code>{{ producto.codigo }}</code></p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4 bg-light">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">Stock Actual</h6>
+                            <h2 class="mb-0 {% if inventario.cantidad == 0 %}text-danger{% elif inventario.cantidad <= inventario.cantidad_minima %}text-warning{% else %}text-success{% endif %}">
+                                {{ inventario.cantidad }}
+                            </h2>
+                            <small class="text-muted">{{ producto.get_unidad_medida_display }}</small>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">Stock Mínimo</h6>
+                            <h2 class="mb-0">{{ inventario.cantidad_minima }}</h2>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">Ubicación</h6>
+                            <p class="mb-0">{{ inventario.ubicacion|default:"Sin ubicación" }}</p>
+                        </div>
                     </div>
-                    
-                    <form method="post" id="formDescontar">
+                </div>
+            </div>
+
+            {% if inventario.cantidad == 0 %}
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Producto agotado</strong> - No hay stock disponible en esta sucursal
+            </div>
+            {% else %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post">
                         {% csrf_token %}
-                        
+
                         <div class="mb-4">
-                            <label for="{{ form.codigo.id_for_label }}" class="form-label fw-semibold fs-5">
-                                <i class="bi bi-upc-scan me-2"></i>Código del Producto
-                            </label>
-                            {{ form.codigo }}
-                            {% if form.codigo.errors %}
-                                <div class="text-danger small mt-1">{{ form.codigo.errors }}</div>
-                            {% endif %}
+                            <label class="form-label fw-bold">Cantidad a Descontar *</label>
+                            <input type="number" name="cantidad" class="form-control form-control-lg" 
+                                   required min="1" max="{{ inventario.cantidad }}"
+                                   placeholder="Ingrese cantidad">
+                            <small class="text-muted">
+                                Máximo disponible: <strong>{{ inventario.cantidad }}</strong>
+                            </small>
                         </div>
-                        
-                        <!-- Información del producto (se mostrará dinámicamente) -->
-                        <div id="productoInfo" class="mb-4" style="display: none;">
-                            <div class="alert alert-success">
-                                <h6 class="mb-3"><strong>✅ Producto Encontrado</strong></h6>
-                                <div id="productoDetalles"></div>
-                            </div>
-                        </div>
-                        
+
                         <div class="mb-4">
-                            <label for="{{ form.cantidad.id_for_label }}" class="form-label fw-semibold fs-5">
-                                <i class="bi bi-calculator me-2"></i>Cantidad a Descontar
-                            </label>
-                            {{ form.cantidad }}
-                            {% if form.cantidad.errors %}
-                                <div class="text-danger small mt-1">{{ form.cantidad.errors }}</div>
-                            {% endif %}
+                            <label class="form-label fw-bold">Motivo *</label>
+                            <select name="motivo" class="form-select" required>
+                                <option value="VENTA">🛒 Venta</option>
+                                <option value="AVERIADO">⚠️ Producto Averiado</option>
+                                <option value="DEVOLUCION">↩️ Devolución a Proveedor</option>
+                                <option value="MERMA">📉 Merma / Pérdida</option>
+                                <option value="AJUSTE">🔧 Ajuste de Inventario</option>
+                                <option value="OTRO">📝 Otro</option>
+                            </select>
                         </div>
-                        
+
                         <div class="mb-4">
-                            <label for="{{ form.motivo.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-pencil me-2"></i>Motivo (Opcional)
-                            </label>
-                            {{ form.motivo }}
-                            {% if form.motivo.errors %}
-                                <div class="text-danger small mt-1">{{ form.motivo.errors }}</div>
-                            {% endif %}
+                            <label class="form-label fw-bold">Observaciones</label>
+                            <textarea name="observaciones" class="form-control" rows="3"
+                                      placeholder="Ej: Venta a cliente, Producto vencido, etc."></textarea>
                         </div>
-                        
-                        <button type="submit" class="btn btn-gradient w-100 py-3 fs-5">
-                            <i class="bi bi-arrow-down-circle me-2"></i>
-                            Descontar Producto
-                        </button>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Este descuento se registrará en <strong>{{ sucursal.nombre }}</strong>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="bi bi-dash-circle me-2"></i>
+                                Descontar Producto
+                            </button>
+                            <a href="{% url 'inventario:listar_productos' %}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
                     </form>
                 </div>
             </div>
-            
-            <!-- Ayuda -->
-            <div class="card card-custom border-0 mt-4">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-3">💡 Guía Rápida</h6>
-                    <ol class="mb-0">
-                        <li class="mb-2">Escanea o escribe el código del producto</li>
-                        <li class="mb-2">Verifica que sea el producto correcto</li>
-                        <li class="mb-2">Ingresa la cantidad a descontar</li>
-                        <li class="mb-2">Opcionalmente, agrega un motivo</li>
-                        <li>Presiona "Descontar Producto"</li>
-                    </ol>
-                </div>
-            </div>
+            {% endif %}
         </div>
-        
-        <!-- Últimos movimientos -->
-        <div class="col-lg-6">
-            <div class="card card-custom border-0">
-                <div class="card-header bg-transparent border-0 pt-4">
-                    <h5 class="mb-0">📋 Últimas Salidas</h5>
-                </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm bg-light">
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Cantidad</th>
-                                    <th>Usuario</th>
-                                    <th>Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if ultimos_movimientos %}
-                                    {% for mov in ultimos_movimientos %}
-                                    <tr>
-                                        <td>
-                                            <strong>{{ mov.producto.nombre }}</strong>
-                                            <br><small class="text-muted">{{ mov.producto.codigo }}</small>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-danger">
-                                                -{{ mov.cantidad }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <small>{{ mov.usuario.username }}</small>
-                                        </td>
-                                        <td>
-                                            <small>{{ mov.fecha|date:"d/m/Y H:i" }}</small>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="4" class="text-center text-muted">
-                                            No hay movimientos recientes
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
+                    <h5 class="card-title">ℹ️ Información</h5>
+                    
+                    <h6 class="mt-4">Detalles del Producto:</h6>
+                    <ul class="small">
+                        <li><strong>Categoría:</strong> {{ producto.categoria.nombre }}</li>
+                        <li><strong>Precio Compra:</strong> ${{ producto.precio_compra|floatformat:0 }}</li>
+                        <li><strong>Precio Venta:</strong> ${{ producto.precio_venta|floatformat:0 }}</li>
+                    </ul>
+
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <i class="bi bi-lightbulb me-1"></i>
+                            El descuento solo afecta el inventario de tu sucursal actual
+                        </small>
                     </div>
+
+                    {% if inventario.cantidad <= inventario.cantidad_minima and inventario.cantidad > 0 %}
+                    <div class="alert alert-warning mt-3">
+                        <small>
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Stock bajo - considera solicitar transferencia
+                        </small>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Buscar producto en tiempo real
-    const codigoInput = document.querySelector('input[name="codigo"]');
-    const productoInfo = document.getElementById('productoInfo');
-    const productoDetalles = document.getElementById('productoDetalles');
-    
-    let timeoutId;
-    
-    codigoInput.addEventListener('input', function() {
-        clearTimeout(timeoutId);
-        
-        const codigo = this.value.trim();
-        
-        if (codigo.length >= 3) {
-            timeoutId = setTimeout(() => {
-                buscarProducto(codigo);
-            }, 500);
-        } else {
-            productoInfo.style.display = 'none';
-        }
-    });
-    
-    function buscarProducto(codigo) {
-        fetch(`/inventario/buscar-ajax/?codigo=${encodeURIComponent(codigo)}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.encontrado) {
-                    const p = data.producto;
-                    productoDetalles.innerHTML = `
-                        <div class="row">
-                            <div class="col-6"><strong>Nombre:</strong></div>
-                            <div class="col-6">${p.nombre}</div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-6"><strong>Categoría:</strong></div>
-                            <div class="col-6">${p.categoria}</div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-6"><strong>Stock Actual:</strong></div>
-                            <div class="col-6"><strong class="text-${p.estado_color}">${p.cantidad} ${p.unidad_medida}</strong></div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-6"><strong>Estado:</strong></div>
-                            <div class="col-6"><span class="badge bg-${p.estado_color}">${p.estado}</span></div>
-                        </div>
-                    `;
-                    productoInfo.style.display = 'block';
-                } else {
-                    productoInfo.style.display = 'none';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }
-    
-    // Auto-focus en código después de enviar
-    document.getElementById('formDescontar').addEventListener('submit', function() {
-        setTimeout(() => {
-            codigoInput.focus();
-            codigoInput.select();
-        }, 100);
-    });
-</script>
 {% endblock %}

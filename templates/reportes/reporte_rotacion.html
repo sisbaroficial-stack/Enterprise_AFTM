@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte de Rotación - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">🔄 Reporte de Rotación de Inventario</h1>
+            <p class="text-muted">Velocidad de venta de productos</p>
+        </div>
+        <div class="col-auto">
+            <form method="get" class="d-flex gap-2">
+                <select name="dias" class="form-select" onchange="this.form.submit()">
+                    <option value="7" {% if dias == 7 %}selected{% endif %}>Últimos 7 días</option>
+                    <option value="15" {% if dias == 15 %}selected{% endif %}>Últimos 15 días</option>
+                    <option value="30" {% if dias == 30 %}selected{% endif %}>Últimos 30 días</option>
+                    <option value="60" {% if dias == 60 %}selected{% endif %}>Últimos 60 días</option>
+                    <option value="90" {% if dias == 90 %}selected{% endif %}>Últimos 90 días</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="card card-custom border-0 shadow-sm">
+        <div class="card-body">
+            {% if productos %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nivel</th>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th class="text-center">Ventas</th>
+                            <th class="text-center">Stock Actual</th>
+                            <th class="text-center">Rotación</th>
+                            <th>Recomendación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in productos %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-{{ item.color }}">
+                                    {{ item.nivel }}
+                                </span>
+                            </td>
+                            <td>
+                                <code class="badge bg-secondary">{{ item.producto.codigo }}</code>
+                            </td>
+                            <td>
+                                <strong>{{ item.producto.nombre }}</strong>
+                                <br><small class="text-muted">{{ item.producto.categoria.nombre }}</small>
+                            </td>
+                            <td class="text-center">
+                                <strong>{{ item.ventas }}</strong>
+                                <br><small class="text-muted">{{ item.producto.unidad_medida }}</small>
+                            </td>
+                            <td class="text-center">
+                                <strong>{{ item.stock_actual }}</strong>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-{{ item.color }} fs-6">
+                                    {{ item.rotacion }}x
+                                </span>
+                            </td>
+                            <td>
+                                <small>{{ item.recomendacion }}</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-warning text-center">
+                <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                <h5>No hay datos disponibles</h5>
+                <p class="mb-0">No hay productos con actividad en los últimos {{ dias }} días</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Explicación -->
+    <div class="card border-0 shadow-sm bg-light mt-4">
+        <div class="card-body">
+            <h6 class="mb-3">📖 ¿Qué es la Rotación de Inventario?</h6>
+            <p class="small mb-2">
+                Indica <strong>cuántas veces se vende el inventario</strong> en un período:
+            </p>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="p-3 bg-success bg-opacity-10 rounded">
+                        <strong class="text-success">ALTA (6+)</strong>
+                        <p class="small mb-0 mt-1">Se vende muy rápido. Mantener siempre en stock.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-primary bg-opacity-10 rounded">
+                        <strong class="text-primary">MEDIA (2-5)</strong>
+                        <p class="small mb-0 mt-1">Venta moderada. Control normal.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-warning bg-opacity-10 rounded">
+                        <strong class="text-warning">BAJA (0.5-2)</strong>
+                        <p class="small mb-0 mt-1">Venta lenta. Considerar reducir stock.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-danger bg-opacity-10 rounded">
+                        <strong class="text-danger">MUY BAJA (&lt;0.5)</strong>
+                        <p class="small mb-0 mt-1">Casi no se vende. Liquidar.</p>
+                    </div>
+                </div>
+            </div>
+            <p class="small mt-3 mb-0">
+                <strong>Fórmula:</strong> Rotación = Ventas del período / Stock promedio
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

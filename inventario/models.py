@@ -1,8 +1,15 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+
 from categorias.models import Categoria, Subcategoria
 from proveedores.models import Proveedor
-from usuarios.models import Usuario
+from sucursales.models import Sucursal
+
+Usuario = get_user_model()
+
+
 import uuid
 
 class Producto(models.Model):
@@ -250,3 +257,273 @@ class Producto(models.Model):
             'AGOTADO': '🔴'
         }
         return iconos.get(self.estado, '⚪')
+    
+class InventarioSucursal(models.Model):
+    """
+    Inventario de productos por sucursal
+    """
+    producto = models.ForeignKey(
+        'Producto',
+        on_delete=models.CASCADE,
+        related_name='inventarios',
+        verbose_name='Producto'
+    )
+    
+    sucursal = models.ForeignKey(
+        'sucursales.Sucursal',
+        on_delete=models.CASCADE,
+        related_name='inventarios',
+        verbose_name='Sucursal'
+    )
+    
+    cantidad = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Cantidad en Stock'
+    )
+    
+    cantidad_minima = models.IntegerField(
+        default=5,
+        validators=[MinValueValidator(0)],
+        verbose_name='Cantidad Mínima'
+    )
+    
+    ubicacion = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Ubicación en Sucursal',
+        help_text='Pasillo, estante, etc.'
+    )
+    
+    ultima_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Última Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'Inventario por Sucursal'
+        verbose_name_plural = 'Inventarios por Sucursal'
+        unique_together = ['producto', 'sucursal']
+        ordering = ['sucursal', 'producto']
+    
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.sucursal.nombre} ({self.cantidad})"
+    
+    @property
+    def estado(self):
+        if self.cantidad == 0:
+            return 'AGOTADO'
+        elif self.cantidad <= self.cantidad_minima:
+            return 'POR_AGOTAR'
+        return 'DISPONIBLE'
+
+
+class TransferenciaSucursal(models.Model):
+    """
+    Transferencias de productos entre sucursales
+    """
+    ESTADOS = (
+        ('PENDIENTE', '⏳ Pendiente'),
+        ('EN_TRANSITO', '🚚 En Tránsito'),
+        ('RECIBIDA', '✅ Recibida'),
+        ('RECHAZADA', '❌ Rechazada'),
+    )
+    
+    codigo = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name='Código de Transferencia'
+    )
+    
+    producto = models.ForeignKey(
+        'Producto',
+        on_delete=models.CASCADE,
+        related_name='transferencias',
+        verbose_name='Producto'
+    )
+    
+    sucursal_origen = models.ForeignKey(
+        'sucursales.Sucursal',
+        on_delete=models.CASCADE,
+        related_name='transferencias_salida',
+        verbose_name='Sucursal Origen'
+    )
+    
+    sucursal_destino = models.ForeignKey(
+        'sucursales.Sucursal',
+        on_delete=models.CASCADE,
+        related_name='transferencias_entrada',
+        verbose_name='Sucursal Destino'
+    )
+    
+    cantidad = models.IntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name='Cantidad'
+    )
+    
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default='EN_TRANSITO',
+        verbose_name='Estado'
+    )
+    
+    motivo = models.TextField(
+        blank=True,
+        verbose_name='Motivo de Transferencia'
+    )
+    
+    solicitado_por = models.ForeignKey(
+        'usuarios.Usuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='transferencias_solicitadas',
+        verbose_name='Solicitado Por'
+    )
+    
+    aprobado_por = models.ForeignKey(
+        'usuarios.Usuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transferencias_aprobadas',
+        verbose_name='Aprobado Por'
+    )
+    
+    recibido_por = models.ForeignKey(
+        'usuarios.Usuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transferencias_recibidas',
+        verbose_name='Recibido Por'
+    )
+    
+    fecha_solicitud = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Solicitud'
+    )
+    
+    fecha_envio = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha de Envío'
+    )
+    
+    fecha_recepcion = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha de Recepción'
+    )
+    
+    observaciones = models.TextField(
+        blank=True,
+        verbose_name='Observaciones'
+    )
+    
+    class Meta:
+        verbose_name = 'Transferencia entre Sucursales'
+        verbose_name_plural = 'Transferencias entre Sucursales'
+        ordering = ['-fecha_solicitud']
+    
+    def __str__(self):
+        return f"{self.codigo} - {self.producto.nombre} ({self.sucursal_origen} → {self.sucursal_destino})"
+    
+    def save(self, *args, **kwargs):
+        # Generar código automático único
+        if not self.codigo:
+            import uuid
+            self.codigo = f"TRF-{uuid.uuid4().hex[:8].upper()}"  # Ej: TRF-A1B2C3D4
+        super().save(*args, **kwargs)
+
+    
+    
+    def recibir_transferencia(self, usuario):
+        """Recibir transferencia en destino"""
+        if self.estado != 'EN_TRANSITO':
+            raise ValueError("Solo se pueden recibir transferencias en tránsito")
+        
+        # Agregar a destino
+        inv_destino, created = InventarioSucursal.objects.get_or_create(
+            producto=self.producto,
+            sucursal=self.sucursal_destino,
+            defaults={'cantidad': 0, 'cantidad_minima': 5}
+        )
+        
+        inv_destino.cantidad += self.cantidad
+        inv_destino.save()
+        
+        # ✅ Registrar movimiento de entrada
+        MovimientoInventario.objects.create(
+            producto=self.producto,
+            sucursal=self.sucursal_destino,
+            tipo='ENTRADA',
+            cantidad=self.cantidad,
+            motivo=f'Transferencia desde {self.sucursal_origen.nombre} ({self.codigo})',
+            usuario=usuario
+        )
+        
+        # Actualizar estado
+        self.estado = 'RECIBIDA'
+        self.recibido_por = usuario
+        self.fecha_recepcion = timezone.now()
+        self.save()
+class MovimientoInventario(models.Model):
+    TIPOS = (
+        ('ENTRADA', 'Entrada'),
+        ('SALIDA', 'Salida'),
+    )
+    
+    # ✅ AMPLIAR MOTIVOS
+    MOTIVOS = (
+        ('COMPRA', 'Compra'),
+        ('VENTA', 'Venta'),
+        ('TRANSFERENCIA', 'Transferencia'),
+        ('AJUSTE', 'Ajuste de inventario'),
+        ('MERMA', 'Merma/Pérdida'),  # ✅ NUEVO
+        ('DEVOLUCION', 'Devolución'),  # ✅ NUEVO
+        ('VENCIDO', 'Producto vencido'),  # ✅ NUEVO
+        ('ROBO', 'Robo/Hurto'),  # ✅ NUEVO
+        ('DAÑADO', 'Producto dañado'),  # ✅ NUEVO
+    )
+
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='movimientos')
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE, related_name='movimientos')
+    tipo = models.CharField(max_length=10, choices=TIPOS)
+    cantidad = models.PositiveIntegerField()
+    motivo = models.CharField(max_length=100, choices=MOTIVOS)  # ✅ CAMBIADO A CHOICES
+    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
+    observaciones = models.TextField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Movimiento de Inventario'
+        verbose_name_plural = 'Movimientos de Inventario'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.cantidad} {self.producto.nombre}"
+    
+class AlertaInventario(models.Model):
+    TIPOS = (
+        ('STOCK_BAJO', 'Stock Bajo'),
+        ('SIN_STOCK', 'Sin Stock'),
+    )
+
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=20, choices=TIPOS)
+    mensaje = models.TextField()
+    fecha_generada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Alerta de Inventario'
+        verbose_name_plural = 'Alertas de Inventario'
+        ordering = ['-fecha_generada']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.producto.nombre}"
+
+
+
+
+

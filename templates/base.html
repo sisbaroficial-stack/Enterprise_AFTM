@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SISBAR {% endblock %}</title>
+    <title>{% block title %}SISBAR{% endblock %}</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -36,15 +36,21 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f9fafb;
             min-height: 100vh;
+            padding-top: 70px;
         }
-        
-        /* Navbar personalizado */
+
+        /* ================= NAVBAR ================= */
         .navbar-custom {
-            background: rgba(255, 255, 255, 0.95);
+            background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-custom.scrolled {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         }
         
         .navbar-brand {
@@ -54,25 +60,35 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
         
-                /* Sidebar */
-        /* ========== SIDEBAR COLAPSABLE BARRA LATERAL IZQUIERDA ========== */
+        /* ================= SIDEBAR ================= */
         .sidebar {
             position: fixed;
             left: 0;
-            top: 56px; /* Altura del navbar */
-            height: calc(100vh - 56px);
-            width: 70px; /* Colapsado */
+            top: 70px;
+            height: calc(100vh - 70px);
+            width: 65px;
             background: white;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             transition: width 0.3s ease;
             z-index: 999;
             overflow: hidden;
-            padding: 0;
         }
 
         .sidebar:hover {
-            width: 260px; /* Expandido */
+            width: 260px;
         }
 
         .sidebar .position-sticky {
@@ -81,9 +97,17 @@
             overflow-x: hidden;
         }
 
-        /* Ocultar scrollbar */
         .sidebar .position-sticky::-webkit-scrollbar {
-            width: 0;
+            width: 1px;
+        }
+
+        .sidebar .position-sticky::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar .position-sticky::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
         }
                 
         .sidebar-link {
@@ -95,14 +119,13 @@
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
             white-space: nowrap;
-            overflow: hidden;
         }
 
         .sidebar-link i {
             min-width: 40px;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             text-align: center;
-            margin-right: 15px;
+            margin-right: 0;
         }
 
         .sidebar-link span {
@@ -113,35 +136,45 @@
         .sidebar:hover .sidebar-link span {
             opacity: 1;
         }
+
         .sidebar-link:hover,
         .sidebar-link.active {
             background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
             color: #667eea;
             border-left-color: #667eea;
         }
-        
-        .sidebar-link i {
-            margin-right: 12px;
-            font-size: 1.2rem;
+
+        .sidebar .btn-gradient {
+            margin: 0px;
+            width: calc(100% - 20px);
+        }
+
+        .sidebar:hover .btn-gradient span {
+            opacity: 1;
+        }
+
+        .sidebar .btn-gradient span {
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
-        /* Main content */
+        /* ================= MAIN CONTENT ================= */
         .main-content {
-            margin-left: 70px; /* Mismo ancho que sidebar colapsado */
-            padding: 30px;
-            background: var(--light-color);
-            min-height: calc(100vh - 56px);
+            margin-left: 70px;
+            padding: 3px;
+            background: #f9fafb;
+            min-height: calc(100vh - 70px);
             transition: margin-left 0.3s ease;
             width: calc(100% - 70px);
-            
         }
         
-        /* Cards */
+        /* ================= CARDS ================= */
         .card-custom {
             border: none;
             border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: white;
         }
         
         .card-custom:hover {
@@ -149,7 +182,7 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
         
-        /* Buttons */
+        /* ================= BUTTONS ================= */
         .btn-gradient {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -166,14 +199,14 @@
             color: white;
         }
         
-        /* Alerts mejorados */
+        /* ================= ALERTS ================= */
         .alert {
             border: none;
             border-radius: 10px;
             padding: 15px 20px;
         }
         
-        /* Tables */
+        /* ================= TABLES ================= */
         .table-custom {
             background: white;
             border-radius: 15px;
@@ -185,78 +218,59 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
-        /* User dropdown */
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-        
-        /* Badges personalizados */
+
+        /* ================= BADGES ================= */
         .badge-custom {
             padding: 8px 15px;
             border-radius: 20px;
             font-weight: 500;
         }
-        
-        /* Loading spinner */
-        .spinner-custom {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+
+        /* ================= RESPONSIVE ================= */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 60px;
+            }
+
+            .sidebar {
+                left: -260px;
+                width: 260px;
+                top: 60px;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+
+            .sidebar:hover {
+                width: 260px;
+            }
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+
+        @media (min-width: 769px) {
+            .main-content {
+                margin-left: 70px !important;
+            }
         }
-        
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar {
-        left: -100%;
-        width: 250px;
-    }
-    
-    .sidebar.show {
-        left: 0;
-    }
 
-    .main-content {
-        margin-left: 0 !important;
-    }
-}
-
-@media (min-width: 769px) {
-    .main-content {
-        margin-left: 70px !important;
-    }
-}
-
-        /* Modo Oscuro */
+        /* ================= MODO OSCURO ================= */
         body.modo-oscuro {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #0f0f1e;
             color: #e4e4e4;
         }
         
         body.modo-oscuro .navbar-custom {
-            background: rgba(30, 30, 30, 0.95);
-            color: #e4e4e4;
+            background: rgba(26, 26, 46, 0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
         }
         
         body.modo-oscuro .sidebar {
             background: #1a1a2e;
-            color: #e4e4e4;
         }
 
         body.modo-oscuro .sidebar:hover {
@@ -270,24 +284,34 @@
         body.modo-oscuro .sidebar-link:hover,
         body.modo-oscuro .sidebar-link.active {
             background: linear-gradient(90deg, rgba(102, 126, 234, 0.2) 0%, transparent 100%);
-            color: #667eea;
+            color: #a78bfa;
         }
         
         body.modo-oscuro .main-content {
             background: #0f0f1e;
         }
         
-        body.modo-oscuro .card-custom {
-            background: #1a1a2e;
-            color: #e4e4e4;
-        }
-        
+
+
+
         body.modo-oscuro .table {
-            color: #e4e4e4;
+            background-color: #1a1a2e !important;
+            color: #e4e4e4 !important;
         }
-        
+
+        body.modo-oscuro .table tbody,
+        body.modo-oscuro .table tbody tr,
+        body.modo-oscuro .table tbody td {
+            background-color: #1a1a2e !important;
+            color: #e4e4e4 !important;
+        }
         body.modo-oscuro .table-hover tbody tr:hover {
             background: rgba(102, 126, 234, 0.1);
+        }
+
+        body.modo-oscuro .table th,
+        body.modo-oscuro .table td {
+            border-color: #333;
         }
         
         body.modo-oscuro .form-control,
@@ -303,6 +327,10 @@
             color: #e4e4e4;
             border-color: #764ba2;
         }
+
+        body.modo-oscuro .form-control::placeholder {
+            color: #b8b8b8;
+        }
         
         body.modo-oscuro .text-muted {
             color: #b8b8b8 !important;
@@ -314,155 +342,416 @@
             border-color: #667eea;
         }
 
-
-
-        /* Placeholders visibles en modo oscuro */
-        body.modo-oscuro ::placeholder {
-            color: #b8b8b8 !important;  
-            opacity: 1; /* para que no quede transparente */
+        body.modo-oscuro .list-group-item {
+            background: #1a1a2e;
+            color: #e4e4e4;
+            border-color: #333;
         }
 
-        /* Inputs plenos */
-        body.modo-oscuro .form-control::placeholder,
-        body.modo-oscuro .form-select::placeholder {
-            color: #b8b8b8 !important;
-        }
-        /*  Arregla el color del nombre del usuario en modo oscuro */
-        body.modo-oscuro .navbar-custom .nav-link,
-        body.modo-oscuro .navbar-custom .navbar-text,
-        body.modo-oscuro .user-name,
-        body.modo-oscuro .dropdown-toggle {
-            color: #ffffff !important;
+        body.modo-oscuro .list-group-item-action:hover {
+            background: #232347;
         }
 
-        /*  Si el fondo del dropdown queda muy oscuro */
         body.modo-oscuro .dropdown-menu {
-            background-color: #16213e !important;
-            color: #ffffff !important;
+            background: #1a1a2e;
+            border-color: #667eea;
         }
 
         body.modo-oscuro .dropdown-item {
-            color: #ffffff !important;
+            color: #e4e4e4;
         }
 
         body.modo-oscuro .dropdown-item:hover {
-            background-color: #667eea !important;
-            color: #ffffff !important;
+            background: rgba(102, 126, 234, 0.2);
+            color: #a78bfa;
         }
-        /*  Fondo donde están las tarjetas, tablas o contenedores de productos */
-        body.modo-oscuro .card,
-        body.modo-oscuro .card-body,
-        body.modo-oscuro .table-responsive,
-        body.modo-oscuro .container,
-        body.modo-oscuro .content-wrapper,
-        body.modo-oscuro .section {
-            background-color: #1a1a2e !important;
+
+        body.modo-oscuro .navbar-custom .nav-link,
+        body.modo-oscuro .navbar-custom .navbar-text {
+            color: #ffffff;
+        }
+
+        /* ================= CUADROS/CARDS ADICIONALES EN MODO OSCURO ================= */
+
+        body.modo-oscuro .border-start {
+            border-color: currentColor !important;
+        }
+
+        body.modo-oscuro .bg-light,
+        body.modo-oscuro .bg-white {
+            background: #1a1a2e !important;
             color: #e4e4e4 !important;
         }
 
-        /*  Tablas internas */
-        body.modo-oscuro .table td,
-        body.modo-oscuro .table th {
-            background-color: #1a1a2e !important;
+        body.modo-oscuro .shadow-sm,
+        body.modo-oscuro .shadow {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        body.modo-oscuro .text-dark {
             color: #e4e4e4 !important;
         }
 
-        /*  Bordes de tabla */
-        body.modo-oscuro .table-bordered td,
-        body.modo-oscuro .table-bordered th {
+        body.modo-oscuro .border-light {
             border-color: #333 !important;
         }
 
-        /*  Si usas cards normales de Bootstrap */
-        body.modo-oscuro .card-header {
-            background-color: #16213e !important;
+        body.modo-oscuro hr {
+            border-color: #333 !important;
+            opacity: 0.5;
+        }
+
+
+
+        body.modo-oscuro .badge.bg-secondary {
+            background: #667eea !important;
             color: #ffffff !important;
         }
 
-    /* FIX PARA TARJETAS DEL DASHBOARD (STOCK BAJO, TOTAL PRODUCTOS, etc.)
-    
 
-    .dashboard-card {
-        background: white;
-        color: #1f2937;
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-        transition: all 0.3s ease;
-    }
 
-    .dashboard-card h4 {
-        font-weight: 700;
-    }
-
-    .dashboard-card .numero {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #667eea;
-    }
-
-    /* ------ MODO OSCURO ------ */
-    body.modo-oscuro .dashboard-card {
-        background: #1a1a2e;
-        color: #e4e4e4;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-    body.modo-oscuro .card-custom {
-        background: #1a1a2e !important;
-        color: #e4e4e4 !important;
-    }
-
-    body.modo-oscuro .card-header {
-        background: #16213e !important;
-        color: #ffffff !important;
-    }
-
-    body.modo-oscuro .dashboard-card .numero {
-        color: #a78bfa;  /* Un lila bonito */
-    }
-    /* Forzar modo oscuro en listas dentro de tarjetas */
-    body.modo-oscuro .list-group-item {
-        background-color: #1a1a2e !important;
-        color: #ffffff !important;
-        border-color: #0f0f1a !important;
-    }
-
-    /* Hover oscuro */
-    body.modo-oscuro .list-group-item-action:hover {
-        background-color: #232347 !important;
-        color: #ffffff !important;
-    }
+        body.modo-oscuro .table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+        }
 
 
 
+        body.modo-oscuro select {
+            background: #16213e !important;
+            color: #e4e4e4 !important;
+            border-color: #667eea !important;
+        }
+
+        body.modo-oscuro .btn-outline-primary {
+            color: #a78bfa;
+            border-color: #667eea;
+        }
+
+        body.modo-oscuro .btn-outline-primary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        body.modo-oscuro .btn-outline-secondary {
+            color: #b8b8b8;
+            border-color: #4b5563;
+        }
+
+        body.modo-oscuro .btn-outline-secondary:hover {
+            background: #4b5563;
+            color: white;
+        }
+
+        body.modo-oscuro .btn-outline-success {
+            color: #10b981;
+            border-color: #10b981;
+        }
+
+        body.modo-oscuro .btn-outline-success:hover {
+            background: #10b981;
+            color: white;
+        }
+
+        body.modo-oscuro .btn-outline-danger {
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        body.modo-oscuro .btn-outline-danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        body.modo-oscuro .btn-outline-info {
+            color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        body.modo-oscuro .btn-outline-info:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        body.modo-oscuro .btn-outline-warning {
+            color: #f59e0b;
+            border-color: #f59e0b;
+        }
+
+        body.modo-oscuro .btn-outline-warning:hover {
+            background: #f59e0b;
+            color: white;
+        }
+
+        body.modo-oscuro code {
+            background: #16213e;
+            color: #a78bfa;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        body.modo-oscuro .alert-warning {
+            background: rgba(245, 158, 11, 0.2) !important;
+            color: #fbbf24 !important;
+            border-color: #f59e0b !important;
+        }
+
+        body.modo-oscuro .alert-danger {
+            background: rgba(239, 68, 68, 0.2) !important;
+            color: #f87171 !important;
+            border-color: #ef4444 !important;
+        }
+
+        body.modo-oscuro .alert-success {
+            background: rgba(16, 185, 129, 0.2) !important;
+            color: #34d399 !important;
+            border-color: #10b981 !important;
+        }
+
+        body.modo-oscuro .alert-info {
+            background: rgba(59, 130, 246, 0.2) !important;
+            color: #60a5fa !important;
+            border-color: #3b82f6 !important;
+        }
+
+        body.modo-oscuro small.text-muted,
+        body.modo-oscuro .small.text-muted {
+            color: #9ca3af !important;
+        }
+
+        /* Gráficas en modo oscuro */
+        body.modo-oscuro canvas {
+            filter: brightness(0.9);
+        }
+
+        /* Badges específicos en modo oscuro */
+        body.modo-oscuro .badge.bg-primary {
+            background: #667eea !important;
+        }
+
+        body.modo-oscuro .badge.bg-success {
+            background: #10b981 !important;
+        }
+
+        body.modo-oscuro .badge.bg-warning {
+            background: #f59e0b !important;
+            color: #1f2937 !important;
+        }
+
+        body.modo-oscuro .badge.bg-danger {
+            background: #ef4444 !important;
+        }
+
+        body.modo-oscuro .badge.bg-info {
+            background: #3b82f6 !important;
+        }
+
+        /* ================= LOADING SPINNER ================= */
+        .spinner-custom {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+
+
+        /* ================= FIX DEFINITIVO MODO OSCURO ================= */
+
+        /* TODAS las cards, sin importar clases Bootstrap */
+        body.modo-oscuro .card,
+        body.modo-oscuro .card-body,
+        body.modo-oscuro .table-custom,
+        body.modo-oscuro .table-responsive,
+        body.modo-oscuro .container,
+        body.modo-oscuro .container-fluid {
+            background-color: #1a1a2e !important;
+            color: #e4e4e4 !important;
+        }
+
+        /* Neutralizar Bootstrap */
+        body.modo-oscuro .bg-white,
+        body.modo-oscuro .bg-light {
+            background-color: #1a1a2e !important;
+            color: #e4e4e4 !important;
+        }
+
+        /* Bordes elegantes */
+        body.modo-oscuro .card {
+            border: 1px solid rgba(102, 126, 234, 0.25);
+        }
+
+        /* Hover profesional */
+        body.modo-oscuro .card:hover {
+            box-shadow: 0 12px 28px rgba(102, 126, 234, 0.35);
+            transform: translateY(-4px);
+        }
+
+        /* ================== CUADROS DE PRODUCTOS MODO OSCURO ================== */
+        body.modo-oscuro .card-custom,
+        body.modo-oscuro .table-custom,
+        body.modo-oscuro .table-responsive,
+        body.modo-oscuro .bg-white,
+        body.modo-oscuro .bg-light {
+            background-color: #1a1a2e !important;
+            color: #e4e4e4 !important;
+            border: 1px solid rgba(102, 126, 234, 0.25) !important;
+        }
+
+        body.modo-oscuro .card-custom:hover {
+            box-shadow: 0 12px 28px rgba(102, 126, 234, 0.35) !important;
+            transform: translateY(-4px);
+        }
+
+        body.modo-oscuro .table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+        }
+
+
+
+
+        /* ================= MODO OSCURO PROFESIONAL DEFINITIVO ================== */
+        body.modo-oscuro {
+            background: #0f0f1e;
+            color: #e4e4e4;
+        }
+
+        body.modo-oscuro .navbar-custom {
+            background: rgba(26, 26, 46, 0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+
+        body.modo-oscuro .sidebar {
+            background: #1a1a2e;
+        }
+
+        body.modo-oscuro .sidebar-link {
+            color: #b8b8b8;
+        }
+
+        body.modo-oscuro .sidebar-link:hover,
+        body.modo-oscuro .sidebar-link.active {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.2) 0%, transparent 100%);
+            color: #a78bfa;
+        }
+
+        body.modo-oscuro .main-content {
+            background: #0f0f1e;
+        }
+
+        /* ================= CUADROS / CARDS / TABLAS / LISTAS ================== */
+        body.modo-oscuro .card,
+        body.modo-oscuro .card-body,
+        body.modo-oscuro .card-custom,
+        body.modo-oscuro .table-custom,
+        body.modo-oscuro .table-responsive,
+        body.modo-oscuro .list-group-item,
+        body.modo-oscuro .bg-white,
+        body.modo-oscuro .bg-light {
+            background-color: #1a1a2e !important;
+            color: #e4e4e4 !important;
+            border: 1px solid rgba(102, 126, 234, 0.25) !important;
+        }
+
+        /* Hover profesional */
+        body.modo-oscuro .card-custom:hover,
+        body.modo-oscuro .card:hover,
+        body.modo-oscuro .list-group-item-action:hover {
+            background: #232347 !important;
+            box-shadow: 0 12px 28px rgba(102, 126, 234, 0.35) !important;
+            transform: translateY(-4px);
+        }
+
+        /* Tablas */
+        body.modo-oscuro .table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #ffffff !important;
+        }
+
+        body.modo-oscuro .table th,
+        body.modo-oscuro .table td {
+            border-color: #333 !important;
+        }
+
+        /* Formularios */
+        body.modo-oscuro .form-control,
+        body.modo-oscuro .form-select,
+        body.modo-oscuro select {
+            background: #16213e !important;
+            color: #e4e4e4 !important;
+            border-color: #667eea !important;
+        }
+
+        body.modo-oscuro .form-control:focus,
+        body.modo-oscuro .form-select:focus {
+            background: #1a1a2e !important;
+            border-color: #764ba2 !important;
+        }
+
+        /* Dropdowns */
+        body.modo-oscuro .dropdown-menu {
+            background: #1a1a2e;
+            border-color: #667eea;
+        }
+
+        body.modo-oscuro .dropdown-item {
+            color: #e4e4e4;
+        }
+
+        body.modo-oscuro .dropdown-item:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: #a78bfa;
+        }
+
+        /* ================= FIX FINAL TABLAS BLANCAS ================== */
+        body.modo-oscuro .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(102, 126, 234, 0.1) !important;
+        }
+
+        body.modo-oscuro .table > :not(caption) > * > * {
+            background-color: transparent !important;
+        }
+
+        body.modo-oscuro .table-light {
+            background-color: #1a1a2e !important;
+
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     
-    {% if user.is_authenticated %}
-    <!-- Navbar para usuarios autenticados -->
-    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+{% if user.is_authenticated %}
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'dashboard:home' %}">
                 🛒 SISBAR
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    
-                    <!-- Usuario -->
+                    <!-- Usuario Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                             <div class="user-avatar me-2">
-                                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+                                {{ user.first_name.0|upper|default:"U" }}{{ user.last_name.0|upper|default:"" }}
                             </div>
-                            <span>{{ user.first_name }}</span>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><h6 class="dropdown-header">{{ user.get_rol_display }}</h6></li>
@@ -472,215 +761,291 @@
                             <li><a class="dropdown-item" href="{% url 'usuarios:cambiar_password' %}">
                                 <i class="bi bi-key me-2"></i>Cambiar Contraseña
                             </a></li>
-                            
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                               <div class="px-3 py-2">
-                                   <div class="form-check form-switch">
-                                       <input class="form-check-input" type="checkbox" id="modoOscuroToggle">
-                                       <label class="form-check-label" for="modoOscuroToggle">
-                                           <i class="bi bi-moon-stars me-2"></i>Modo Oscuro
-                                       </label>
+                                <div class="px-3 py-2">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="modoOscuroToggle">
+                                        <label class="form-check-label" for="modoOscuroToggle">
+                                            <i class="bi bi-moon-stars me-2"></i>Modo Oscuro
+                                        </label>
                                     </div>
                                 </div>
                             </li>
-
-
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="{% url 'usuarios:logout' %}">
                                 <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
                             </a></li>
                         </ul>
                     </li>
+
+                    <!-- Indicador de Sucursal -->
+                    <li class="nav-item ms-3">
+                        {% if user.rol == 'SUPER_ADMIN' %}
+                            {% if request.session.sucursal_actual %}
+                                <span class="badge bg-primary" style="font-size: 0.9rem; padding: 8px 12px;">
+                                    <i class="bi bi-building me-1"></i>Sucursal Seleccionada
+                                </span>
+                                <a href="{% url 'sucursales:establecer_todas' %}" 
+                                   class="btn btn-sm btn-outline-primary ms-2" 
+                                   title="Activar Modo Global">
+                                    <i class="bi bi-globe"></i>
+                                </a>
+                            {% else %}
+                                <span class="badge bg-success" style="font-size: 0.9rem; padding: 8px 12px;">
+                                    <i class="bi bi-globe me-1"></i>Modo Global
+                                </span>
+                                <a href="{% url 'sucursales:seleccionar' %}" 
+                                   class="btn btn-sm btn-outline-success ms-2" 
+                                   title="Seleccionar Sucursal">
+                                    <i class="bi bi-building"></i>
+                                </a>
+                            {% endif %}
+                        {% elif user.sucursal %}
+                            <span class="badge bg-info" style="font-size: 0.9rem; padding: 8px 12px;">
+                                <i class="bi bi-building me-1"></i>{{ user.sucursal.nombre }}
+                            </span>
+                        {% endif %}
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
-    
-    <div class="container-fluid">
-        <div class="row">
-    <!-- SIDEBAR BARRA IZQUIERDA QUEDA OCULTA -->
-    <nav class="sidebar">
-        <div class="position-sticky">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" 
-                    href="{% url 'dashboard:home' %}">
-                        <i class="bi bi-speedometer2"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                
-                <!-- Solo para usuarios con permisos -->
-                {% if user.puede_gestionar_inventario %}
-                <li class="nav-item">
-                    <a class="sidebar-link {% if request.resolver_match.url_name == 'listar_productos' %}active{% endif %}" 
-                        href="{% url 'inventario:listar_productos' %}">
-                        <i class="bi bi-box-seam"></i>
-                        <span>Productos</span>
-                    </a>
-                </li>
 
-                <li class="nav-item">
-                    <a class="sidebar-link {% if request.resolver_match.url_name == 'descontar_producto' %}active{% endif %}" 
-                    href="{% url 'inventario:descontar_producto' %}">
-                        <i class="bi bi-arrow-down-circle"></i>
-                        <span>Descontar Producto</span>
-                    </a>
-                </li>
-                {% endif %}
-                
-                {% if user.puede_aprobar %}
-                <li class="nav-item">
-                    <a class="sidebar-link {% if request.resolver_match.app_name == 'categorias' %}active{% endif %}" 
-                    href="{% url 'categorias:listar' %}">
-                        <i class="bi bi-tags"></i>
-                        <span>Categorías</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a class="sidebar-link {% if request.resolver_match.app_name == 'proveedores' %}active{% endif %}" 
-                    href="{% url 'proveedores:listar' %}">
-                        <i class="bi bi-truck"></i>
-                        <span>Proveedores</span>
-                    </a>
-                </li>
-                {% endif %}
-                
-                <li class="nav-item">
-                    <a class="sidebar-link {% if request.resolver_match.app_name == 'movimientos' %}active{% endif %}" 
-                    href="{% url 'movimientos:listar' %}">
-                        <i class="bi bi-arrow-left-right"></i>
-                        <span>Movimientos</span>
-                    </a>
-                </li>
-                
-                {% if user.puede_aprobar %}
-                <li class="nav-item">
-                    <a class="sidebar-link {% if request.resolver_match.app_name == 'reportes' %}active{% endif %}" 
-                    href="{% url 'reportes:home' %}">
-                        <i class="bi bi-file-earmark-bar-graph"></i>
-                        <span>Reportes</span>
-                    </a>
-                </li>
-                {% endif %}
+    <!-- ==================== SIDEBAR ==================== -->
+    <div class="row">
+        <nav class="sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
 
-                <li class="nav-item mt-3">
-                    <hr>
-                </li>
-                
-                <!-- Solo para administradores -->
-                {% if user.puede_aprobar %}
-                <li class="nav-item">
-                    <a class="sidebar-link" href="{% url 'usuarios:gestionar_usuarios' %}">
-                        <i class="bi bi-people"></i>
-                        <span>Gestionar Usuarios</span>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
+                        
+                        <!-- ========== VENTA RÁPIDA (TODOS CON GESTIÓN DE INVENTARIO) ========== -->
+                        {% if user.puede_gestionar_inventario %}
+                        <li class="nav-item mb-2">
+                            <a href="{% url 'inventario:venta_rapida' %}" 
+                               class="btn btn-gradient w-100 py-3">
+                                <i class="bi bi-cart-plus"></i>
+                                <span style="font-weight: 600; margin-left: 10px;">Ventas Rápidas</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <hr class="my-2">
+                        </li>
+                        {% endif %}
 
-            
-            <!-- Main content -->
-            <main class="main-content">
-                <!-- Mensajes del sistema -->
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    {% endfor %}
-                {% endif %}
-                
-                {% block content %}{% endblock %}
-            </main>
-        </div>
-    </div>
-    
-    {% else %}
-    <!-- Contenido para usuarios no autenticados -->
-    <div class="container">
-        {% if messages %}
-            <div class="row mt-3">
-                <div class="col-md-6 mx-auto">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    {% endfor %}
+                        <!-- ========== DASHBOARD (TODOS) ========== -->
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" 
+                               href="{% url 'dashboard:home' %}">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+
+                        <!-- ========== PRODUCTOS / INVENTARIO ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' or user.rol == 'EMPLEADO' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'inventario' in request.path %}active{% endif %}" 
+                               href="{% url 'inventario:listar_productos' %}">
+                                <i class="bi bi-box-seam"></i>
+                                <span>Productos</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <!-- ========== MOVIMIENTOS (TODOS) ========== -->
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'movimientos' in request.path %}active{% endif %}" 
+                               href="{% url 'movimientos:listar_movimientos' %}">
+                                <i class="bi bi-arrow-left-right"></i>
+                                <span>Movimientos</span>
+                            </a>
+                        </li>
+
+                        <!-- ========== SEPARADOR ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item mt-3">
+                            <hr>
+                        </li>
+                        {% endif %}
+
+                        <!-- ========== CATEGORÍAS (ADMIN Y SUPER_ADMIN) ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'categorias' in request.path %}active{% endif %}" 
+                               href="{% url 'categorias:listar' %}">
+                                <i class="bi bi-tags"></i>
+                                <span>Categorías</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'agregar-existente' in request.path %}active{% endif %}" 
+                            href="{% url 'inventario:agregar_producto_existente' %}">
+                                <i class="bi bi-plus-square"></i>
+                                <span>Agregar Producto Existente</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+
+                        <!-- ========== PROVEEDORES (ADMIN Y SUPER_ADMIN) ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'proveedores' in request.path %}active{% endif %}" 
+                               href="{% url 'proveedores:listar' %}">
+                                <i class="bi bi-truck"></i>
+                                <span>Proveedores</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <!-- ========== REPORTES (ADMIN Y SUPER_ADMIN) ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'reportes' in request.path %}active{% endif %}" 
+                               href="{% url 'reportes:home' %}">
+                                <i class="bi bi-file-earmark-bar-graph"></i>
+                                <span>Reportes</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <!-- ========== SEPARADOR ADMINISTRACIÓN ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item mt-3">
+                            <hr>
+                        </li>
+                        {% endif %}
+
+                        <!-- ========== GESTIÓN DE USUARIOS (ADMIN Y SUPER_ADMIN) ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'usuarios' in request.path and 'gestionar' in request.path %}active{% endif %}" 
+                               href="{% url 'usuarios:gestionar_usuarios' %}">
+                                <i class="bi bi-people"></i>
+                                <span>Gestionar Usuarios</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <!-- ========== SUCURSALES (ADMIN Y SUPER_ADMIN) ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'sucursales' in request.path and 'gestionar' in request.path %}active{% endif %}" 
+                               href="{% url 'sucursales:gestionar' %}">
+                                <i class="bi bi-building"></i>
+                                <span>Gestionar Sucursales</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <!-- ========== TRANSFERENCIAS (ADMIN Y SUPER_ADMIN) ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' or user.rol == 'EMPLEADO' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'transferencias' in request.path %}active{% endif %}" 
+                               href="{% url 'sucursales:lista_transferencias' %}">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <span>Transferencias</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="sidebar-link" href="{% url 'sucursales:crear_transferencia' %}">
+                                <i class="bi bi-plus-circle"></i>
+                                <span>Nueva Transferencia</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                    </ul>
                 </div>
-            </div>
-        {% endif %}
-        
-        {% block auth_content %}{% endblock %}
-    </div>
+            </nav>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<main class="main-content">
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
     {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+
+
+{% else %}
+    <!-- ==================== NO AUTENTICADO ==================== -->
+    {% if messages %}
+        <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1055; width: 90%; max-width: 500px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block auth_content %}{% endblock %}
+{% endif %}
+
+
     
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
     <script>
-        // Auto-cerrar alertas después de 5 segundos
+        // Auto-cerrar alertas
         setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert.alert-auto');
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
             alerts.forEach(function(alert) {
                 const bsAlert = new bootstrap.Alert(alert);
                 bsAlert.close();
             });
-        }, 5000);
+        }, 50000);
+
+        // Modo oscuro
+        document.addEventListener('DOMContentLoaded', function() {
+            const modoOscuro = localStorage.getItem('modoOscuro') === 'true';
+            const toggle = document.getElementById('modoOscuroToggle');
+            
+            if (modoOscuro) {
+                document.body.classList.add('modo-oscuro');
+                if (toggle) toggle.checked = true;
+            }
+            
+            if (toggle) {
+                toggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        document.body.classList.add('modo-oscuro');
+                        localStorage.setItem('modoOscuro', 'true');
+                    } else {
+                        document.body.classList.remove('modo-oscuro');
+                        localStorage.setItem('modoOscuro', 'false');
+                    }
+                });
+            }
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar-custom');
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
     </script>
     
     {% block extra_js %}{% endblock %}
-    
-   <!-- Script para modo oscuro -->
-<script>
-    // Cargar preferencia de modo oscuro
-    document.addEventListener('DOMContentLoaded', function() {
-        const modoOscuro = localStorage.getItem('modoOscuro') === 'true';
-        const checkboxPerfil = document.getElementById('id_modo_oscuro');
-        const checkboxNavbar = document.getElementById('modoOscuroToggle');
-        
-        // Aplicar modo oscuro si está guardado
-        if (modoOscuro) {
-            document.body.classList.add('modo-oscuro');
-            if (checkboxPerfil) checkboxPerfil.checked = true;
-            if (checkboxNavbar) checkboxNavbar.checked = true;
-        }
-        
-        // Función para toggle
-        function toggleModoOscuro(checked) {
-            if (checked) {
-                document.body.classList.add('modo-oscuro');
-                localStorage.setItem('modoOscuro', 'true');
-            } else {
-                document.body.classList.remove('modo-oscuro');
-                localStorage.setItem('modoOscuro', 'false');
-            }
-            
-            // Sincronizar ambos checkboxes
-            if (checkboxPerfil) checkboxPerfil.checked = checked;
-            if (checkboxNavbar) checkboxNavbar.checked = checked;
-        }
-        
-        // Listener para checkbox del perfil
-        if (checkboxPerfil) {
-            checkboxPerfil.addEventListener('change', function() {
-                toggleModoOscuro(this.checked);
-            });
-        }
-        
-        // Listener para checkbox del navbar
-        if (checkboxNavbar) {
-            checkboxNavbar.addEventListener('change', function() {
-                toggleModoOscuro(this.checked);
-            });
-        }
-    });
-</script>
+</body>
+</html>

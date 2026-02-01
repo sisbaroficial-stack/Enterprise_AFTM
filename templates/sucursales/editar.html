@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Sucursal - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">✏️ Editar Sucursal</h1>
+            <p class="text-muted">{{ sucursal.nombre }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'sucursales:gestionar' %}" class="btn btn-outline-secondary">
+                ← Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre de la Sucursal *</label>
+                            <input type="text" name="nombre" class="form-control" required
+                                   value="{{ sucursal.nombre }}">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Código *</label>
+                                <input type="text" name="codigo" class="form-control" required
+                                       value="{{ sucursal.codigo }}">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Tipo *</label>
+                                <select name="tipo" class="form-select" required>
+                                    <option value="TIENDA" {% if sucursal.tipo == 'TIENDA' %}selected{% endif %}>
+                                        🏪 Tienda
+                                    </option>
+                                    <option value="BODEGA" {% if sucursal.tipo == 'BODEGA' %}selected{% endif %}>
+                                        🏭 Bodega
+                                    </option>
+                                    <option value="PUNTO_VENTA" {% if sucursal.tipo == 'PUNTO_VENTA' %}selected{% endif %}>
+                                        🛒 Punto de Venta
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Dirección</label>
+                            <textarea name="direccion" class="form-control" rows="2">{{ sucursal.direccion }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Teléfono</label>
+                                <input type="text" name="telefono" class="form-control"
+                                       value="{{ sucursal.telefono }}">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Encargado</label>
+                                <select name="encargado" class="form-select">
+                                    <option value="">Sin encargado</option>
+                                    {% for usuario in usuarios %}
+                                    <option value="{{ usuario.id }}" 
+                                            {% if sucursal.encargado.id == usuario.id %}selected{% endif %}>
+                                        {{ usuario.get_full_name }} - {{ usuario.get_rol_display }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="activa" id="activa"
+                                   {% if sucursal.activa %}checked{% endif %}>
+                            <label class="form-check-label" for="activa">
+                                Sucursal Activa
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="es_principal" id="esPrincipal"
+                                   {% if sucursal.es_principal %}checked{% endif %}>
+                            <label class="form-check-label" for="esPrincipal">
+                                ⭐ Bodega Principal
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save"></i> Guardar Cambios
+                            </button>
+                            <a href="{% url 'sucursales:gestionar' %}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Estadísticas</h5>
+                    
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Fecha de creación:</strong></p>
+                        <p class="text-muted">{{ sucursal.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Productos en inventario:</strong></p>
+                        <p class="text-muted">{{ sucursal.inventarios.count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

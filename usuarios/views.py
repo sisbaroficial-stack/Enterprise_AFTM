@@ -1,37 +1,47 @@
 # ========== IMPORTS (TODO AL INICIO) ==========
+
+# Django shortcuts y utilidades
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, update_session_auth_hash
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib import messages
-from django.utils import timezone
-from django.db.models import Q
-from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
-from django.contrib.contenttypes.models import ContentType
+# Autenticación y usuarios
+from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import Group, Permission
 
+# Formularios y validaciones
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+from sucursales.models import Sucursal
+
+# Core y utilidades
+from django.utils import timezone
+from django.db.models import Q
+from django.db.models.deletion import ProtectedError
 
 from django.core.mail import send_mail
 from django.conf import settings
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 
+# Modelos propios
 from .models import Usuario, HistorialActividad
 from .forms import (
-    RegistroUsuarioForm, 
-    LoginForm, 
-    PerfilUsuarioForm, 
+    RegistroUsuarioForm,
+    LoginForm,
+    PerfilUsuarioForm,
     CambiarPasswordForm,
     AprobarUsuarioForm
 )
 from .emails import enviar_email_registro, enviar_email_aprobacion, enviar_email_alerta_admin
+
+# Otros apps
 from inventario.models import Producto
 from categorias.models import Categoria
 from proveedores.models import Proveedor
 
+from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 
 # ========== FUNCIONES AUXILIARES ==========
 def get_client_ip(request):
@@ -62,61 +72,66 @@ def es_admin(user):
 
 # ========== VISTAS DE AUTENTICACIÓN ==========
 def registro_view(request):
-    """
-    Vista de registro de nuevos usuarios
-    Los usuarios quedan pendientes de aprobación
-    """
+    """Registro de usuarios con manejo completo de errores"""
     if request.user.is_authenticated:
         return redirect('dashboard:home')
-    
+
+    form = RegistroUsuarioForm(request.POST or None)
+
     if request.method == 'POST':
-        form = RegistroUsuarioForm(request.POST)
-        if form.is_valid():
+        try:
+            if form.is_valid():
+                # Crear usuario pero no aprobar aún
+                usuario = form.save(commit=False)
+                usuario.aprobado = False  # requiere aprobación
+                usuario.is_active = True
+                usuario.save()
 
-            usuario = form.save(commit=False)
-            usuario.aprobado = False
-            usuario.is_active = True
-            usuario.save()
-            
+                # Registrar actividad
+                registrar_actividad(
+                    usuario,
+                    'CREAR',
+                    f'Usuario {usuario.username} se registró',
+                    request
+                )
 
+                # Enviar emails (opcional)
+                # enviar_email_registro(usuario)
+                # enviar_email_alerta_admin(usuario)
 
-            registrar_actividad(
-                usuario, 
-                'CREAR', 
-                f'Usuario {usuario.username} se registró en el sistema',
-                request
-            )
+                messages.success(
+                    request,
+                    '✅ Registro exitoso. Recibirás un correo cuando tu cuenta sea aprobado.'
+                )
+                return redirect('usuarios:login')
+            else:
+                # Mostrar errores del formulario en consola y en mensajes
+                print("Errores del formulario:", form.errors)
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
 
+        except Exception as e:
+            # Captura cualquier excepción inesperada
+            messages.error(request, f'Ocurrió un error inesperado: {e}')
+            print("Excepción en registro_view:", e)
 
-        
-            
-            enviar_email_registro(usuario)
-            enviar_email_alerta_admin(usuario)
-            
-            messages.success(
-                request, 
-                '✅ ¡Registro exitoso! Recibirás un correo cuando tu cuenta sea aprobada.'
-            )
-            return redirect('usuarios:login')
-    else:
-        form = RegistroUsuarioForm()
-    
+    # Renderizar siempre el formulario, incluso si hay errores
     return render(request, 'usuarios/registro.html', {'form': form})
 
 
 def login_view(request):
     """Vista de inicio de sesión"""
     if request.user.is_authenticated:
-        return redirect('dashboard:home')
-    
+        return redirect('dashboard:home')  # <-- sin namespace
+
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
 
-
-            
+            # Registrar actividad
             registrar_actividad(
                 user,
                 'LOGIN',
@@ -126,16 +141,19 @@ def login_view(request):
             
             messages.success(request, f'¡Bienvenido, {user.first_name}!')
 
-
-            
+            # Redirigir a 'next' si viene en GET, sino al dashboard
             next_url = request.GET.get('next')
             if next_url:
                 return redirect(next_url)
-            return redirect('dashboard:home')
+            
+            # <-- CORRECCIÓN AQUÍ
+            return redirect('dashboard:home')  # ya no 'dashboard:home'
+
     else:
-        form = LoginForm()
-    
+        form = LoginForm(request)
+
     return render(request, 'usuarios/login.html', {'form': form})
+
 
 
 @login_required
@@ -156,76 +174,65 @@ def logout_view(request):
     return redirect('index')
 
 
-# ========== VISTAS DE PERFIL ==========
 @login_required
-def perfil_view(request):
-    """Vista del perfil del usuario"""
+@user_passes_test(es_admin)
+def editar_usuario_completo_view(request, usuario_id):
+    """Editar usuario completo (admin)"""
+    usuario_editar = get_object_or_404(Usuario, id=usuario_id)
+
+    # 🔒 VALIDACIÓN ANTES DE TODO (GET Y POST)
+    if usuario_editar.rol == 'SUPER_ADMIN' and usuario_editar != request.user:
+        messages.error(request, '🔒 No puedes editar al Super Administrador.')
+        return redirect('usuarios:gestionar_usuarios')
+
     if request.method == 'POST':
-        form = PerfilUsuarioForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            form.save()
-            
-            registrar_actividad(
-                request.user,
-                'EDITAR',
-                'Usuario actualizó su perfil',
-                request
-            )
-            
-            messages.success(request, '✅ Perfil actualizado correctamente.')
-            return redirect('usuarios:perfil')
-    else:
-        form = PerfilUsuarioForm(instance=request.user)
-    
+        # Campos básicos
+        usuario_editar.first_name = request.POST.get('first_name', '').strip()
+        usuario_editar.last_name = request.POST.get('last_name', '').strip()
+        usuario_editar.email = request.POST.get('email', '').strip()
+        usuario_editar.telefono = request.POST.get('telefono', '').strip()
+        nuevo_documento = request.POST.get('documento', '').strip()
 
-    actividades = HistorialActividad.objects.filter(
-        usuario=request.user
-    ).order_by('-fecha')[:10]
-    
-    context = {
-        'form': form,
-        'actividades': actividades
-    }
-    return render(request, 'usuarios/perfil.html', context)
+        # Validar documento único
+        if Usuario.objects.exclude(id=usuario_editar.id).filter(documento=nuevo_documento).exists():
+            messages.error(request, "❌ Ya existe un usuario con ese número de documento.")
+            return redirect('usuarios:editar_usuario_completo', usuario_id=usuario_editar.id)
 
+        usuario_editar.documento = nuevo_documento
+        usuario_editar.rol = request.POST.get('rol')
+        usuario_editar.is_active = request.POST.get('is_active') == 'on'
 
-@login_required
-def cambiar_password_view(request):
-    """Vista para cambiar contraseña"""
-    if request.method == 'POST':
-        form = CambiarPasswordForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)
-            
+        if not usuario_editar.aprobado and request.POST.get('aprobado') == 'on':
+            usuario_editar.aprobar_usuario(request.user)
+            # enviar_email_aprobacion(usuario_editar, request.user)
+        else:
+            usuario_editar.aprobado = request.POST.get('aprobado') == 'on'
 
+        # Grupos
+        grupos_ids = request.POST.getlist('grupos')
+        usuario_editar.groups.set(grupos_ids)
 
-            # 🔔 Enviar correo notificando el cambio de contraseña
-            send_mail(
-                'Cambio de contraseña en SISBAR',
-                f'Hola {user.username},\n\n'
-                'Tu contraseña fue cambiada correctamente.\n'
-                'Si no realizaste este cambio, por favor contacta al administrador inmediatamente.',
-                settings.DEFAULT_FROM_EMAIL,  # Remitente configurado
-                [user.email],  # Destinatario
-                fail_silently=False,
-            )
+        usuario_editar.save()
 
-            # Registrar actividad
-            registrar_actividad(
-                request.user,
-                'EDITAR',
-                'Usuario cambió su contraseña',
-                request
-            )
+        registrar_actividad(
+            request.user,
+            'EDITAR',
+            f'Editó el usuario {usuario_editar.username}',
+            request
+        )
 
-            messages.success(request, '✅ Contraseña cambiada exitosamente.')
-            return redirect('usuarios:perfil')
-    else:
-        form = CambiarPasswordForm(request.user)
+        messages.success(request, f'Usuario {usuario_editar.username} actualizado correctamente.')
+        return redirect('usuarios:gestionar_usuarios')
 
-    return render(request, 'usuarios/cambiar_password.html', {'form': form})
+    # GET: mostrar formulario
+    grupos_disponibles = Group.objects.all()
+    grupos_usuario = list(usuario_editar.groups.values_list('id', flat=True))
 
+    return render(request, 'usuarios/editar_usuario_completo.html', {
+        'usuario_editar': usuario_editar,
+        'grupos_disponibles': grupos_disponibles,
+        'grupos_usuario': grupos_usuario,
+    })
 
 # ========== GESTIÓN DE USUARIOS (ADMIN) ==========
 @login_required
@@ -283,35 +290,54 @@ def gestionar_usuarios_view(request):
 @login_required
 @user_passes_test(es_admin)
 def aprobar_usuario_view(request, usuario_id):
-    """Vista para aprobar un usuario"""
+    """Vista para aprobar un usuario y asignarle sucursal"""
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
     if request.method == 'POST':
         form = AprobarUsuarioForm(request.POST, instance=usuario)
         if form.is_valid():
+            # Validar que si se aprueba, tenga sucursal
+            if form.cleaned_data['aprobado'] and not form.cleaned_data['sucursal']:
+                messages.error(
+                    request,
+                    '❌ Debes asignar una sucursal antes de aprobar al usuario.'
+                )
+                return render(request, 'usuarios/aprobar_usuario.html', {
+                    'form': form,
+                    'usuario_obj': usuario
+                })
+            
             usuario = form.save(commit=False)
+            
+            # Si se está aprobando por primera vez
             if usuario.aprobado and not usuario.fecha_aprobacion:
                 usuario.fecha_aprobacion = timezone.now()
                 usuario.aprobado_por = request.user
+            
             usuario.save()
             
-
-
+            # Enviar email y registrar actividad si fue aprobado
             if usuario.aprobado:
                 enviar_email_aprobacion(usuario, request.user)
                 
                 registrar_actividad(
                     request.user,
                     'EDITAR',
-                    f'Aprobó la cuenta de {usuario.username}',
+                    f'Aprobó la cuenta de {usuario.username} y lo asignó a {usuario.sucursal.nombre}',
                     request
                 )
                 
                 messages.success(
                     request, 
-                    f'✅ Usuario {usuario.username} aprobado correctamente.'
+                    f'✅ Usuario {usuario.username} aprobado y asignado a {usuario.sucursal.nombre}.'
                 )
             else:
+                registrar_actividad(
+                    request.user,
+                    'EDITAR',
+                    f'Actualizó información de {usuario.username}',
+                    request
+                )
                 messages.info(request, f'Usuario {usuario.username} actualizado.')
             
             return redirect('usuarios:gestionar_usuarios')
@@ -357,74 +383,6 @@ def toggle_usuario_view(request, usuario_id):
     return redirect('usuarios:gestionar_usuarios')
 
 
-
-
-
-@login_required
-@user_passes_test(es_admin)
-def editar_usuario_completo_view(request, usuario_id):
-    usuario_editar = get_object_or_404(Usuario, id=usuario_id)
-
-
-    
-
-    if request.method == 'POST':
-        usuario_editar.first_name = request.POST.get('first_name')
-        usuario_editar.last_name = request.POST.get('last_name')
-        usuario_editar.email = request.POST.get('email')
-        usuario_editar.telefono = request.POST.get('telefono', '').strip()
-        
-
-
-        nuevo_documento = request.POST.get('documento', '').strip()
-
-
-            #  para que andie pueda editar a el dueño
-    if usuario_editar.rol == 'SUPER_ADMIN' and usuario_editar != request.user:
-        messages.error(request, '🔒 No puedes editar al Super Administrador.')
-        return redirect('usuarios:gestionar_usuarios')
-    if request.method == 'POST':
-        # ... resto del código sin cambios
-
-        if Usuario.objects.exclude(id=usuario_editar.id).filter(documento=nuevo_documento).exists():
-            messages.error(request, "❌ Ya existe un usuario con ese número de documento.")
-            return redirect('usuarios:editar_usuario_completo', usuario_id=usuario_editar.id)
-
-        usuario_editar.documento = nuevo_documento
-        usuario_editar.rol = request.POST.get('rol')
-        usuario_editar.is_active = request.POST.get('is_active') == 'on'
-
-        if not usuario_editar.aprobado and request.POST.get('aprobado') == 'on':
-            usuario_editar.aprobar_usuario(request.user)
-            enviar_email_aprobacion(usuario_editar, request.user)
-        else:
-            usuario_editar.aprobado = request.POST.get('aprobado') == 'on'
-
-        #  NUEVO: Asignar grupos
-        grupos_ids = request.POST.getlist('grupos')
-        usuario_editar.groups.set(grupos_ids)
-
-        usuario_editar.save()
-
-        registrar_actividad(
-            request.user,
-            'EDITAR',
-            f'Editó el usuario {usuario_editar.username}',
-            request
-        )
-
-        messages.success(request, f'Usuario {usuario_editar.username} actualizado correctamente.')
-        return redirect('usuarios:gestionar_usuarios')
-
-    # NUEVO: Obtener grupos para el template
-    grupos_disponibles = Group.objects.all()
-    grupos_usuario = list(usuario_editar.groups.values_list('id', flat=True))
-
-    return render(request, 'usuarios/editar_usuario_completo.html', {
-        'usuario_editar': usuario_editar,
-        'grupos_disponibles': grupos_disponibles,
-        'grupos_usuario': grupos_usuario,
-    })
 @login_required
 @user_passes_test(es_admin)
 def gestionar_grupos_view(request):
@@ -549,20 +507,6 @@ def eliminar_grupo_view(request, grupo_id):
     
     messages.success(request, f'Grupo "{nombre}" eliminado.')
     return redirect('usuarios:gestionar_grupos')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -734,9 +678,23 @@ def eliminar_producto_definitivo(request, producto_id):
 def eliminar_categoria_definitivo(request, categoria_id):
     c = get_object_or_404(Categoria, id=categoria_id)
     nombre = str(c)
-    c.delete()
-    messages.success(request, f'Categoría "{nombre}" eliminada permanentemente.')
-    return redirect(request.META.get('HTTP_REFERER', 'usuarios:panel_eliminados'))
+
+    try:
+        c.delete()
+        messages.success(
+            request,
+            f'🗑️ Categoría "{nombre}" eliminada permanentemente.'
+        )
+    except ProtectedError:
+        messages.error(
+            request,
+            f'⚠️ No se puede eliminar la categoría "{nombre}" '
+            'porque tiene productos asociados.'
+        )
+
+    return redirect(
+        request.META.get('HTTP_REFERER', 'usuarios:panel_eliminados')
+    )
 
 @login_required
 @user_passes_test(es_admin)
@@ -855,3 +813,97 @@ def desactivar_usuario(request, usuario_id):
     
     messages.warning(request, f'Usuario "{u.username}" desactivado.')
     return redirect(request.META.get('HTTP_REFERER', 'usuarios:gestionar_usuarios'))
+
+
+
+@login_required
+def perfil_view(request):
+    """Vista del perfil del usuario"""
+    if request.method == 'POST':
+        form = PerfilUsuarioForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            registrar_actividad(request.user, 'EDITAR', 'Usuario actualizó su perfil', request)
+            messages.success(request, '✅ Perfil actualizado correctamente.')
+            return redirect('usuarios:perfil')
+    else:
+        form = PerfilUsuarioForm(instance=request.user)
+
+    actividades = HistorialActividad.objects.filter(usuario=request.user).order_by('-fecha')[:10]
+
+    context = {
+        'form': form,
+        'actividades': actividades
+    }
+    return render(request, 'usuarios/perfil.html', context)
+
+
+@login_required
+def cambiar_password_view(request):
+    """Vista para cambiar contraseña"""
+    if request.method == 'POST':
+        form = CambiarPasswordForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+
+            # Enviar correo notificando el cambio
+            send_mail(
+                'Cambio de contraseña en SISBAR',
+                f'Hola {user.username},\n\nTu contraseña fue cambiada correctamente.',
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+
+            registrar_actividad(
+                request.user,
+                'EDITAR',
+                'Usuario cambió su contraseña',
+                request
+            )
+
+            messages.success(request, '✅ Contraseña cambiada exitosamente.')
+            return redirect('usuarios:perfil')
+    else:
+        form = CambiarPasswordForm(request.user)
+
+    return render(request, 'usuarios/cambiar_password.html', {'form': form})
+@login_required
+@user_passes_test(es_admin)
+def asignar_sucursal_usuario(request, usuario_id):
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    sucursales = Sucursal.objects.all()
+
+    if request.method == 'POST':
+        sucursal_id = request.POST.get('sucursal')
+        if sucursal_id:
+            sucursal = get_object_or_404(Sucursal, id=sucursal_id)
+            usuario.sucursal = sucursal
+            usuario.save()
+            messages.success(request, f'Sucursal {sucursal.nombre} asignada a {usuario.username}')
+            return redirect('usuarios:gestionar_usuarios')
+
+    return render(request, 'usuarios/asignar_sucursal.html', {
+        'usuario': usuario,
+        'sucursales': sucursales
+    })
+
+@login_required
+def dashboard_view(request):
+    """Vista del dashboard principal"""
+    # Aquí puedes enviar al template los datos que quieras mostrar
+    total_usuarios = Usuario.objects.count()
+    total_productos = Producto.objects.count()
+    total_categorias = Categoria.objects.count()
+    total_proveedores = Proveedor.objects.count()
+
+    context = {
+        'total_usuarios': total_usuarios,
+        'total_productos': total_productos,
+        'total_categorias': total_categorias,
+        'total_proveedores': total_proveedores,
+    }
+
+    return render(request, 'usuarios/dashboard.html', context)
+

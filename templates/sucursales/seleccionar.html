@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Seleccionar Sucursal - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col text-center">
+            <h1 class="h2 mb-3">🏪 Selecciona tu Sucursal</h1>
+            <p class="text-muted">Elige la tienda donde vas a trabajar</p>
+        </div>
+    </div>
+
+    {% if user.rol == 'SUPER_ADMIN' %}
+    <!-- Opción especial para SUPER_ADMIN -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-center p-4 text-white">
+                    <div class="mb-3">
+                        <i class="bi bi-globe fs-1"></i>
+                    </div>
+                    <h4 class="mb-2">Modo Global</h4>
+                    <p class="mb-3">Ver y administrar todas las sucursales desde un solo lugar</p>
+                    <a href="{% url 'sucursales:establecer_todas' %}" class="btn btn-light btn-lg">
+                        <i class="bi bi-eye me-2"></i>Activar Modo Global
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mb-3">
+        <h5 class="text-muted">O selecciona una sucursal específica:</h5>
+    </div>
+    {% endif %}
+
+    <div class="row g-4 justify-content-center">
+        {% for sucursal in sucursales %}
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        {% if sucursal.tipo == 'BODEGA' %}
+                        <div class="fs-1">🏭</div>
+                        {% elif sucursal.tipo == 'TIENDA' %}
+                        <div class="fs-1">🏪</div>
+                        {% else %}
+                        <div class="fs-1">🛒</div>
+                        {% endif %}
+                    </div>
+                    
+                    <h4 class="mb-2">{{ sucursal.nombre }}</h4>
+                    <p class="text-muted mb-1"><small>{{ sucursal.codigo }}</small></p>
+                    
+                    {% if sucursal.es_principal %}
+                    <span class="badge bg-warning mb-3">Bodega Principal</span>
+                    {% else %}
+                    <span class="badge bg-info mb-3">{{ sucursal.get_tipo_display }}</span>
+                    {% endif %}
+                    
+                    {% if sucursal.direccion %}
+                    <p class="small text-muted mb-3">
+                        <i class="bi bi-geo-alt"></i> {{ sucursal.direccion }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if sucursal.encargado %}
+                    <p class="small mb-3">
+                        <strong>Encargado:</strong><br>
+                        {{ sucursal.encargado.get_full_name }}
+                    </p>
+                    {% endif %}
+                    
+                    <a href="{% url 'sucursales:establecer' sucursal.id %}" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-check-circle me-2"></i>Seleccionar
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-md-6">
+            <div class="alert alert-warning text-center">
+                <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+                <h5>No hay sucursales disponibles</h5>
+                <p>Contacta al administrador para crear sucursales</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}

@@ -41,6 +41,9 @@
                             <th>Stock</th>
                             <th>Usuario</th>
                             <th>Motivo</th>
+                            {% if user.rol in "ADMIN,SUPER_ADMIN" %}
+                            <th>Sucursal</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -65,11 +68,14 @@
                                 <td><small>{{ mov.cantidad_anterior }} → {{ mov.cantidad_nueva }}</small></td>
                                 <td><small>{{ mov.usuario.username }}</small></td>
                                 <td><small>{{ mov.motivo|default:"-" }}</small></td>
+                                {% if user.rol in "ADMIN,SUPER_ADMIN" %}
+                                <td><small>{{ mov.sucursal.nombre }}</small></td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-5">
+                                <td colspan="{% if user.rol in 'ADMIN,SUPER_ADMIN' %}8{% else %}7{% endif %}" class="text-center text-muted py-5">
                                     <i class="bi bi-inbox fs-1 d-block mb-3"></i>
                                     No hay movimientos en este período
                                 </td>
@@ -82,3 +88,6 @@
     </div>
 </div>
 {% endblock %}
+
+
+

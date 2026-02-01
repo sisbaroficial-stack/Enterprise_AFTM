@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ producto.nombre }} - SISBAR {% endblock %}
+{% block title %}{{ producto.nombre }} - SISBAR{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -10,13 +10,28 @@
                 <i class="bi bi-arrow-left me-2"></i>Volver
             </a>
             <h1 class="h2 mb-1">{{ producto.nombre }}</h1>
-            <p class="text-muted">{{ producto.codigo }}</p>
+            <p class="text-muted">
+                {{ producto.codigo }}
+                {% if sucursal %}
+                    <span class="badge bg-primary ms-2">
+                        <i class="bi bi-building me-1"></i>{{ sucursal.nombre }}
+                    </span>
+                {% endif %}
+            </p>
         </div>
         {% if user.puede_gestionar_inventario %}
         <div class="col-auto">
-            <a href="{% url 'inventario:editar_producto' producto.id %}" class="btn btn-primary">
-                <i class="bi bi-pencil me-2"></i>Editar
-            </a>
+            <div class="btn-group" role="group">
+                <a href="{% url 'inventario:editar_producto' producto.id %}" class="btn btn-primary">
+                    <i class="bi bi-pencil me-2"></i>Editar
+                </a>
+                <a href="{% url 'inventario:agregar_stock' producto.id %}" class="btn btn-success">
+                    <i class="bi bi-plus-circle me-2"></i>Agregar Stock
+                </a>
+                <a href="{% url 'inventario:descontar_producto' producto.id %}" class="btn btn-warning">
+                    <i class="bi bi-dash-circle me-2"></i>Descontar
+                </a>
+            </div>
         </div>
         {% endif %}
     </div>
@@ -28,7 +43,7 @@
                 <div class="card-body text-center p-4">
                     {% if producto.imagen %}
                         <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" 
-                             class="img-fluid rounded mb-3" style="max-height: 300px;">
+                             class="img-fluid rounded mb-3" style="max-height: 300px; object-fit: cover;">
                     {% else %}
                         <div class="mb-3 mx-auto d-flex align-items-center justify-content-center" 
                              style="width: 200px; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white; font-size: 5rem; font-weight: bold;">
@@ -38,30 +53,58 @@
                     
                     <h4 class="mb-3">{{ producto.nombre }}</h4>
                     
-                    <span class="badge bg-{{ producto.get_estado_color }} mb-3 fs-6">
-                        {{ producto.get_estado_icono }} {{ producto.get_estado_display }}
+                    <span class="badge bg-{{ estado_color }} mb-3 fs-6">
+                        <i class="bi bi-{{ estado_icono }} me-1"></i>{{ estado_display }}
                     </span>
                     
                     <div class="text-center mb-3">
-                        <h1 class="display-4 mb-0" style="color: {% if producto.cantidad == 0 %}var(--danger-color){% elif producto.cantidad <= producto.cantidad_minima %}var(--warning-color){% else %}var(--success-color){% endif %}">
-                            {{ producto.cantidad }}
+                        <h1 class="display-4 mb-0 text-{{ estado_color }}">
+                            {{ cantidad_actual }}
                         </h1>
-                        <p class="text-muted">{{ producto.get_unidad_medida_display }} en stock</p>
+                        <p class="text-muted">{{ producto.unidad_medida }} en stock</p>
                     </div>
                     
-                    {% if producto.cantidad <= producto.cantidad_minima and producto.cantidad > 0 %}
+                    {% if cantidad_actual <= cantidad_minima and cantidad_actual > 0 %}
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle me-2"></i>
-                            <small><strong>Alerta:</strong> Stock bajo</small>
+                            <small><strong>Alerta:</strong> Stock bajo (Mínimo: {{ cantidad_minima }})</small>
                         </div>
-                    {% elif producto.cantidad == 0 %}
+                    {% elif cantidad_actual == 0 %}
                         <div class="alert alert-danger">
                             <i class="bi bi-x-circle me-2"></i>
                             <small><strong>Alerta:</strong> Producto agotado</small>
                         </div>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <small><strong>Stock óptimo</strong> (Mínimo: {{ cantidad_minima }})</small>
+                        </div>
                     {% endif %}
                 </div>
             </div>
+            
+            <!-- Stock en otras sucursales -->
+            {% if otros_inventarios %}
+            <div class="card card-custom border-0 mt-3">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h6 class="mb-0">🏪 Otras Sucursales</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for inv in otros_inventarios %}
+                        <div class="list-group-item border-0 px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small>{{ inv.sucursal.nombre }}</small>
+                                <span class="badge {% if inv.cantidad > inv.cantidad_minima %}bg-success{% elif inv.cantidad > 0 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                    {{ inv.cantidad }} {{ producto.unidad_medida }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
         
         <!-- Detalles del producto -->
@@ -88,8 +131,8 @@
                         <div class="col-md-6">
                             <label class="text-muted small">Categoría</label>
                             <p class="mb-0">
-                                <span class="badge" style="background: {{ producto.categoria.color }}; color: white;">
-                                    {{ producto.categoria.icono }} {{ producto.categoria.nombre }}
+                                <span class="badge" style="background: {{ producto.categoria.color|default:'#667eea' }}; color: white;">
+                                    {% if producto.categoria.icono %}{{ producto.categoria.icono }}{% endif %} {{ producto.categoria.nombre }}
                                 </span>
                             </p>
                         </div>
@@ -109,11 +152,15 @@
                     {% endif %}
                     
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="text-muted small">Cantidad Mínima</label>
-                            <p class="mb-0">{{ producto.cantidad_minima }} {{ producto.get_unidad_medida_display }}</p>
+                        <div class="col-md-4">
+                            <label class="text-muted small">Stock Actual</label>
+                            <p class="mb-0 fw-bold text-{{ estado_color }}">{{ cantidad_actual }} {{ producto.unidad_medida }}</p>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="text-muted small">Stock Mínimo</label>
+                            <p class="mb-0">{{ cantidad_minima }} {{ producto.unidad_medida }}</p>
+                        </div>
+                        <div class="col-md-4">
                             <label class="text-muted small">Precio de Compra</label>
                             <p class="mb-0 fw-semibold">${{ producto.precio_compra|floatformat:2 }}</p>
                         </div>
@@ -130,12 +177,12 @@
                     </div>
                     {% endif %}
                     
-                    {% if producto.ubicacion %}
+                    {% if inventario and inventario.ubicacion %}
                     <div class="row mb-3">
                         <div class="col-12">
                             <label class="text-muted small">Ubicación en Bodega</label>
                             <p class="mb-0">
-                                <i class="bi bi-geo-alt me-2"></i>{{ producto.ubicacion }}
+                                <i class="bi bi-geo-alt me-2"></i>{{ inventario.ubicacion }}
                             </p>
                         </div>
                     </div>
@@ -146,7 +193,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label class="text-muted small">Creado por</label>
-                            <p class="mb-0">{{ producto.creado_por.get_full_name }}</p>
+                            <p class="mb-0">{{ producto.creado_por.get_full_name|default:producto.creado_por.username }}</p>
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small">Fecha de creación</label>
@@ -162,52 +209,51 @@
                     <h5 class="mb-0">📊 Historial de Movimientos</h5>
                 </div>
                 <div class="card-body">
+                    {% if movimientos %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
                                     <th>Tipo</th>
                                     <th>Cantidad</th>
-                                    <th>Stock</th>
+                                    <th>Motivo</th>
                                     <th>Usuario</th>
                                     <th>Fecha</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% if movimientos %}
-                                    {% for mov in movimientos %}
-                                    <tr>
-                                        <td>
-                                            <span class="badge bg-{% if mov.tipo == 'ENTRADA' %}success{% else %}danger{% endif %}">
-                                                {{ mov.get_tipo_icono }} {{ mov.get_tipo_display }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <strong class="{% if mov.tipo == 'ENTRADA' %}text-success{% else %}text-danger{% endif %}">
-                                                {% if mov.tipo == 'ENTRADA' %}+{% else %}-{% endif %}{{ mov.cantidad }}
-                                            </strong>
-                                        </td>
-                                        <td>
-                                            <small>{{ mov.cantidad_anterior }} → {{ mov.cantidad_nueva }}</small>
-                                        </td>
-                                        <td>
-                                            <small>{{ mov.usuario.username }}</small>
-                                        </td>
-                                        <td>
-                                            <small>{{ mov.fecha|date:"d/m/Y H:i" }}</small>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted">
-                                            No hay movimientos registrados
-                                        </td>
-                                    </tr>
-                                {% endif %}
+                                {% for mov in movimientos %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-{% if mov.tipo == 'ENTRADA' %}success{% else %}danger{% endif %}">
+                                            {% if mov.tipo == 'ENTRADA' %}↑{% else %}↓{% endif %} {{ mov.get_tipo_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="{% if mov.tipo == 'ENTRADA' %}text-success{% else %}text-danger{% endif %}">
+                                            {% if mov.tipo == 'ENTRADA' %}+{% else %}-{% endif %}{{ mov.cantidad }} {{ producto.unidad_medida }}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <small>{{ mov.get_motivo_display }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ mov.usuario.get_full_name|default:mov.usuario.username }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ mov.fecha|date:"d/m/Y H:i" }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        <p class="mb-0">No hay movimientos registrados</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

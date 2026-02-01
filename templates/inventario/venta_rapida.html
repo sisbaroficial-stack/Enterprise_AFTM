@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+
+{% block title %}Venta Rápida - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">🛒 Venta Rápida</h1>
+            <p class="text-muted">
+                <i class="bi bi-building me-1"></i>
+                Sucursal: <strong>{{ sucursal.nombre }}</strong>
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Carrito de compras -->
+        <div class="col-lg-5 mb-4">
+            <!-- Formulario de búsqueda -->
+            <div class="card card-custom border-0 shadow-sm mb-3">
+                <div class="card-header pt-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-upc-scan me-2"></i>Agregar Producto
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3 position-relative">
+                        <label for="codigo" class="form-label fw-semibold">
+                            <i class="bi bi-barcode me-2"></i>Código / Producto
+                        </label>
+                        <input type="text" 
+                               id="codigo" 
+                               class="form-control form-control-lg" 
+                               placeholder="Escanea o busca por código/nombre"
+                               autocomplete="off"
+                               autofocus>
+                        
+                        <!-- Dropdown de autocomplete -->
+                        <div id="autocompleteDropdown" class="list-group position-absolute w-100 shadow-lg" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;"></div>
+                        
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Escanea con pistola o escribe el código/nombre
+                        </small>
+                    </div>
+
+                    <!-- VISTA PREVIA -->
+                    <div id="vistaPrevia" class="mb-3" style="display: none;">
+                        <div class="card border-0" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-2">
+                                        <i class="bi bi-box-seam fs-3 text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 fw-bold" id="prevNombre"></h6>
+                                        <div class="mb-2">
+                                            <span class="badge bg-light text-dark small" id="prevCategoria"></span>
+                                            <span class="badge" id="prevStock"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cantidad y Precio -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="cantidad" class="form-label fw-semibold small">Cantidad</label>
+                            <input type="number" 
+                                   id="cantidad" 
+                                   class="form-control" 
+                                   value="1" 
+                                   min="1">
+                        </div>
+                        <div class="col-6">
+                            <label for="precio_venta" class="form-label fw-semibold small">Precio Unit.</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" 
+                                       id="precio_venta" 
+                                       class="form-control" 
+                                       step="0.01"
+                                       min="0"
+                                       placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="agregarAlCarrito()" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-circle me-2"></i>Agregar al Carrito
+                    </button>
+                </div>
+            </div>
+
+            <!-- Carrito -->
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-cart3 me-2"></i>Carrito de Venta
+                        </h5>
+                        <button type="button" onclick="limpiarCarrito()" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="carritoItems" class="mb-3">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-cart-x fs-1 d-block mb-2"></i>
+                            <p class="mb-0">Carrito vacío</p>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0">Total:</h4>
+                            <h3 class="mb-0 text-primary" id="totalVenta">$0.00</h3>
+                        </div>
+
+                        <button type="button" onclick="finalizarVenta()" class="btn btn-success btn-lg w-100" id="btnFinalizar" disabled>
+                            <i class="bi bi-check-circle me-2"></i>
+                            Finalizar Venta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de productos -->
+        <div class="col-lg-7">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">
+                            <i class="bi bi-box-seam me-2"></i>Productos Disponibles
+                        </h5>
+                        <input type="text" 
+                               id="busquedaRapida" 
+                               class="form-control form-control-sm" 
+                               placeholder="🔍 Buscar..."
+                               style="width: 200px;">
+                    </div>
+                    <small class="text-muted">Haz clic en un producto para agregarlo al carrito</small>
+                </div>
+                <div class="card-body">
+                    {% if productos_recientes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 15%;">Código</th>
+                                    <th style="width: 50%;">Producto</th>
+                                    <th style="width: 20%;">Categoría</th>
+                                    <th style="width: 15%;" class="text-end">Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaProductos">
+                                {% for inv in productos_recientes %}
+                                <tr class="producto-row"
+                                    style="cursor: pointer;"
+                                    onclick="seleccionarProducto('{{ inv.producto.codigo }}', this)"
+                                    data-codigo="{{ inv.producto.codigo }}"
+                                    data-codigo-barras="{{ inv.producto.codigo_barras|default:'' }}"
+                                    data-nombre="{{ inv.producto.nombre }}"
+                                    data-categoria="{{ inv.producto.categoria.nombre }}"
+                                    data-stock="{{ inv.cantidad }}"
+                                    data-unidad="{{ inv.producto.unidad_medida }}"
+                                    data-minimo="{{ inv.cantidad_minima }}"
+                                    data-precio-compra="{{ inv.producto.precio_compra|default:'0' }}">
+                                    <td>
+                                        <code class="badge bg-secondary codigo-cell">{{ inv.producto.codigo }}</code>
+                                    </td>
+                                    <td>
+                                        <strong class="nombre-cell">{{ inv.producto.nombre }}</strong>
+                                        {% if inv.producto.codigo_barras %}
+                                        <br><small class="text-muted barras-cell">
+                                            <i class="bi bi-upc"></i> {{ inv.producto.codigo_barras }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark categoria-cell">
+                                            {{ inv.producto.categoria.nombre }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        {% if inv.cantidad > inv.cantidad_minima %}
+                                            <span class="badge bg-success">
+                                                {{ inv.cantidad }} {{ inv.producto.unidad_medida }}
+                                            </span>
+                                        {% elif inv.cantidad > 0 %}
+                                            <span class="badge bg-warning text-dark">
+                                                {{ inv.cantidad }} {{ inv.producto.unidad_medida }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                Agotado
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning text-center">
+                        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                        <h5>No hay productos disponibles</h5>
+                        <p class="mb-0">No hay productos con stock en esta sucursal</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.producto-row:hover {
+    background-color: rgba(102, 126, 234, 0.1) !important;
+}
+
+.producto-row.seleccionado {
+    background-color: rgba(102, 126, 234, 0.2) !important;
+    border-left: 4px solid #667eea;
+}
+
+.carrito-item {
+    border-left: 3px solid #667eea;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+body.modo-oscuro .carrito-item {
+    background: #1a1a2e;
+    border-color: #a78bfa;
+}
+
+.highlight {
+    background-color: yellow;
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+#autocompleteDropdown .list-group-item {
+    cursor: pointer;
+    border-left: none;
+    border-right: none;
+}
+
+#autocompleteDropdown .list-group-item:hover,
+#autocompleteDropdown .list-group-item.active {
+    background-color: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+}
+
+/* Modo oscuro */
+body.modo-oscuro .producto-row:hover {
+    background-color: rgba(102, 126, 234, 0.2) !important;
+}
+
+body.modo-oscuro .highlight {
+    background-color: #f59e0b;
+    color: #000;
+}
+
+body.modo-oscuro .table-light {
+    background-color: #16213e !important;
+    color: #e4e4e4 !important;
+}
+
+body.modo-oscuro #autocompleteDropdown .list-group-item {
+    background-color: #1a1a2e;
+    color: #e4e4e4;
+    border-color: #667eea;
+}
+</style>
+
+<script>
+let carrito = [];
+let productoSeleccionado = null;
+let scanBuffer = '';
+let scanTimeout = null;
+
+const codigoInput = document.getElementById('codigo');
+const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+const productosData = Array.from(document.querySelectorAll('.producto-row')).map(row => ({
+    codigo: row.dataset.codigo,
+    codigoBarras: row.dataset.codigoBarras,
+    nombre: row.dataset.nombre,
+    categoria: row.dataset.categoria,
+    stock: parseInt(row.dataset.stock),
+    unidad: row.dataset.unidad,
+    minimo: parseInt(row.dataset.minimo),
+    precioCompra: parseFloat(row.dataset.precioCompra) || 0,
+    elemento: row
+}));
+
+// === AUTOCOMPLETE ===
+codigoInput.addEventListener('input', function() {
+    const busqueda = this.value.toLowerCase().trim();
+    
+    if (busqueda.length < 2) {
+        autocompleteDropdown.style.display = 'none';
+        return;
+    }
+    
+    const resultados = productosData.filter(p => 
+        p.codigo.toLowerCase().includes(busqueda) ||
+        p.codigoBarras.toLowerCase().includes(busqueda) ||
+        p.nombre.toLowerCase().includes(busqueda)
+    ).slice(0, 8);
+    
+    if (resultados.length > 0) {
+        autocompleteDropdown.innerHTML = resultados.map((p, index) => `
+            <a href="#" class="list-group-item list-group-item-action" data-index="${index}">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong>${p.nombre}</strong><br>
+                        <small class="text-muted">${p.codigo}</small>
+                    </div>
+                    <span class="badge ${p.stock > p.minimo ? 'bg-success' : 'bg-warning'}">
+                        ${p.stock} ${p.unidad}
+                    </span>
+                </div>
+            </a>
+        `).join('');
+        
+        autocompleteDropdown.style.display = 'block';
+        
+        autocompleteDropdown.querySelectorAll('.list-group-item').forEach((item, idx) => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                seleccionarProducto(resultados[idx].codigo, resultados[idx].elemento);
+            });
+        });
+    } else {
+        autocompleteDropdown.style.display = 'none';
+    }
+});
+
+// === LECTOR DE CÓDIGO DE BARRAS ===
+document.addEventListener('keypress', function(e) {
+    if (document.activeElement.tagName !== 'INPUT' || document.activeElement.id === 'codigo') {
+        clearTimeout(scanTimeout);
+        
+        if (e.key !== 'Enter') {
+            scanBuffer += e.key;
+        }
+        
+        if (e.key === 'Enter' && scanBuffer.length > 0) {
+            e.preventDefault();
+            procesarEscaneo(scanBuffer.trim());
+            scanBuffer = '';
+        } else {
+            scanTimeout = setTimeout(() => scanBuffer = '', 300);
+        }
+    }
+});
+
+function procesarEscaneo(codigo) {
+    const producto = productosData.find(p => p.codigo === codigo || p.codigoBarras === codigo);
+    if (producto) {
+        seleccionarProducto(codigo, producto.elemento);
+    } else {
+        alert('❌ Producto no encontrado: ' + codigo);
+    }
+}
+
+// === BÚSQUEDA EN TABLA ===
+document.getElementById('busquedaRapida').addEventListener('input', function() {
+    const busqueda = this.value.toLowerCase();
+    document.querySelectorAll('.producto-row').forEach(fila => {
+        const texto = fila.textContent.toLowerCase();
+        fila.style.display = texto.includes(busqueda) || busqueda.length === 0 ? '' : 'none';
+    });
+});
+
+// === SELECCIÓN DE PRODUCTO ===
+function seleccionarProducto(codigo, elemento) {
+    codigoInput.value = codigo;
+    
+    document.querySelectorAll('.producto-row').forEach(row => row.classList.remove('seleccionado'));
+    elemento.classList.add('seleccionado');
+    
+    const producto = productosData.find(p => p.codigo === codigo);
+    mostrarVistaPrevia(producto);
+    autocompleteDropdown.style.display = 'none';
+    
+    document.getElementById('cantidad').value = '1';
+    document.getElementById('precio_venta').value = producto.precioCompra > 0 ? (producto.precioCompra * 1.3).toFixed(2) : '';
+    document.getElementById('cantidad').focus();
+}
+
+function mostrarVistaPrevia(producto) {
+    document.getElementById('prevNombre').textContent = producto.nombre;
+    document.getElementById('prevCategoria').textContent = producto.categoria;
+    
+    const stockBadge = document.getElementById('prevStock');
+    stockBadge.textContent = `${producto.stock} ${producto.unidad}`;
+    stockBadge.className = producto.stock > producto.minimo ? 'badge bg-success' : 'badge bg-warning text-dark';
+    
+    document.getElementById('vistaPrevia').style.display = 'block';
+    productoSeleccionado = producto;
+}
+
+// === CARRITO ===
+function agregarAlCarrito() {
+    if (!productoSeleccionado) {
+        alert('⚠️ Selecciona un producto primero');
+        return;
+    }
+    
+    const cantidad = parseInt(document.getElementById('cantidad').value);
+    const precio = parseFloat(document.getElementById('precio_venta').value);
+    
+    if (!precio || precio <= 0) {
+        alert('⚠️ Ingresa un precio de venta válido');
+        document.getElementById('precio_venta').focus();
+        return;
+    }
+    
+    if (cantidad > productoSeleccionado.stock) {
+        alert(`⚠️ Stock insuficiente. Disponible: ${productoSeleccionado.stock}`);
+        return;
+    }
+    
+    // Verificar si ya existe en el carrito
+    const existente = carrito.find(item => item.codigo === productoSeleccionado.codigo);
+    if (existente) {
+        existente.cantidad += cantidad;
+        existente.subtotal = existente.cantidad * existente.precio;
+    } else {
+        carrito.push({
+            codigo: productoSeleccionado.codigo,
+            nombre: productoSeleccionado.nombre,
+            cantidad: cantidad,
+            precio: precio,
+            unidad: productoSeleccionado.unidad,
+            subtotal: cantidad * precio,
+            stockDisponible: productoSeleccionado.stock
+        });
+    }
+    
+    actualizarCarrito();
+    limpiarFormularioProducto();
+}
+
+function actualizarCarrito() {
+    const container = document.getElementById('carritoItems');
+    
+    if (carrito.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-cart-x fs-1 d-block mb-2"></i>
+                <p class="mb-0">Carrito vacío</p>
+            </div>
+        `;
+        document.getElementById('btnFinalizar').disabled = true;
+        document.getElementById('totalVenta').textContent = '$0.00';
+        return;
+    }
+    
+    container.innerHTML = carrito.map((item, index) => `
+        <div class="carrito-item">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${item.nombre}</h6>
+                    <small class="text-muted">${item.cantidad} ${item.unidad} × $${item.precio.toFixed(2)}</small>
+                </div>
+                <div class="text-end">
+                    <strong class="text-primary">$${item.subtotal.toFixed(2)}</strong>
+                    <button onclick="eliminarDelCarrito(${index})" class="btn btn-sm btn-link text-danger p-0 ms-2">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    const total = carrito.reduce((sum, item) => sum + item.subtotal, 0);
+    document.getElementById('totalVenta').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('btnFinalizar').disabled = false;
+}
+
+function eliminarDelCarrito(index) {
+    carrito.splice(index, 1);
+    actualizarCarrito();
+}
+
+function limpiarCarrito() {
+    if (carrito.length > 0 && !confirm('¿Seguro que deseas limpiar el carrito?')) return;
+    carrito = [];
+    actualizarCarrito();
+}
+
+function limpiarFormularioProducto() {
+    codigoInput.value = '';
+    document.getElementById('cantidad').value = '1';
+    document.getElementById('precio_venta').value = '';
+    document.getElementById('vistaPrevia').style.display = 'none';
+    document.querySelectorAll('.producto-row').forEach(row => row.classList.remove('seleccionado'));
+    productoSeleccionado = null;
+    codigoInput.focus();
+}
+
+// === FINALIZAR VENTA ===
+function finalizarVenta() {
+    if (carrito.length === 0) return;
+    
+    const total = carrito.reduce((sum, item) => sum + item.subtotal, 0);
+    
+    if (!confirm(`¿Finalizar venta por $${total.toFixed(2)}?`)) return;
+    
+    // Crear formulario y enviar
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.innerHTML = `
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="carrito" value='${JSON.stringify(carrito)}'>
+    `;
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// === ATAJOS ===
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        limpiarFormularioProducto();
+    }
+    if (e.key === 'F2') {
+        e.preventDefault();
+        codigoInput.focus();
+    }
+});
+
+// Cerrar autocomplete
+document.addEventListener('click', function(e) {
+    if (!codigoInput.contains(e.target) && !autocompleteDropdown.contains(e.target)) {
+        autocompleteDropdown.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

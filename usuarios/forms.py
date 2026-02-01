@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
 from .models import Usuario
+from sucursales.models import Sucursal
 
 class RegistroUsuarioForm(UserCreationForm):
     """
@@ -99,7 +100,13 @@ class LoginForm(AuthenticationForm):
     """
     Formulario de inicio de sesión personalizado
     """
-    
+
+    # 🔥 AQUÍ EDITAS EL MENSAJE DEL LOGIN INCORRECTO
+    error_messages = {
+        'invalid_login': '❌ Usuario o contraseña incorrectos. Si tus credenciales son correctas, tu cuenta puede estar inactiva o pendiente de aprobación por un administrador.',
+        'inactive': '⚠️ Esta cuenta está desactivada.',
+    }
+
     username = forms.CharField(
         label='Usuario',
         widget=forms.TextInput(attrs={
@@ -108,7 +115,7 @@ class LoginForm(AuthenticationForm):
             'autofocus': True
         })
     )
-    
+
     password = forms.CharField(
         label='Contraseña',
         widget=forms.PasswordInput(attrs={
@@ -116,24 +123,22 @@ class LoginForm(AuthenticationForm):
             'placeholder': 'Contraseña'
         })
     )
-    
+
     def confirm_login_allowed(self, user):
         """
         Verificar que el usuario esté aprobado y activo
         """
         if not user.is_active:
             raise ValidationError(
-                'Esta cuenta está desactivada.',
+                self.error_messages['inactive'],
                 code='inactive',
             )
-        
+
         if not user.aprobado and not user.is_superuser:
             raise ValidationError(
-                'Tu cuenta aún no ha sido aprobada por un administrador. '
-                'Recibirás un correo cuando tu cuenta sea activada.',
+                '⏳ Tu cuenta aún no ha sido aprobada por un administrador.',
                 code='not_approved',
             )
-
 
 class PerfilUsuarioForm(forms.ModelForm):
     """
@@ -185,13 +190,39 @@ class CambiarPasswordForm(PasswordChangeForm):
 
 class AprobarUsuarioForm(forms.ModelForm):
     """
-    Formulario para que administradores aprueben usuarios
+    Formulario para que administradores aprueben usuarios y asignen sucursal
     """
-    
     class Meta:
         model = Usuario
-        fields = ['rol', 'aprobado']
+        fields = ['rol', 'aprobado', 'sucursal']
         widgets = {
             'rol': forms.Select(attrs={'class': 'form-select'}),
             'aprobado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'sucursal': forms.Select(attrs={'class': 'form-select'}),
         }
+        labels = {
+            'sucursal': 'Asignar Sucursal *',
+            'rol': 'Rol del Usuario',
+            'aprobado': 'Aprobar Usuario'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtrar solo sucursales activas
+        self.fields['sucursal'].queryset = Sucursal.objects.filter(activa=True)
+        # Hacer sucursal obligatoria
+        self.fields['sucursal'].required = True
+        self.fields['sucursal'].empty_label = "-- Selecciona una sucursal --"
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        aprobado = cleaned_data.get('aprobado')
+        sucursal = cleaned_data.get('sucursal')
+        
+        # Si se aprueba el usuario, DEBE tener sucursal
+        if aprobado and not sucursal:
+            raise forms.ValidationError(
+                'Debes asignar una sucursal antes de aprobar al usuario.'
+            )
+        
+        return cleaned_data
