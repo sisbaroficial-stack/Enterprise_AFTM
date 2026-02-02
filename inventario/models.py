@@ -110,6 +110,32 @@ class Producto(models.Model):
         verbose_name='Precio de Compra',
         help_text='Precio al que se compra el producto'
     )
+        # ✅ AGREGAR ESTOS 3 CAMPOS AQUÍ:
+    precio_venta = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Precio de Venta',
+        help_text='Precio al que se vende el producto'
+    )
+
+    precio_venta_minimo = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Precio de Venta Mínimo',
+        help_text='No se puede vender por debajo de este precio'
+    )
+
+    margen_ganancia = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        verbose_name='Margen de Ganancia (%)',
+        help_text='Calculado automáticamente'
+    )
     
     # Proveedor
     proveedor = models.ForeignKey(
@@ -198,6 +224,16 @@ class Producto(models.Model):
         else:
             self.estado = 'DISPONIBLE'
         
+        # ✅ CALCULAR MARGEN DE GANANCIA AUTOMÁTICAMENTE
+        if self.precio_compra > 0 and self.precio_venta > 0:
+            self.margen_ganancia = ((self.precio_venta - self.precio_compra) / self.precio_compra) * 100
+        else:
+            self.margen_ganancia = 0
+        
+        # ✅ SI NO HAY PRECIO MÍNIMO, USAR EL PRECIO DE VENTA
+        if self.precio_venta_minimo == 0 and self.precio_venta > 0:
+            self.precio_venta_minimo = self.precio_venta
+        
         super().save(*args, **kwargs)
     
     def descontar_cantidad(self, cantidad, usuario=None):
@@ -257,6 +293,12 @@ class Producto(models.Model):
             'AGOTADO': '🔴'
         }
         return iconos.get(self.estado, '⚪')
+    # ✅ AGREGAR ESTA FUNCIÓN AQUÍ:
+    def calcular_precio_sugerido(self, margen_deseado=30):
+        """Calcula precio de venta sugerido basado en margen deseado"""
+        if self.precio_compra > 0:
+            return float(self.precio_compra) * (1 + (margen_deseado / 100))
+        return 0
     
 class InventarioSucursal(models.Model):
     """

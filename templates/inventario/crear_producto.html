@@ -192,11 +192,12 @@
                 <!-- Precio y Proveedor -->
                 <div class="card card-custom border-0 mb-4">
                     <div class="card-header bg-transparent border-0 pt-4">
-                        <h5 class="mb-0">💰 Precio y Proveedor</h5>
+                        <h5 class="mb-0">💰 Precios</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <!-- Precio de compra -->
+                            <div class="col-md-4 mb-3">
                                 <label for="{{ form.precio_compra.id_for_label }}" class="form-label fw-semibold">
                                     Precio de Compra *
                                 </label>
@@ -204,13 +205,92 @@
                                     <span class="input-group-text">$</span>
                                     {{ form.precio_compra }}
                                 </div>
-                                <small class="text-muted">Solo para control interno</small>
+                                <small class="text-muted">Precio al que compras</small>
                                 {% if form.precio_compra.errors %}
                                     <div class="text-danger small mt-1">{{ form.precio_compra.errors }}</div>
                                 {% endif %}
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <!-- Precio de venta -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.precio_venta.id_for_label }}" class="form-label fw-semibold">
+                                    Precio de Venta *
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.precio_venta }}
+                                </div>
+                                <small class="text-muted">Precio normal de venta</small>
+                                {% if form.precio_venta.errors %}
+                                    <div class="text-danger small mt-1">{{ form.precio_venta.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Precio mínimo -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.precio_venta_minimo.id_for_label }}" class="form-label fw-semibold">
+                                    Precio Mínimo
+                                    <i class="bi bi-shield-check text-warning"></i>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.precio_venta_minimo }}
+                                </div>
+                                <small class="text-muted">No se puede vender por menos</small>
+                                {% if form.precio_venta_minimo.errors %}
+                                    <div class="text-danger small mt-1">{{ form.precio_venta_minimo.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Calculadora rápida -->
+                        <div class="card bg-light border-0 mt-3">
+                            <div class="card-body p-3">
+                                <h6 class="mb-2">🧮 Calculadora Rápida</h6>
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-3">
+                                        <label class="form-label small mb-1">Precio compra:</label>
+                                        <input type="number" id="calc_compra" class="form-control form-control-sm" 
+                                            placeholder="0.00" step="0.01" onchange="calcularPrecio()">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small mb-1">Margen deseado:</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="calc_margen" class="form-control" 
+                                                value="30" min="0" max="500" onchange="calcularPrecio()">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small mb-1">Precio venta:</label>
+                                        <input type="text" id="calc_venta" class="form-control form-control-sm" readonly>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-sm btn-primary w-100" onclick="aplicarPrecio()">
+                                            Aplicar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Margen calculado -->
+                        <div class="alert alert-info mt-3" id="margenInfo" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Margen:</strong>
+                                    <span id="margenPorcentaje" class="fs-5 ms-2">0%</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Ganancia unitaria:</strong>
+                                    <span id="gananciaUnitaria" class="fs-5 ms-2">$0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proveedor -->
+                        <div class="row mt-3">
+                            <div class="col-md-12 mb-3">
                                 <label for="{{ form.proveedor.id_for_label }}" class="form-label fw-semibold">
                                     Proveedor
                                 </label>
@@ -256,5 +336,91 @@
             // Aquí podrías agregar lógica AJAX para cargar subcategorías dinámicamente
         });
     }
+        // Calculadora de precios
+    function calcularPrecio() {
+        const compra = parseFloat(document.getElementById('calc_compra').value) || 0;
+        const margen = parseFloat(document.getElementById('calc_margen').value) || 0;
+        
+        if (compra > 0 && margen >= 0) {
+            const venta = compra * (1 + (margen / 100));
+            document.getElementById('calc_venta').value = '$' + venta.toFixed(2);
+        } else {
+            document.getElementById('calc_venta').value = '';
+        }
+    }
+    
+    function aplicarPrecio() {
+        const compra = parseFloat(document.getElementById('calc_compra').value) || 0;
+        const ventaText = document.getElementById('calc_venta').value;
+        const venta = parseFloat(ventaText.replace('$', '')) || 0;
+        
+        if (compra > 0 && venta > 0) {
+            document.getElementById('id_precio_compra').value = compra.toFixed(2);
+            document.getElementById('id_precio_venta').value = venta.toFixed(2);
+            document.getElementById('id_precio_venta_minimo').value = venta.toFixed(2);
+            calcularMargenReal();
+        } else {
+            alert('⚠️ Ingresa precio de compra y margen primero');
+        }
+    }
+    
+    // Calcular margen en tiempo real
+    function calcularMargenReal() {
+        const compra = parseFloat(document.getElementById('id_precio_compra').value) || 0;
+        const venta = parseFloat(document.getElementById('id_precio_venta').value) || 0;
+        
+        if (compra > 0 && venta > 0) {
+            const margen = ((venta - compra) / compra) * 100;
+            const ganancia = venta - compra;
+            
+            document.getElementById('margenPorcentaje').textContent = margen.toFixed(2) + '%';
+            document.getElementById('gananciaUnitaria').textContent = '$' + ganancia.toFixed(2);
+            document.getElementById('margenInfo').style.display = 'block';
+            
+            // Color según margen
+            const margenEl = document.getElementById('margenPorcentaje');
+            if (margen < 0) {
+                margenEl.style.color = 'red';
+                document.getElementById('margenInfo').className = 'alert alert-danger mt-3';
+            } else if (margen < 20) {
+                margenEl.style.color = 'orange';
+                document.getElementById('margenInfo').className = 'alert alert-warning mt-3';
+            } else {
+                margenEl.style.color = 'green';
+                document.getElementById('margenInfo').className = 'alert alert-info mt-3';
+            }
+            
+            // Sugerir precio mínimo
+            if (!document.getElementById('id_precio_venta_minimo').value) {
+                document.getElementById('id_precio_venta_minimo').value = venta.toFixed(2);
+            }
+        } else {
+            document.getElementById('margenInfo').style.display = 'none';
+        }
+    }
+    
+    // Escuchar cambios en precios
+    document.getElementById('id_precio_compra').addEventListener('input', calcularMargenReal);
+    document.getElementById('id_precio_venta').addEventListener('input', calcularMargenReal);
+    
+    // Validar antes de enviar
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const compra = parseFloat(document.getElementById('id_precio_compra').value) || 0;
+        const venta = parseFloat(document.getElementById('id_precio_venta').value) || 0;
+        const minimo = parseFloat(document.getElementById('id_precio_venta_minimo').value) || 0;
+        
+        if (venta < compra) {
+            if (!confirm('⚠️ El precio de venta es menor que el precio de compra. ¿Continuar?')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+        
+        if (minimo > venta && venta > 0) {
+            alert('❌ El precio mínimo no puede ser mayor que el precio de venta');
+            e.preventDefault();
+            return false;
+        }
+    });
 </script>
 {% endblock %}

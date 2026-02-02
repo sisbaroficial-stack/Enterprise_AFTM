@@ -171,7 +171,9 @@
                                     data-stock="{{ inv.cantidad }}"
                                     data-unidad="{{ inv.producto.unidad_medida }}"
                                     data-minimo="{{ inv.cantidad_minima }}"
-                                    data-precio-compra="{{ inv.producto.precio_compra|default:'0' }}">
+                                    data-precio-compra="{{ inv.producto.precio_compra|default:'0' }}"
+                                    data-precio-venta="{{ inv.producto.precio_venta|default:'0' }}"
+                                    data-precio-minimo="{{ inv.producto.precio_venta_minimo|default:'0' }}">
                                     <td>
                                         <code class="badge bg-secondary codigo-cell">{{ inv.producto.codigo }}</code>
                                     </td>
@@ -302,6 +304,8 @@ const productosData = Array.from(document.querySelectorAll('.producto-row')).map
     unidad: row.dataset.unidad,
     minimo: parseInt(row.dataset.minimo),
     precioCompra: parseFloat(row.dataset.precioCompra) || 0,
+    precioVenta: parseFloat(row.dataset.precioVenta) || 0,  //  NUEVO
+    precioMinimo: parseFloat(row.dataset.precioMinimo) || 0,  //  NUEVO
     elemento: row
 }));
 
@@ -397,7 +401,16 @@ function seleccionarProducto(codigo, elemento) {
     autocompleteDropdown.style.display = 'none';
     
     document.getElementById('cantidad').value = '1';
-    document.getElementById('precio_venta').value = producto.precioCompra > 0 ? (producto.precioCompra * 1.3).toFixed(2) : '';
+    
+    // ✅ USAR PRECIO DE VENTA DEL PRODUCTO
+    if (producto.precioVenta > 0) {
+        document.getElementById('precio_venta').value = producto.precioVenta.toFixed(2);
+    } else if (producto.precioCompra > 0) {
+        document.getElementById('precio_venta').value = (producto.precioCompra * 1.3).toFixed(2);
+    } else {
+        document.getElementById('precio_venta').value = '';
+    }
+    
     document.getElementById('cantidad').focus();
 }
 
@@ -429,6 +442,19 @@ function agregarAlCarrito() {
         return;
     }
     
+    // ✅ VALIDAR PRECIO MÍNIMO
+    if (productoSeleccionado.precioMinimo > 0 && precio < productoSeleccionado.precioMinimo) {
+        alert(
+            `❌ NO se puede vender por debajo del precio mínimo\n\n` +
+            `Precio ingresado: $${precio.toFixed(2)}\n` +
+            `Precio mínimo: $${productoSeleccionado.precioMinimo.toFixed(2)}\n\n` +
+            `Diferencia: $${(productoSeleccionado.precioMinimo - precio).toFixed(2)}`
+        );
+        document.getElementById('precio_venta').value = productoSeleccionado.precioMinimo.toFixed(2);
+        document.getElementById('precio_venta').focus();
+        return;
+    }
+    
     if (cantidad > productoSeleccionado.stock) {
         alert(`⚠️ Stock insuficiente. Disponible: ${productoSeleccionado.stock}`);
         return;
@@ -447,7 +473,8 @@ function agregarAlCarrito() {
             precio: precio,
             unidad: productoSeleccionado.unidad,
             subtotal: cantidad * precio,
-            stockDisponible: productoSeleccionado.stock
+            stockDisponible: productoSeleccionado.stock,
+            precioMinimo: productoSeleccionado.precioMinimo  // ✅ GUARDAR PRECIO MÍNIMO
         });
     }
     

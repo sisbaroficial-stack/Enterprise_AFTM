@@ -5,24 +5,14 @@ from proveedores.models import Proveedor
 
 
 class ProductoForm(forms.ModelForm):
-    """
-    Formulario para crear y editar productos
-    """
-
     class Meta:
         model = Producto
         fields = [
-            'codigo',
-            'codigo_barras',
-            'nombre',
-            'descripcion',
-            'categoria',
-            'subcategoria',
-            'cantidad_minima',
-            'unidad_medida',
-            'precio_compra',
-            'proveedor',
-            'imagen',
+            'codigo', 'codigo_barras', 'nombre', 'descripcion',
+            'categoria', 'subcategoria', 'unidad_medida',
+            'cantidad_minima', 'precio_compra', 'precio_venta',  # ✅ AGREGADO
+            'precio_venta_minimo', 'proveedor',  # ✅ AGREGADO
+            'imagen', 'ubicacion'
         ]
         widgets = {
             'codigo': forms.TextInput(attrs={

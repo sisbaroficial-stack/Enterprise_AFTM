@@ -758,28 +758,36 @@ def venta_rapida(request):
             
             # Procesar cada producto del carrito
             with transaction.atomic():
-                for item in carrito:
-                    codigo = item['codigo']
-                    cantidad = int(item['cantidad'])
-                    precio = float(item['precio'])
-                    subtotal = float(item['subtotal'])
-                    
-                    # Buscar inventario
-                    inventario = InventarioSucursal.objects.select_related('producto').filter(
-                        Q(producto__codigo=codigo),
-                        sucursal=sucursal,
-                        producto__activo=True
-                    ).first()
-                    
-                    if not inventario:
-                        raise ValueError(f'Producto {codigo} no encontrado')
-                    
-                    # Verificar stock
-                    if inventario.cantidad < cantidad:
-                        raise ValueError(
-                            f'Stock insuficiente para {inventario.producto.nombre}. '
-                            f'Disponible: {inventario.cantidad}'
-                        )
+                    for item in carrito:
+                        codigo = item['codigo']
+                        cantidad = int(item['cantidad'])
+                        precio = float(item['precio'])
+                        subtotal = float(item['subtotal'])
+                        precio_minimo = float(item.get('precioMinimo', 0))  # ✅ NUEVO
+                        
+                        # Buscar inventario
+                        inventario = InventarioSucursal.objects.select_related('producto').filter(
+                            Q(producto__codigo=codigo),
+                            sucursal=sucursal,
+                            producto__activo=True
+                        ).first()
+                        
+                        if not inventario:
+                            raise ValueError(f'Producto {codigo} no encontrado')
+                        
+                        # ✅ VALIDAR PRECIO MÍNIMO EN BACKEND
+                        if inventario.producto.precio_venta_minimo > 0 and precio < float(inventario.producto.precio_venta_minimo):
+                            raise ValueError(
+                                f'NO se puede vender {inventario.producto.nombre} por ${precio:.2f}. '
+                                f'Precio mínimo: ${inventario.producto.precio_venta_minimo:.2f}'
+                            )
+                        
+                        # Verificar stock
+                        if inventario.cantidad < cantidad:
+                            raise ValueError(
+                                f'Stock insuficiente para {inventario.producto.nombre}. '
+                                f'Disponible: {inventario.cantidad}'
+                            )
                     
                     # Descontar stock
                     inventario.cantidad -= cantidad
@@ -799,19 +807,19 @@ def venta_rapida(request):
                     productos_vendidos.append(f'{inventario.producto.nombre} ({cantidad})')
                     total_venta += subtotal
                 
-                # Registrar actividad
-                registrar_actividad(
-                    request.user,
-                    tipo='DESCONTAR',
-                    descripcion=f'Venta múltiple: {len(carrito)} productos por ${total_venta:.2f}',
-                    request=request
-                )
-                
-                messages.success(
-                    request,
-                    f'✅ Venta registrada exitosamente: {len(carrito)} productos por ${total_venta:.2f}'
-                )
-                return redirect('inventario:venta_rapida')
+                    # Registrar actividad
+                    registrar_actividad(
+                        request.user,
+                        tipo='DESCONTAR',
+                        descripcion=f'Venta múltiple: {len(carrito)} productos por ${total_venta:.2f}',
+                        request=request
+                    )
+                    
+                    messages.success(
+                        request,
+                        f'✅ Venta registrada exitosamente: {len(carrito)} productos por ${total_venta:.2f}'
+                    )
+                    return redirect('inventario:venta_rapida')
                 
         except ValueError as e:
             messages.error(request, f'❌ {str(e)}')
