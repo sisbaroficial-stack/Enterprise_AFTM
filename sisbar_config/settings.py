@@ -69,39 +69,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sisbar_config.wsgi.application'
 
-<<<<<<< HEAD
-# ===================== DATABASE =====================
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-=======
+
 # -------------------------
 # BASE DE DATOS PARA LOCAL + RENDER
 # -------------------------
 
 # Detectar si estamos ejecutando en Render
-IS_RENDER = "RENDER" in os.environ
 
-if IS_RENDER:
-    # Render usa PostgreSQL
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=config('DATABASE_URL'),
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
-else:
-    # Local usa SQLite como antes
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -121,7 +97,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
->>>>>>> 7ecd77349a71072c91d17b0fb9594e591aae1e62
 
 # ===================== INTERNACIONALIZACIÓN =====================
 LANGUAGE_CODE = 'es-co'
@@ -143,11 +118,7 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 
 
-<<<<<<< HEAD
-LOGIN_URL = 'usuarios:login'  # SIN barra inicial
-LOGIN_REDIRECT_URL = 'dashboard:home'  # ✅ BIEN - Con comillas
-LOGOUT_REDIRECT_URL = 'index'  # Redirige al index principal
-=======
+
 # Login/Logout URLs
 LOGIN_URL = 'usuarios:login'
 LOGIN_REDIRECT_URL = 'dashboard:home'
@@ -174,4 +145,13 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
->>>>>>> 7ecd77349a71072c91d17b0fb9594e591aae1e62
+
+
+
+# ===================== DATABASE =====================
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
