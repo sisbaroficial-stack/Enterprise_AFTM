@@ -13,6 +13,20 @@ SISBAR1.1_AFTM-SAS
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
+├─ compras
+│  ├─ admin.py
+│  ├─ apps.py
+│  ├─ migrations
+│  │  ├─ 0001_initial.py
+│  │  ├─ 0002_cacheprediccion.py
+│  │  └─ __init__.py
+│  ├─ models.py
+│  ├─ services.py
+│  ├─ tests.py
+│  ├─ urls.py
+│  ├─ views.py
+│  └─ __init__.py
+├─ crear_datos_prueba.py
 ├─ dashboard
 │  ├─ admin.py
 │  ├─ apps.py
@@ -23,6 +37,7 @@ SISBAR1.1_AFTM-SAS
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
+├─ dataset_ia_sisbar.json
 ├─ facturas
 │  ├─ admin.py
 │  ├─ apps.py
@@ -41,6 +56,7 @@ SISBAR1.1_AFTM-SAS
 │  ├─ management
 │  │  ├─ commands
 │  │  │  ├─ stress_test_sisbar.py
+│  │  │  ├─ test_ia_profundo.py
 │  │  │  └─ __init__.py
 │  │  └─ __init__.py
 │  ├─ migrations
@@ -52,6 +68,8 @@ SISBAR1.1_AFTM-SAS
 │  │  ├─ 0006_cliente_factura_anulada_factura_cambio_and_more.py
 │  │  ├─ 0007_remove_factura_cliente_remove_detallefactura_factura_and_more.py
 │  │  ├─ 0008_movimientoinventario_factura.py
+│  │  ├─ 0009_producto_clase_abc.py
+│  │  ├─ 0010_alter_producto_clase_abc.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ tests.py
@@ -73,6 +91,7 @@ SISBAR1.1_AFTM-SAS
 │  └─ __init__.py
 ├─ productos
 │  ├─ Acer_Wallpaper_01_5000x2814_-_copia.jpg
+│  ├─ Acer_Wallpaper_01_5000x2814_-_copia_2lFYSk5.jpg
 │  ├─ Acer_Wallpaper_02_5000x2813_-_copia.jpg
 │  ├─ Acer_Wallpaper_03_5000x2814_-_copia.jpg
 │  ├─ Planet9_Wallpaper_5000x2813_-_copia.jpg
@@ -82,6 +101,7 @@ SISBAR1.1_AFTM-SAS
 │  ├─ apps.py
 │  ├─ migrations
 │  │  ├─ 0001_initial.py
+│  │  ├─ 0002_proveedor_cantidad_minima_pedido_and_more.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ tests.py
@@ -97,10 +117,12 @@ SISBAR1.1_AFTM-SAS
 │  ├─ migrations
 │  │  └─ __init__.py
 │  ├─ models.py
+│  ├─ services_abc.py
 │  ├─ tests.py
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
+├─ reporte_mega_test_saas.json
 ├─ requirements.txt
 ├─ sisbar_config
 │  ├─ asgi.py
@@ -117,6 +139,7 @@ SISBAR1.1_AFTM-SAS
 │  ├─ migrations
 │  │  ├─ 0001_initial.py
 │  │  ├─ 0002_sucursal_aplica_impuesto_consumo_and_more.py
+│  │  ├─ 0003_alter_sucursal_rango_hasta.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ tests.py
@@ -131,6 +154,12 @@ SISBAR1.1_AFTM-SAS
 │  │  ├─ editar.html
 │  │  ├─ eliminar.html
 │  │  └─ listar.html
+│  ├─ compras
+│  │  ├─ configuracion.html
+│  │  ├─ detalle_sugerencia.html
+│  │  ├─ partials
+│  │  │  └─ card_sugerencia.html
+│  │  └─ sugerencias.html
 │  ├─ dashboard
 │  │  └─ home.html
 │  ├─ facturas

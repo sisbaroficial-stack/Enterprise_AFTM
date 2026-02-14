@@ -238,8 +238,15 @@
                                         <small>{{ mov.get_motivo_display }}</small>
                                     </td>
                                     <td>
-                                        <small>{{ mov.usuario.get_full_name|default:mov.usuario.username }}</small>
+                                        <small>
+                                            {% if mov.usuario %}
+                                                {{ mov.usuario.get_full_name|default:mov.usuario.username }}
+                                            {% else %}
+                                                Sin usuario
+                                            {% endif %}
+                                        </small>
                                     </td>
+
                                     <td>
                                         <small>{{ mov.fecha|date:"d/m/Y H:i" }}</small>
                                     </td>

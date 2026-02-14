@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'dev-secret-key'
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 #----------------------------------------------LO DE ARRIBAAGREGUE PARA EL HOSTINGE
 # ===================== APPS =====================
 INSTALLED_APPS = [
@@ -27,7 +27,7 @@ INSTALLED_APPS = [
     'proveedores',
     'sucursales',
     'facturas',
-    # Librerías externas
+    'compras',
     'crispy_forms',
 ]
 

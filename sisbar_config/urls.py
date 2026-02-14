@@ -14,7 +14,7 @@ urlpatterns = [
 
     # Apps
     path('usuarios/', include('usuarios.urls', namespace='usuarios')),
-    path('dashboard/', include('dashboard.urls', namespace='dashboard')),  # ✅ CORRECTO
+    path('dashboard/', include('dashboard.urls', namespace='dashboard')),  
     path('inventario/', include('inventario.urls', namespace='inventario')),
     path('categorias/', include('categorias.urls', namespace='categorias')),
     path('proveedores/', include('proveedores.urls', namespace='proveedores')),
@@ -22,6 +22,7 @@ urlpatterns = [
     path('facturas/', include('facturas.urls', namespace='facturas')),
     path('reportes/', include('reportes.urls', namespace='reportes')),
     path('sucursales/', include('sucursales.urls', namespace='sucursales')),
+    path('compras/', include('compras.urls', namespace='compras')),
 ]
 
 # Media & Static

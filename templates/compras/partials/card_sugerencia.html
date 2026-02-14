@@ -1,0 +1,196 @@
+<div class="card card-custom border-0 shadow-sm h-100 
+    {% if sug.urgencia == 'URGENTE' %}border-danger{% elif sug.urgencia == 'ALTA' %}border-warning{% endif %}"
+    style="{% if sug.urgencia == 'URGENTE' %}border-left: 5px solid #EF4444 !important;
+           {% elif sug.urgencia == 'ALTA' %}border-left: 5px solid #F59E0B !important;
+           {% elif sug.urgencia == 'MEDIA' %}border-left: 5px solid #EAB308 !important;
+           {% else %}border-left: 5px solid #10B981 !important;{% endif %}">
+    
+    <div class="card-body">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h5 class="mb-1">{{ sug.producto.nombre }}</h5>
+                <small class="text-muted">
+                    <i class="bi bi-upc me-1"></i>{{ sug.producto.codigo }}
+                </small>
+            </div>
+            <div>
+                {% if sug.urgencia == 'URGENTE' %}
+                    <span class="badge bg-danger">🔴 URGENTE</span>
+                {% elif sug.urgencia == 'ALTA' %}
+                    <span class="badge bg-warning text-dark">🟠 ALTA</span>
+                {% elif sug.urgencia == 'MEDIA' %}
+                    <span class="badge" style="background: #EAB308;">🟡 MEDIA</span>
+                {% else %}
+                    <span class="badge bg-success">🟢 BAJA</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <div class="p-2 rounded" style="background: rgba(102, 126, 234, 0.1);">
+                    <small class="text-muted d-block">Stock Actual</small>
+                    <strong class="fs-5">{{ sug.stock_actual }}</strong>
+                    <span class="small">{{ sug.producto.unidad_medida }}</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-2 rounded" style="background: rgba(239, 68, 68, 0.1);">
+                    <small class="text-muted d-block">Días Restantes</small>
+                    <strong class="fs-5 {% if sug.dias_stock_restante < 3 %}text-danger{% elif sug.dias_stock_restante < 7 %}text-warning{% endif %}">
+                        {{ sug.dias_stock_restante|floatformat:1 }}
+                    </strong>
+                    <span class="small">días</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Progreso Mini -->
+        <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+                <small class="text-muted">Nivel de Stock</small>
+                <small class="text-muted">
+                    {% widthratio sug.stock_actual sug.punto_reorden 100 as nivel %}
+                    {{ nivel }}%
+                </small>
+            </div>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar 
+                    {% if nivel < 30 %}bg-danger{% elif nivel < 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                    style="width: {{ nivel }}%;"></div>
+            </div>
+        </div>
+
+        <!-- IA Stats -->
+        <div class="mb-3 p-2 rounded" style="background: rgba(16, 185, 129, 0.1);">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="text-muted">
+                    <i class="bi bi-robot me-1"></i>Predicción IA (30 días)
+                </small>
+                <span class="badge bg-success" style="font-size: 0.7rem;">
+                    {{ sug.confianza_ia|floatformat:0 }}% confianza
+                </span>
+            </div>
+            <strong class="fs-5">{{ sug.prediccion_proximos_30_dias }}</strong> unidades
+            <div class="mt-2 d-flex justify-content-between align-items-center">
+                <small>
+                    {% if sug.tendencia == 'CRECIENTE' %}
+                        <span class="badge bg-success" style="font-size: 0.7rem;">📈 Creciente</span>
+                    {% elif sug.tendencia == 'DECRECIENTE' %}
+                        <span class="badge bg-danger" style="font-size: 0.7rem;">📉 Decreciente</span>
+                    {% else %}
+                        <span class="badge bg-info" style="font-size: 0.7rem;">➡️ Estable</span>
+                    {% endif %}
+                </small>
+                <small class="text-muted">
+                    <i class="bi bi-speedometer2 me-1"></i>{{ sug.promedio_ventas_diarias|floatformat:1 }}/día
+                </small>
+            </div>
+        </div>
+
+        <!-- Mini Gráfica de Tendencia -->
+        <div class="mb-3 p-2 rounded border">
+            <canvas id="miniChart{{ sug.id }}" height="60"></canvas>
+        </div>
+
+        <!-- Sugerencia -->
+        <div class="alert alert-primary mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Comprar:</strong>
+                    <span class="fs-4 ms-2">{{ sug.cantidad_sugerida }}</span> unidades
+                </div>
+                <div class="text-end">
+                    <small class="d-block text-muted">Inversión</small>
+                    <strong class="text-primary">${{ sug.inversion_estimada|floatformat:0 }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Razón -->
+        <div class="mb-3">
+            <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>{{ sug.razon|truncatewords:20 }}
+            </small>
+        </div>
+
+        <!-- Proveedor -->
+        {% if sug.proveedor_sugerido %}
+        <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background: rgba(102, 126, 234, 0.05);">
+            <div>
+                <i class="bi bi-truck me-2 text-primary"></i>
+                <strong>{{ sug.proveedor_sugerido.nombre }}</strong>
+            </div>
+            <small class="text-muted">
+                {{ sug.proveedor_sugerido.dias_entrega }} días
+            </small>
+        </div>
+        {% endif %}
+
+        <!-- Acciones -->
+        <div class="mt-3 pt-3 border-top">
+            <a href="{% url 'compras:detalle_sugerencia' sug.id %}" 
+               class="btn btn-sm btn-outline-primary w-100">
+                <i class="bi bi-eye me-1"></i>Ver Análisis Completo
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mini gráfica de tendencia para esta tarjeta
+(function() {
+    const ctx = document.getElementById('miniChart{{ sug.id }}');
+    if (ctx) {
+        // Generar datos simulados basados en tendencia
+        const dias = 30;
+        const promedio = {{ sug.promedio_ventas_diarias }};
+        const tendencia = "{{ sug.tendencia }}";
+        
+        const data = [];
+        for (let i = 0; i < dias; i++) {
+            let valor = promedio;
+            if (tendencia === "CRECIENTE") {
+                valor += (i / dias) * (promedio * 0.3);
+            } else if (tendencia === "DECRECIENTE") {
+                valor -= (i / dias) * (promedio * 0.3);
+            }
+            // Agregar variación aleatoria
+            valor += (Math.random() - 0.5) * promedio * 0.2;
+            data.push(Math.max(0, valor));
+        }
+        
+        new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: Array(dias).fill(''),
+                datasets: [{
+                    data: data,
+                    borderColor: tendencia === "CRECIENTE" ? '#10B981' : 
+                                tendencia === "DECRECIENTE" ? '#EF4444' : '#3B82F6',
+                    backgroundColor: tendencia === "CRECIENTE" ? 'rgba(16, 185, 129, 0.1)' : 
+                                    tendencia === "DECRECIENTE" ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                },
+                scales: {
+                    x: { display: false },
+                    y: { display: false }
+                }
+            }
+        });
+    }
+})();
+</script>

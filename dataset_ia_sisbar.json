@@ -1,0 +1,130 @@
+[
+    {
+        "producto": "sdgd",
+        "dias": [
+            "2026-03-11"
+        ],
+        "ventas": [
+            100.0
+        ],
+        "prediccion_30_dias": 3000,
+        "confianza": 70.0,
+        "tendencia": "CRECIENTE"
+    },
+    {
+        "producto": "tv 66 pulgadas",
+        "dias": [
+            "2026-03-12"
+        ],
+        "ventas": [
+            999.0
+        ],
+        "prediccion_30_dias": 29970,
+        "confianza": 70.0,
+        "tendencia": "CRECIENTE"
+    },
+    {
+        "producto": "lg 55 pulgadas",
+        "dias": [
+            "2026-03-11",
+            "2026-03-12"
+        ],
+        "ventas": [
+            100.0,
+            10.0
+        ],
+        "prediccion_30_dias": 1650,
+        "confianza": 70.0,
+        "tendencia": "DECRECIENTE"
+    },
+    {
+        "producto": "termo 1.9",
+        "dias": [
+            "2026-03-10",
+            "2026-03-11"
+        ],
+        "ventas": [
+            4.0,
+            35687.0
+        ],
+        "prediccion_30_dias": 535365,
+        "confianza": 70.0,
+        "tendencia": "CRECIENTE"
+    },
+    {
+        "producto": "olla grende",
+        "dias": [
+            "2026-03-05",
+            "2026-03-10",
+            "2026-03-11"
+        ],
+        "ventas": [
+            1.0,
+            2.0,
+            70.0
+        ],
+        "prediccion_30_dias": 730,
+        "confianza": 70.0,
+        "tendencia": "CRECIENTE"
+    },
+    {
+        "producto": "m",
+        "dias": [
+            "2026-03-10"
+        ],
+        "ventas": [
+            2.0
+        ],
+        "prediccion_30_dias": 60,
+        "confianza": 70.0,
+        "tendencia": "CRECIENTE"
+    },
+    {
+        "producto": "pan",
+        "dias": [
+            "2026-02-03",
+            "2026-03-05",
+            "2026-03-10"
+        ],
+        "ventas": [
+            1.0,
+            11.0,
+            11.0
+        ],
+        "prediccion_30_dias": 230,
+        "confianza": 70.0,
+        "tendencia": "CRECIENTE"
+    },
+    {
+        "producto": "lanta",
+        "dias": [
+            "2026-02-03",
+            "2026-03-05"
+        ],
+        "ventas": [
+            30.0,
+            19.0
+        ],
+        "prediccion_30_dias": 735,
+        "confianza": 70.0,
+        "tendencia": "DECRECIENTE"
+    },
+    {
+        "producto": "olla pequeña",
+        "dias": [
+            "2026-02-02",
+            "2026-02-03",
+            "2026-03-05",
+            "2026-03-10"
+        ],
+        "ventas": [
+            7.0,
+            46.0,
+            22.0,
+            22.0
+        ],
+        "prediccion_30_dias": 727,
+        "confianza": 70.0,
+        "tendencia": "ESTABLE"
+    }
+]

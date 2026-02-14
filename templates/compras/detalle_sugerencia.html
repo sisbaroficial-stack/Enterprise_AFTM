@@ -1,0 +1,557 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Sugerencia - {{ sugerencia.producto.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        transition: all 0.3s;
+    }
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .chart-container {
+        position: relative;
+        height: 400px;
+    }
+    .info-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        margin: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'compras:sugerencias_compra' %}" class="btn btn-outline-secondary mb-3">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+            <h1 class="h2 mb-1">{{ sugerencia.producto.nombre }}</h1>
+            <p class="text-muted">
+                Código: {{ sugerencia.producto.codigo }} | 
+                Categoría: {{ sugerencia.producto.categoria.nombre }}
+                {% if sugerencia.sucursal %} | Sucursal: {{ sugerencia.sucursal.nombre }}{% endif %}
+            </p>
+        </div>
+        <div class="col-auto">
+            {% if sugerencia.urgencia == 'URGENTE' %}
+                <span class="badge bg-danger fs-5">🔴 URGENTE</span>
+            {% elif sugerencia.urgencia == 'ALTA' %}
+                <span class="badge bg-warning text-dark fs-5">🟠 ALTA</span>
+            {% elif sugerencia.urgencia == 'MEDIA' %}
+                <span class="badge fs-5" style="background: #EAB308;">🟡 MEDIA</span>
+            {% else %}
+                <span class="badge bg-success fs-5">🟢 BAJA</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna Izquierda -->
+        <div class="col-lg-15">
+            <!-- Gráfica Principal: Histórico vs Predicción -->
+            <div class="card card-custom border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5><i class="bi bi-graph-up me-2"></i>Histórico de Ventas vs Predicción IA</h5>
+                    <small class="text-muted">Análisis de los últimos 90 días + proyección 30 días</small>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="prediccionChart"></canvas>
+                    </div>
+                    
+                    <!-- Leyenda de Métricas -->
+                    <div class="row mt-4 g-2">
+                        <div class="col-md-3">
+                            <div class="info-badge" style="background: rgba(59, 130, 246, 0.1); width: 100%;">
+                                <small class="text-muted d-block">Venta Real Promedio</small>
+                                <strong class="text-primary">{{ sugerencia.promedio_ventas_diarias|floatformat:2 }}/día</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-badge" style="background: rgba(245, 158, 11, 0.1); width: 100%;">
+                                <small class="text-muted d-block">Predicción IA</small>
+                                <strong class="text-warning">{{ sugerencia.prediccion_proximos_30_dias }} unid.</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-badge" style="background: rgba(16, 185, 129, 0.1); width: 100%;">
+                                <small class="text-muted d-block">Confianza del Modelo</small>
+                                <strong class="text-success">{{ sugerencia.confianza_ia|floatformat:0 }}%</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-badge" style="background: rgba(139, 92, 246, 0.1); width: 100%;">
+                                <small class="text-muted d-block">Tendencia Detectada</small>
+                                <strong>
+                                    {% if sugerencia.tendencia == 'CRECIENTE' %}
+                                        <span class="text-success">📈 Creciente</span>
+                                    {% elif sugerencia.tendencia == 'DECRECIENTE' %}
+                                        <span class="text-danger">📉 Decreciente</span>
+                                    {% else %}
+                                        <span class="text-info">➡️ Estable</span>
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado Actual -->
+            <div class="card card-custom border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5>📊 Estado Actual del Inventario</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="metric-card text-center p-3 rounded shadow-sm" style="background: rgba(102, 126, 234, 0.1);">
+                                <h2 class="mb-0">{{ sugerencia.stock_actual }}</h2>
+                                <small class="text-muted">Stock Actual</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center p-3 rounded shadow-sm" style="background: rgba(239, 68, 68, 0.1);">
+                                <h2 class="mb-0 {% if sugerencia.dias_stock_restante < 3 %}text-danger{% elif sugerencia.dias_stock_restante < 7 %}text-warning{% endif %}">
+                                    {{ sugerencia.dias_stock_restante|floatformat:1 }}
+                                </h2>
+                                <small class="text-muted">Días Restantes</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center p-3 rounded shadow-sm" style="background: rgba(245, 158, 11, 0.1);">
+                                <h2 class="mb-0">{{ sugerencia.stock_minimo }}</h2>
+                                <small class="text-muted">Stock Mínimo</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card text-center p-3 rounded shadow-sm" style="background: rgba(16, 185, 129, 0.1);">
+                                <h2 class="mb-0">{{ sugerencia.punto_reorden }}</h2>
+                                <small class="text-muted">Punto Reorden</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Progreso de Stock -->
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted">Nivel de Stock</small>
+                            <small class="text-muted">{{ sugerencia.stock_actual }} / {{ sugerencia.punto_reorden }} unidades</small>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            {% widthratio sugerencia.stock_actual sugerencia.punto_reorden 100 as porcentaje %}
+                            <div class="progress-bar 
+                                {% if porcentaje < 30 %}bg-danger{% elif porcentaje < 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ porcentaje }}%;"
+                                aria-valuenow="{{ porcentaje }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                                {{ porcentaje }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis IA -->
+            <div class="card card-custom border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5><i class="bi bi-robot me-2"></i>Análisis con Inteligencia Artificial</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="small text-muted">Promedio Ventas Diarias</label>
+                            <h4>{{ sugerencia.promedio_ventas_diarias|floatformat:2 }}</h4>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-muted">Predicción 30 Días</label>
+                            <h4 class="text-primary">{{ sugerencia.prediccion_proximos_30_dias }}</h4>
+                            <small class="text-muted">Confianza: {{ sugerencia.confianza_ia|floatformat:0 }}%</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-muted">Tendencia Detectada</label>
+                            <h4>
+                                {% if sugerencia.tendencia == 'CRECIENTE' %}
+                                    <span class="text-success">📈 Creciente</span>
+                                {% elif sugerencia.tendencia == 'DECRECIENTE' %}
+                                    <span class="text-danger">📉 Decreciente</span>
+                                {% else %}
+                                    <span class="text-info">➡️ Estable</span>
+                                {% endif %}
+                            </h4>
+                        </div>
+                    </div>
+
+                    <!-- Razón -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        <strong>Análisis:</strong> {{ sugerencia.razon }}
+                    </div>
+
+                    <!-- Estadísticas Adicionales -->
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <small class="text-muted d-block mb-2">Días de Cobertura Actual</small>
+                                <h5 class="mb-0">{{ sugerencia.dias_stock_restante|floatformat:1 }} días</h5>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    {% widthratio sugerencia.dias_stock_restante sugerencia.dias_cobertura_deseada 100 as cobertura %}
+                                    <div class="progress-bar {% if cobertura < 50 %}bg-danger{% elif cobertura < 80 %}bg-warning{% else %}bg-success{% endif %}" 
+                                         style="width: {{ cobertura }}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <small class="text-muted d-block mb-2">Días de Cobertura con Compra</small>
+                                <h5 class="mb-0 text-success">{{ sugerencia.dias_cobertura_deseada }} días</h5>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-success" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Histórico de Ventas (Tabla) -->
+            {% if historico %}
+            <div class="card card-custom border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5><i class="bi bi-calendar3 me-2"></i>Histórico de Ventas Detallado</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th class="text-end">Cantidad Vendida</th>
+                                    <th class="text-end">Variación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for h in historico|slice:":30" %}
+                                <tr>
+                                    <td>{{ h.dia }}</td>
+                                    <td class="text-end"><strong>{{ h.total }}</strong></td>
+                                    <td class="text-end">
+                                        {% if forloop.counter > 1 %}
+                                            {% with anterior=historico|slice:forloop.counter0|last %}
+                                                {% if h.total > anterior.total %}
+                                                    <span class="text-success">+{{ h.total|add:"-"|add:anterior.total }}</span>
+                                                {% elif h.total < anterior.total %}
+                                                    <span class="text-danger">{{ h.total|add:"-"|add:anterior.total }}</span>
+                                                {% else %}
+                                                    <span class="text-muted">0</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if historico|length > 30 %}
+                    <small class="text-muted">Mostrando últimos 30 de {{ historico|length }} registros</small>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="col-lg-4">
+            <!-- Recomendación -->
+            <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">💡 Recomendación de Compra</h5>
+                    
+                    <div class="text-center mb-3">
+                        <h1 class="display-4 mb-0">{{ sugerencia.cantidad_sugerida }}</h1>
+                        <p class="mb-0">unidades</p>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.3);">
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Costo unitario:</span>
+                        <strong>${{ sugerencia.costo_unitario|floatformat:2 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Inversión total:</span>
+                        <h4 class="mb-0">${{ sugerencia.inversion_estimada|floatformat:0 }}</h4>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.3);">
+
+                    <small>Esta compra te dará cobertura para <strong>{{ sugerencia.dias_cobertura_deseada }}</strong> días</small>
+                    
+                    <div class="mt-3 p-3 rounded" style="background: rgba(255,255,255,0.15);">
+                        <small class="d-block mb-1">Stock después de compra:</small>
+                        <h4 class="mb-0">{{ sugerencia.stock_actual|add:sugerencia.cantidad_sugerida }} unidades</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proveedor -->
+            {% if sugerencia.proveedor_sugerido %}
+            <div class="card card-custom border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5><i class="bi bi-truck me-2"></i>Proveedor Sugerido</h5>
+                </div>
+                <div class="card-body">
+                    <h5>{{ sugerencia.proveedor_sugerido.nombre }}</h5>
+                    
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Contacto</small>
+                        {% if sugerencia.proveedor_sugerido.contacto %}
+                            {{ sugerencia.proveedor_sugerido.contacto }}
+                        {% else %}
+                            <span class="text-muted">No especificado</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Teléfono</small>
+                        {% if sugerencia.proveedor_sugerido.telefono %}
+                            <a href="tel:{{ sugerencia.proveedor_sugerido.telefono }}">
+                                {{ sugerencia.proveedor_sugerido.telefono }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No especificado</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Email</small>
+                        {% if sugerencia.proveedor_sugerido.email %}
+                            <a href="mailto:{{ sugerencia.proveedor_sugerido.email }}">
+                                {{ sugerencia.proveedor_sugerido.email }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No especificado</span>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tiempo de entrega:</span>
+                        <strong>{{ sugerencia.proveedor_sugerido.dias_entrega }} días</strong>
+                    </div>
+
+                    {% if sugerencia.proveedor_sugerido.cantidad_minima_pedido > 1 %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Pedido mínimo:</span>
+                        <strong>{{ sugerencia.proveedor_sugerido.cantidad_minima_pedido }}</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if sugerencia.proveedor_sugerido.descuento_volumen > 0 %}
+                    <div class="alert alert-success mt-3 mb-0">
+                        <small>
+                            <i class="bi bi-tag me-1"></i>
+                            Descuento por volumen: {{ sugerencia.proveedor_sugerido.descuento_volumen }}%
+                        </small>
+                    </div>
+                    {% endif %}
+
+                    <button class="btn btn-primary w-100 mt-3">
+                        <i class="bi bi-envelope me-2"></i>Contactar Proveedor
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Información del Producto -->
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5>📦 Información del Producto</h5>
+                </div>
+                <div class="card-body">
+                    {% if sugerencia.producto.imagen %}
+                    <img src="{{ sugerencia.producto.imagen.url }}" 
+                         alt="{{ sugerencia.producto.nombre }}"
+                         class="img-fluid rounded mb-3">
+                    {% endif %}
+
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Categoría</small>
+                        <strong>{{ sugerencia.producto.categoria.nombre }}</strong>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Unidad de Medida</small>
+                        <strong>{{ sugerencia.producto.get_unidad_medida_display }}</strong>
+                    </div>
+
+                    {% if sugerencia.producto.descripcion %}
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Descripción</small>
+                        <p class="small">{{ sugerencia.producto.descripcion }}</p>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Precio Compra:</span>
+                        <strong>${{ sugerencia.producto.precio_compra|floatformat:2 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Precio Venta:</span>
+                        <strong class="text-success">${{ sugerencia.producto.precio_venta|floatformat:2 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Margen:</span>
+                        <strong class="text-primary">{{ sugerencia.producto.margen_ganancia|floatformat:1 }}%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Datos del histórico
+const historico = [
+    {% for h in historico %}
+    {
+        fecha: "{{ h.dia|date:'Y-m-d' }}",
+        ventas: {{ h.total }}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Generar predicción visual (simplificada para 30 días)
+const prediccionDiaria = {{ sugerencia.prediccion_proximos_30_dias }} / 30;
+const ultimaFecha = historico.length > 0 ? new Date(historico[historico.length - 1].fecha) : new Date();
+
+const prediccion = [];
+for (let i = 1; i <= 30; i++) {
+    const fecha = new Date(ultimaFecha);
+    fecha.setDate(fecha.getDate() + i);
+    
+    // Agregar variación según tendencia
+    let valor = prediccionDiaria;
+    if ("{{ sugerencia.tendencia }}" === "CRECIENTE") {
+        valor += (i / 30) * (prediccionDiaria * 0.2);
+    } else if ("{{ sugerencia.tendencia }}" === "DECRECIENTE") {
+        valor -= (i / 30) * (prediccionDiaria * 0.2);
+    }
+    
+    prediccion.push({
+        fecha: fecha.toISOString().split('T')[0],
+        ventas: Math.round(valor * 10) / 10
+    });
+}
+
+// Gráfica Principal
+const ctx = document.getElementById('prediccionChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [...historico.map(h => h.fecha), ...prediccion.map(p => p.fecha)],
+        datasets: [
+            {
+                label: 'Ventas Reales',
+                data: [...historico.map(h => h.ventas), ...Array(30).fill(null)],
+                borderColor: '#3B82F6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 2,
+                pointHoverRadius: 5
+            },
+            {
+                label: 'Predicción IA',
+                data: [...Array(historico.length).fill(null), ...prediccion.map(p => p.ventas)],
+                borderColor: '#F59E0B',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: true,
+                pointRadius: 2,
+                pointHoverRadius: 5
+            },
+            {
+                label: 'Promedio Móvil (7 días)',
+                data: historico.map((h, i) => {
+                    if (i < 6) return null;
+                    const sum = historico.slice(i - 6, i + 1).reduce((a, b) => a + b.ventas, 0);
+                    return sum / 7;
+                }),
+                borderColor: '#10B981',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 0,
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' unidades';
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Fecha'
+                },
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45,
+                    autoSkip: true,
+                    maxTicksLimit: 15
+                }
+            },
+            y: {
+                display: true,
+                title: {
+                    display: true,
+                    text: 'Unidades Vendidas'
+                },
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -35,6 +35,19 @@ class Producto(models.Model):
         ('POR_AGOTAR', '🟡 Por Agotarse'),
         ('AGOTADO', '🔴 Agotado'),
     )
+    CLASES_ABC = (
+    ('A', 'Clase A - Productos estrella'),
+    ('B', 'Clase B - Productos importantes'),
+    ('C', 'Clase C - Productos baja rotación'),
+    )
+
+    clase_abc = models.CharField(
+        max_length=1,
+        choices=CLASES_ABC,
+        default='C',
+        db_index=True
+    )
+
     
     # Identificación
     codigo = models.CharField(

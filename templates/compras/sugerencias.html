@@ -1,0 +1,678 @@
+{% extends 'base.html' %}
+
+{% block title %}Sugerencias de Compra IA - SISBAR{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    .metric-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">
+                <i class="bi bi-robot me-2"></i>Sugerencias de Compra con IA
+            </h1>
+            <p class="text-muted">
+                Predicciones inteligentes basadas en histórico de ventas
+                {% if sucursal %} - {{ sucursal.nombre }}{% endif %}
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'compras:sugerencias_compra' %}?generar=true" 
+               class="btn btn-gradient me-2"
+               onclick="return confirm('¿Generar nuevas sugerencias con IA? Esto puede tardar unos segundos.')">
+                <i class="bi bi-magic me-2"></i>Generar con IA
+            </a>
+            
+            <div class="btn-group">
+                <a href="{% url 'compras:exportar_excel' %}" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                </a>
+                <a href="{% url 'compras:exportar_pdf' %}" class="btn btn-danger">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                </a>
+            </div>
+            
+            {% if user.rol == 'SUPER_ADMIN' %}
+            <a href="{% url 'compras:configuracion' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-gear"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Estadísticas Principales -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card card-custom border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ stats.total }}</h3>
+                    <small class="text-muted">Total Productos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm stats-card" style="border-left: 4px solid #EF4444 !important;">
+                <div class="card-body text-center">
+                    <h3 class="mb-0 text-danger">{{ stats.urgentes }}</h3>
+                    <small class="text-muted">🔴 Urgentes</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm stats-card" style="border-left: 4px solid #F59E0B !important;">
+                <div class="card-body text-center">
+                    <h3 class="mb-0 text-warning">{{ stats.altas }}</h3>
+                    <small class="text-muted">🟠 Altas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 shadow-sm stats-card" style="border-left: 4px solid #EAB308 !important;">
+                <div class="card-body text-center">
+                    <h3 class="mb-0" style="color: #EAB308;">{{ stats.medias }}</h3>
+                    <small class="text-muted">🟡 Medias</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm stats-card" style="border-left: 4px solid #667EEA !important;">
+                <div class="card-body text-center">
+                    <h3 class="mb-0 text-primary">${{ stats.inversion_total|floatformat:0 }}</h3>
+                    <small class="text-muted">💰 Inversión Estimada</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficas de Análisis -->
+    <div class="row mb-4">
+        <!-- Distribución por Urgencia (Dona) -->
+        <div class="col-md-4">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Distribución por Urgencia</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="urgenciaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Productos Críticos (Barras) -->
+        <div class="col-md-8">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Top 10 Productos Críticos (Menos Días de Stock)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="criticosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tendencias por Categoría - CORREGIDO -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Predicción de Demanda por Categoría (Próximos 30 días)</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 350px;">
+                        <canvas id="tendenciasChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas de IA -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-speedometer2 text-primary" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-0">{{ stats.confianza_promedio|floatformat:1 }}%</h4>
+                    <small class="text-muted">Confianza Promedio IA</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up-arrow text-success" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-0">{{ stats.productos_crecientes }}</h4>
+                    <small class="text-muted">Tendencia Creciente</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-right text-info" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-0">{{ stats.productos_estables }}</h4>
+                    <small class="text-muted">Tendencia Estable</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-down-arrow text-danger" style="font-size: 2rem;"></i>
+                    <h4 class="mt-2 mb-0">{{ stats.productos_decrecientes }}</h4>
+                    <small class="text-muted">Tendencia Decreciente</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card card-custom border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="🔍 Buscar producto..." 
+                           value="{{ request.GET.q }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="urgencia" class="form-select">
+                        <option value="">Todas las urgencias</option>
+                        <option value="URGENTE" {% if request.GET.urgencia == 'URGENTE' %}selected{% endif %}>🔴 Urgentes</option>
+                        <option value="ALTA" {% if request.GET.urgencia == 'ALTA' %}selected{% endif %}>🟠 Altas</option>
+                        <option value="MEDIA" {% if request.GET.urgencia == 'MEDIA' %}selected{% endif %}>🟡 Medias</option>
+                        <option value="BAJA" {% if request.GET.urgencia == 'BAJA' %}selected{% endif %}>🟢 Bajas</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="proveedor" class="form-select">
+                        <option value="">Todos los proveedores</option>
+                        {% for prov in proveedores %}
+                        <option value="{{ prov.id }}" {% if request.GET.proveedor == prov.id|stringformat:"s" %}selected{% endif %}>
+                            {{ prov.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#urgentes">
+                🔴 Urgentes ({{ stats.urgentes }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#altas">
+                🟠 Altas ({{ stats.altas }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#todas">
+                📋 Todas ({{ stats.total }})
+            </a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- URGENTES -->
+        <div class="tab-pane fade show active" id="urgentes">
+            {% if urgentes %}
+            <div class="row">
+                {% for sug in urgentes %}
+                <div class="col-md-6 mb-3">
+                    {% include 'compras/partials/card_sugerencia.html' %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Paginación Urgentes -->
+            {% if urgentes.has_other_pages %}
+            <nav aria-label="Paginación urgentes" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if urgentes.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page_urgentes=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#urgentes">
+                            Primera
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page_urgentes={{ urgentes.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#urgentes">
+                            Anterior
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Página {{ urgentes.number }} de {{ urgentes.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if urgentes.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page_urgentes={{ urgentes.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#urgentes">
+                            Siguiente
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page_urgentes={{ urgentes.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#urgentes">
+                            Última
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-success">
+                ✅ No hay productos con urgencia crítica
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ALTAS -->
+        <div class="tab-pane fade" id="altas">
+            {% if altas %}
+            <div class="row">
+                {% for sug in altas %}
+                <div class="col-md-6 mb-3">
+                    {% include 'compras/partials/card_sugerencia.html' %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Paginación Altas -->
+            {% if altas.has_other_pages %}
+            <nav aria-label="Paginación altas" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if altas.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page_altas=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#altas">
+                            Primera
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page_altas={{ altas.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#altas">
+                            Anterior
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Página {{ altas.number }} de {{ altas.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if altas.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page_altas={{ altas.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#altas">
+                            Siguiente
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page_altas={{ altas.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#altas">
+                            Última
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info">
+                ℹ️ No hay productos con urgencia alta
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- TODAS -->
+        <div class="tab-pane fade" id="todas">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Urgencia</th>
+                            <th>Producto</th>
+                            <th>Stock</th>
+                            <th>Días</th>
+                            <th>Predicción IA</th>
+                            <th>Tendencia</th>
+                            <th>Sugerido</th>
+                            <th>Inversión</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sug in sugerencias %}
+                        <tr>
+                            <td>
+                                {% if sug.urgencia == 'URGENTE' %}
+                                    <span class="badge bg-danger">🔴 URGENTE</span>
+                                {% elif sug.urgencia == 'ALTA' %}
+                                    <span class="badge bg-warning text-dark">🟠 ALTA</span>
+                                {% elif sug.urgencia == 'MEDIA' %}
+                                    <span class="badge" style="background: #EAB308;">🟡 MEDIA</span>
+                                {% else %}
+                                    <span class="badge bg-success">🟢 BAJA</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ sug.producto.nombre }}</strong><br>
+                                <small class="text-muted">{{ sug.producto.codigo }}</small>
+                            </td>
+                            <td>{{ sug.stock_actual }}</td>
+                            <td>
+                                <span class="{% if sug.dias_stock_restante < 3 %}text-danger fw-bold{% elif sug.dias_stock_restante < 7 %}text-warning fw-bold{% endif %}">
+                                    {{ sug.dias_stock_restante|floatformat:1 }}
+                                </span>
+                            </td>
+                            <td>
+                                {{ sug.prediccion_proximos_30_dias }} unidades
+                                <br><small class="text-muted">Confianza: {{ sug.confianza_ia|floatformat:0 }}%</small>
+                            </td>
+                            <td>
+                                {% if sug.tendencia == 'CRECIENTE' %}
+                                    <span class="metric-badge bg-success">📈 {{ sug.get_tendencia_display }}</span>
+                                {% elif sug.tendencia == 'DECRECIENTE' %}
+                                    <span class="metric-badge bg-danger">📉 {{ sug.get_tendencia_display }}</span>
+                                {% else %}
+                                    <span class="metric-badge bg-info">➡️ {{ sug.get_tendencia_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ sug.cantidad_sugerida }}</strong></td>
+                            <td>${{ sug.inversion_estimada|floatformat:0 }}</td>
+                            <td>
+                                <a href="{% url 'compras:detalle_sugerencia' sug.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación Todas -->
+            {% if sugerencias.has_other_pages %}
+            <nav aria-label="Paginación todas" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if sugerencias.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#todas">
+                            Primera
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ sugerencias.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#todas">
+                            Anterior
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Página {{ sugerencias.number }} de {{ sugerencias.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if sugerencias.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ sugerencias.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#todas">
+                            Siguiente
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ sugerencias.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.urgencia %}&urgencia={{ request.GET.urgencia }}{% endif %}{% if request.GET.proveedor %}&proveedor={{ request.GET.proveedor }}{% endif %}#todas">
+                            Última
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Esperar a que Chart.js esté cargado
+if (typeof Chart === 'undefined') {
+    console.error('Chart.js no está cargado');
+} else {
+    console.log('Chart.js cargado correctamente');
+}
+
+// Configuración de colores
+const colors = {
+    urgente: '#EF4444',
+    alta: '#F59E0B',
+    media: '#EAB308',
+    baja: '#10B981',
+    primary: '#667EEA',
+    success: '#10B981',
+    danger: '#EF4444',
+    info: '#3B82F6'
+};
+
+// 1. Gráfica de Distribución por Urgencia (Dona)
+try {
+    const urgenciaCtx = document.getElementById('urgenciaChart');
+    if (urgenciaCtx) {
+        new Chart(urgenciaCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Urgentes', 'Altas', 'Medias', 'Bajas'],
+                datasets: [{
+                    data: [
+                        {{ stats.urgentes|default:0 }}, 
+                        {{ stats.altas|default:0 }}, 
+                        {{ stats.medias|default:0 }}, 
+                        {{ stats.bajas|default:0 }}
+                    ],
+                    backgroundColor: [colors.urgente, colors.alta, colors.media, colors.baja],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+} catch (error) {
+    console.error('Error en gráfica de urgencia:', error);
+}
+
+// 2. Top Productos Críticos (Barras)
+try {
+    const criticosCtx = document.getElementById('criticosChart');
+    if (criticosCtx) {
+        const productosCriticos = [
+            {% for sug in todas_sugerencias|slice:":10" %}
+            {
+                nombre: "{{ sug.producto.nombre|truncatewords:3|escapejs }}",
+                dias: parseFloat({{ sug.dias_stock_restante|default:0|stringformat:"f" }}),
+                urgencia: "{{ sug.urgencia|default:'MEDIA' }}"
+            }{% if not forloop.last %},{% endif %}
+            {% empty %}
+            {
+                nombre: "Sin datos",
+                dias: 0,
+                urgencia: "MEDIA"
+            }
+            {% endfor %}
+        ];
+
+        new Chart(criticosCtx, {
+            type: 'bar',
+            data: {
+                labels: productosCriticos.map(p => p.nombre),
+                datasets: [{
+                    label: 'Días de Stock Restante',
+                    data: productosCriticos.map(p => p.dias),
+                    backgroundColor: productosCriticos.map(p => {
+                        if (p.urgencia === 'URGENTE') return colors.urgente;
+                        if (p.urgencia === 'ALTA') return colors.alta;
+                        if (p.urgencia === 'MEDIA') return colors.media;
+                        return colors.baja;
+                    }),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Días'
+                        }
+                    }
+                }
+            }
+        });
+    }
+} catch (error) {
+    console.error('Error en gráfica de críticos:', error);
+}
+
+// 3. ✅ CORREGIDO: Tendencias por Categoría - Ahora suma predicciones correctamente
+try {
+    const tendenciasCtx = document.getElementById('tendenciasChart');
+    if (tendenciasCtx) {
+        // ✅ Agrupar por categoría en JavaScript (más confiable)
+        const categoriasMap = new Map();
+        
+        const todasSugerencias = [
+            {% for sug in todas_sugerencias %}
+            {
+                categoria: "{{ sug.producto.categoria.nombre|default:'Sin categoría'|escapejs }}",
+                prediccion: {{ sug.prediccion_proximos_30_dias|default:0 }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        // Agrupar y sumar predicciones
+        todasSugerencias.forEach(sug => {
+            if (categoriasMap.has(sug.categoria)) {
+                categoriasMap.set(sug.categoria, categoriasMap.get(sug.categoria) + sug.prediccion);
+            } else {
+                categoriasMap.set(sug.categoria, sug.prediccion);
+            }
+        });
+        
+        // Convertir a array y ordenar
+        const categoriasData = Array.from(categoriasMap.entries())
+            .map(([nombre, total]) => ({ nombre, total }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 8);  // Top 8 categorías
+        
+        if (categoriasData.length > 0) {
+            new Chart(tendenciasCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoriasData.map(c => c.nombre),
+                    datasets: [{
+                        label: 'Demanda Predicha (unidades)',
+                        data: categoriasData.map(c => c.total),
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        borderColor: colors.primary,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Demanda: ' + context.parsed.y.toLocaleString() + ' unidades';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Unidades Predichas (30 días)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            // Sin datos - mostrar mensaje
+            tendenciasCtx.parentElement.innerHTML = '<div class="alert alert-info">No hay datos suficientes para mostrar tendencias</div>';
+        }
+    }
+} catch (error) {
+    console.error('Error en gráfica de tendencias:', error);
+}
+
+console.log('Todas las gráficas inicializadas');
+</script>
+{% endblock %}

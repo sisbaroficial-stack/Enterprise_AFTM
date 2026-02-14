@@ -93,6 +93,29 @@ class Proveedor(models.Model):
         auto_now=True,
         verbose_name='Última Actualización'
     )
+    dias_entrega = models.IntegerField(
+        default=7,
+        validators=[MinValueValidator(1), MaxValueValidator(365)],
+        verbose_name='Días de Entrega',
+        help_text='Tiempo que tarda en entregar después del pedido'
+    )
+    
+    cantidad_minima_pedido = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+        verbose_name='Cantidad Mínima de Pedido',
+        help_text='Cantidad mínima que acepta por pedido'
+    )
+    
+    descuento_volumen = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name='Descuento por Volumen (%)',
+        help_text='Descuento si se compra en grandes cantidades'
+    )
+    
     
     class Meta:
         verbose_name = 'Proveedor'

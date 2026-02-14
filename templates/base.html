@@ -15,7 +15,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
+    <!-- Custom CSS -->
     <!-- Custom CSS -->
     <style>
         :root {
@@ -724,6 +729,86 @@
             background-color: #1a1a2e !important;
 
         }
+        
+            /* Tu estilo existente del botón */
+            .ai-button {
+                display: flex;
+                align-items: center;
+                padding: 10px 15px;
+                background: linear-gradient(90deg, #ff00ff, #d04fd4); /* Degradado morado */
+                color: white;
+                border-radius: 50px; /* Borde redondeado */
+                transition: all 0.3s ease;
+                text-decoration: none;
+                font-size: 16px;
+                margin: 5px 0;
+                width: 100%;
+                position: relative; /* Necesario para el contenedor de las chispas */
+            }
+
+            .ai-button:hover {
+                background: linear-gradient(90deg, #a005a5, #b841b2); /* Efecto hover para resaltar */
+                transform: scale(1.05); /* Pequeño zoom */
+            }
+
+            .ai-button i {
+                margin-right: 10px;
+                font-size: 1.5rem; /* Icono más grande */
+                transition: transform 0.3s ease;
+            }
+
+            .ai-button:hover i {
+                transform: rotate(360deg); /* Rotación sutil del icono */
+            }
+
+            .ai-button span {
+                font-weight: bold;
+            }
+
+            /* Efecto para el icono */
+            .ai-button:hover i, .ai-button:hover span {
+                color: #eeff00; /* Color dorado en hover */
+            }
+
+            /* Aquí comienzas a agregar las nuevas reglas para las chispas */
+
+    /* Contenedor para las chispas */
+    .spark-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    /* Estilo de las chispas (delgadas y brillantes) */
+    .spark {
+        position: absolute;
+        width: 4px; /* Chispa delgada */
+        height: 4px;
+        background-color: #ffdd57; /* Color de chispa amarillo brillante */
+        border-radius: 50%;
+        opacity: 0;
+        animation: firework-spark 1s forwards ease-out;
+    }
+
+    /* Animación de la chispa: expansión y desvanecimiento */
+    @keyframes firework-spark {
+        0% {
+            transform: scale(0) translate(0, 0); /* Comienza pequeña en el centro */
+            opacity: 1;
+        }
+        40% {
+            opacity: 1;
+            transform: scale(1) translate(var(--x), var(--y)); /* Se expande hacia afuera */
+        }
+        100% {
+            opacity: 0; /* Se desvanece al final */
+            transform: scale(1.5) translate(var(--x), var(--y)); /* Se aleja aún más */
+        }
+    }
+
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -833,6 +918,13 @@
                         </li>
                         {% endif %}
 
+                        <li class="nav-item">
+                            <a href="{% url 'compras:sugerencias_compra' %}" class="ai-button">
+                                <div class="spark-container"></div> <!-- Contenedor de las chispas -->
+                                <i class="bi bi-robot"></i>
+                                <span>Kylie IA</span>
+                            </a>
+                        </li>
                         <!-- ========== DASHBOARD (TODOS) ========== -->
                         <li class="nav-item">
                             <a class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" 
@@ -967,7 +1059,6 @@
                             </a>
                         </li>
                         {% endif %}
-
                     </ul>
                 </div>
             </nav>
@@ -1056,5 +1147,50 @@
     </script>
     
     {% block extra_js %}{% endblock %}
+<script>
+    // Función para crear las chispas tipo fuegos artificiales
+    function createSparks(event) {
+        const sparkContainer = event.currentTarget.querySelector('.spark-container'); // Contenedor de las chispas
+        const numberOfSparks = 50; // Número de chispas para cada hover
+        const colors = ['yellow', 'red', 'blue', 'green']; // Colores para las chispas
+
+        // Crear las chispas
+        for (let i = 0; i < numberOfSparks; i++) {
+            const spark = document.createElement('div');
+            spark.classList.add('spark');
+
+            // Elegir un color aleatorio
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            spark.style.backgroundColor = color; // Cambiar color de la chispa
+
+            // Generar un desplazamiento aleatorio para las chispas
+            const x = Math.random() * 200 - 100;  // Mover hacia la izquierda/derecha
+            const y = Math.random() * 200 - 100;  // Mover hacia arriba/abajo
+            spark.style.setProperty('--x', `${x}px`);
+            spark.style.setProperty('--y', `${y}px`);
+
+            // Posicionar la chispa en el área del botón, centrada en el cursor
+            spark.style.left = `${event.offsetX - 2}px`; // Centrar la chispa
+            spark.style.top = `${event.offsetY - 2}px`;  // Centrar la chispa
+
+            sparkContainer.appendChild(spark);
+
+            // Eliminar la chispa después de que termine la animación
+            setTimeout(() => {
+                spark.remove();
+            }, 1000); // Se elimina después de que termina la animación
+        }
+    }
+
+    // Añadir el evento de hover al botón
+    document.querySelectorAll('.ai-button').forEach(button => {
+        button.addEventListener('mouseenter', function(event) {
+            createSparks(event);
+        });
+    });
+</script>
+
+
+
 </body>
 </html>

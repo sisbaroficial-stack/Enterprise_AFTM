@@ -7,6 +7,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from django.db.models import Sum, Count, Q, F, Avg
 from decimal import Decimal
+from .services_abc import ServicioClasificacionABC
 
 from inventario.models import Producto, InventarioSucursal, MovimientoInventario
 from categorias.models import Categoria
@@ -215,8 +216,13 @@ def exportar_movimientos_excel(request):
 # ===============================
 @login_required
 def reporte_abc(request):
+    
+
     """Reporte ABC - Clasificación de productos por ventas"""
     dias = int(request.GET.get('dias', 30))
+
+    ServicioClasificacionABC.recalcular_abc(dias)
+
     fecha_desde = timezone.now() - timedelta(days=dias)
     
     # Obtener ventas por producto

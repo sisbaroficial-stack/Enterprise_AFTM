@@ -1,0 +1,9 @@
+{
+    "productos_analizados": 9,
+    "errores_criticos": [],
+    "advertencias": [],
+    "productos_sin_ventas": [],
+    "predicciones_exageradas": [],
+    "tendencias_incoherentes": [],
+    "rendimiento_predicciones": []
+}

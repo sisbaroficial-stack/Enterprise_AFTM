@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuración Compras - SISBAR{% endblock %}
+
+{% block extra_css %}
+<style>
+    .threshold-preview {
+        height: 30px;
+        border-radius: 8px;
+        background: linear-gradient(90deg, 
+            #EF4444 0%, 
+            #EF4444 20%, 
+            #F59E0B 20%, 
+            #F59E0B 40%, 
+            #EAB308 40%, 
+            #EAB308 70%, 
+            #10B981 70%, 
+            #10B981 100%);
+        position: relative;
+        margin: 20px 0;
+    }
+    .threshold-marker {
+        position: absolute;
+        top: -5px;
+        height: 40px;
+        width: 2px;
+        background: #000;
+    }
+    .threshold-label {
+        position: absolute;
+        top: -30px;
+        font-size: 11px;
+        transform: translateX(-50%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'compras:sugerencias_compra' %}" class="btn btn-outline-secondary mb-3">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+            <h1 class="h2 mb-1">
+                <i class="bi bi-gear me-2"></i>Configuración del Módulo de Compras
+            </h1>
+            <p class="text-muted">Ajusta los parámetros de predicción inteligente</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <form method="post" id="configForm">
+                {% csrf_token %}
+
+                <!-- Parámetros Generales -->
+                <div class="card card-custom border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5>⚙️ Parámetros Generales</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Días de Cobertura Deseada</label>
+                                <input type="number" name="dias_cobertura" class="form-control" 
+                                       value="{{ config.dias_cobertura_default }}" min="7" max="365">
+                                <small class="text-muted">Stock para cuántos días mantener</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Stock de Seguridad (%)</label>
+                                <input type="number" name="stock_seguridad" class="form-control" 
+                                       value="{{ config.stock_seguridad_porcentaje }}" min="0" max="100">
+                                <small class="text-muted">Porcentaje adicional de seguridad</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Días de Histórico para Análisis</label>
+                                <input type="number" name="dias_analisis" class="form-control" 
+                                       value="{{ config.dias_analisis_historico }}" min="7" max="365">
+                                <small class="text-muted">Cuántos días atrás analizar ventas</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Umbrales de Urgencia -->
+                <div class="card card-custom border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5>🚨 Umbrales de Urgencia</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            Define en cuántos días de stock restante se activa cada nivel de urgencia
+                        </p>
+
+                        <!-- Preview Visual de Umbrales -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Vista Previa de Umbrales</label>
+                            <div class="threshold-preview" id="thresholdPreview">
+                                <div class="threshold-marker" id="markerUrgente" style="left: 0%;">
+                                    <span class="threshold-label">🔴 <span id="labelUrgente">{{ config.umbral_urgente_dias }}</span>d</span>
+                                </div>
+                                <div class="threshold-marker" id="markerAlta" style="left: 0%;">
+                                    <span class="threshold-label">🟠 <span id="labelAlta">{{ config.umbral_alta_dias }}</span>d</span>
+                                </div>
+                                <div class="threshold-marker" id="markerMedia" style="left: 0%;">
+                                    <span class="threshold-label">🟡 <span id="labelMedia">{{ config.umbral_media_dias }}</span>d</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>0 días (crítico)</span>
+                                <span>60 días (seguro)</span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">🔴 URGENTE (días)</label>
+                                <input type="number" name="umbral_urgente" id="umbral_urgente" class="form-control threshold-input" 
+                                       value="{{ config.umbral_urgente_dias }}" min="1" max="30">
+                                <small class="text-muted">Stock menor o igual a X días</small>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">🟠 ALTA (días)</label>
+                                <input type="number" name="umbral_alta" id="umbral_alta" class="form-control threshold-input" 
+                                       value="{{ config.umbral_alta_dias }}" min="1" max="30">
+                                <small class="text-muted">Stock menor o igual a X días</small>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">🟡 MEDIA (días)</label>
+                                <input type="number" name="umbral_media" id="umbral_media" class="form-control threshold-input" 
+                                       value="{{ config.umbral_media_dias }}" min="1" max="60">
+                                <small class="text-muted">Stock menor o igual a X días</small>
+                            </div>
+                        </div>
+
+                        <!-- Ejemplo de cómo afectan los umbrales -->
+                        <div class="alert alert-info mt-3">
+                            <strong>Ejemplo:</strong> Si un producto tiene <strong>5 días de stock</strong>:
+                            <ul class="mb-0 mt-2">
+                                <li>Si 5 ≤ <span id="exampleUrgente">{{ config.umbral_urgente_dias }}</span> → 🔴 URGENTE</li>
+                                <li>Si 5 ≤ <span id="exampleAlta">{{ config.umbral_alta_dias }}</span> → 🟠 ALTA</li>
+                                <li>Si 5 ≤ <span id="exampleMedia">{{ config.umbral_media_dias }}</span> → 🟡 MEDIA</li>
+                                <li>Si no cumple ninguno → 🟢 BAJA</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IA -->
+                <div class="card card-custom border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5>🤖 Inteligencia Artificial</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="habilitar_ia" 
+                                   id="habilitar_ia" {% if config.habilitar_ia %}checked{% endif %}>
+                            <label class="form-check-label" for="habilitar_ia">
+                                <strong>Habilitar Predicción Inteligente </strong>
+                            </label>
+                        </div>
+                        
+                        <div id="iaInfo" class="{% if not config.habilitar_ia %}d-none{% endif %}">
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <strong>Prophet activado</strong> - Se usará IA para predicciones más precisas
+                                <ul class="mb-0 mt-2">
+                                    <li>Detección automática de tendencias</li>
+                                    <li>Consideración de estacionalidad</li>
+                                    <li>Nivel de confianza calculado</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div id="noIaInfo" class="{% if config.habilitar_ia %}d-none{% endif %}">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Modo simple activado</strong> - Se usará cálculo basado en promedios
+                                <ul class="mb-0 mt-2">
+                                    <li>Promedio de ventas diarias × 30 días</li>
+                                    <li>Tendencia básica (primera mitad vs segunda mitad)</li>
+                                    <li>Más rápido pero menos preciso</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de Configuración -->
+                <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <div class="card-body">
+                        <h5 class="mb-3">📋 Resumen de Configuración Actual</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li>Cobertura: <strong>{{ config.dias_cobertura_default }}</strong> días</li>
+                                    <li>Stock Seguridad: <strong>{{ config.stock_seguridad_porcentaje }}%</strong></li>
+                                    <li>Histórico: <strong>{{ config.dias_analisis_historico }}</strong> días</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li>Urgente: ≤ <strong>{{ config.umbral_urgente_dias }}</strong> días</li>
+                                    <li>Alta: ≤ <strong>{{ config.umbral_alta_dias }}</strong> días</li>
+                                    <li>Media: ≤ <strong>{{ config.umbral_media_dias }}</strong> días</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'compras:sugerencias_compra' %}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-gradient">
+                        <i class="bi bi-save me-2"></i>Guardar Configuración
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Actualizar preview de umbrales en tiempo real
+function updateThresholdPreview() {
+    const urgente = parseInt(document.getElementById('umbral_urgente').value) || 3;
+    const alta = parseInt(document.getElementById('umbral_alta').value) || 7;
+    const media = parseInt(document.getElementById('umbral_media').value) || 15;
+    const maxDias = 60;
+    
+    // Calcular posiciones
+    const urgentePos = (urgente / maxDias) * 100;
+    const altaPos = (alta / maxDias) * 100;
+    const mediaPos = (media / maxDias) * 100;
+    
+    // Actualizar marcadores
+    document.getElementById('markerUrgente').style.left = urgentePos + '%';
+    document.getElementById('markerAlta').style.left = altaPos + '%';
+    document.getElementById('markerMedia').style.left = mediaPos + '%';
+    
+    // Actualizar labels
+    document.getElementById('labelUrgente').textContent = urgente;
+    document.getElementById('labelAlta').textContent = alta;
+    document.getElementById('labelMedia').textContent = media;
+    
+    // Actualizar ejemplo
+    document.getElementById('exampleUrgente').textContent = urgente;
+    document.getElementById('exampleAlta').textContent = alta;
+    document.getElementById('exampleMedia').textContent = media;
+}
+
+// Listeners
+document.querySelectorAll('.threshold-input').forEach(input => {
+    input.addEventListener('input', updateThresholdPreview);
+});
+
+// Toggle IA info
+document.getElementById('habilitar_ia').addEventListener('change', function() {
+    document.getElementById('iaInfo').classList.toggle('d-none', !this.checked);
+    document.getElementById('noIaInfo').classList.toggle('d-none', this.checked);
+});
+
+// Inicializar
+updateThresholdPreview();
+</script>
+{% endblock %}
