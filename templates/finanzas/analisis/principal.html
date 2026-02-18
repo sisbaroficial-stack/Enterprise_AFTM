@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}🤖 Análisis con IA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-0">
+                <i class="bi bi-robot text-primary"></i>
+                Análisis Financiero con Inteligencia Artificial
+            </h1>
+            <p class="text-muted">Prophet de Meta - Predicciones y Recomendaciones</p>
+        </div>
+    </div>
+                <a href="{% url 'finanzas:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+
+    <!-- Scoring de Salud Financiera -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-body text-center p-5">
+                    <h3>🏥 Salud Financiera</h3>
+                    <div class="mt-4">
+                        <div class="display-1 fw-bold text-{{ scoring.color }}">
+                            {{ scoring.score }}/100
+                        </div>
+                        <h4 class="text-{{ scoring.color }} mt-2">{{ scoring.clasificacion }}</h4>
+                        <p class="lead">{{ scoring.mensaje }}</p>
+                    </div>
+                    
+                    <!-- Detalles del Score -->
+                    <div class="row mt-4">
+                        {% for detalle in scoring.detalles %}
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>{{ detalle.factor }}</h6>
+                                        <div class="progress mb-2" style="height: 25px;">
+                                            <div class="progress-bar bg-{{ scoring.color }}" 
+                                                 style="width: {% widthratio detalle.puntos detalle.maximo 100 %}%">
+                                                {{ detalle.puntos }}/{{ detalle.maximo }}
+                                            </div>
+                                        </div>
+                                        <p class="mb-0">
+                                            <strong>{{ detalle.valor }}</strong><br>
+                                            <small class="text-muted">{{ detalle.estado }}</small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Predicciones -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i>
+                        Predicciones Próximos Meses
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if predicciones.error %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            {{ predicciones.error }}
+                        </div>
+                    {% elif predicciones.predicciones %}
+                        <canvas id="graficaPredicciones" height="200"></canvas>
+                        
+                        <div class="table-responsive mt-3">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Mes</th>
+                                        <th class="text-end">Predicción</th>
+                                        <th class="text-end">Rango</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pred in predicciones.predicciones %}
+                                        <tr>
+                                            <td>{{ pred.mes }}</td>
+                                            <td class="text-end">${{ pred.prediccion|floatformat:0|intcomma }}</td>
+                                            <td class="text-end text-muted">
+                                                <small>
+                                                    ${{ pred.minimo|floatformat:0|intcomma }} -
+                                                    ${{ pred.maximo|floatformat:0|intcomma }}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-info-circle"></i>
+                            Confianza: {{ predicciones.confianza|floatformat:0 }}%
+                            (basado en {{ predicciones.datos_historicos }} datos históricos)
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recomendaciones -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightbulb"></i>
+                        Recomendaciones IA
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recomendaciones %}
+                        {% for rec in recomendaciones %}
+                            <div class="alert alert-{% if rec.prioridad == 'ALTA' %}danger{% elif rec.prioridad == 'MEDIA' %}warning{% else %}info{% endif %} mb-3">
+                                <h6>
+                                    {{ rec.icono }} {{ rec.titulo }}
+                                    <span class="badge bg-secondary float-end">{{ rec.tipo }}</span>
+                                </h6>
+                                <p class="mb-2">{{ rec.descripcion }}</p>
+                                <small><strong>Acción:</strong> {{ rec.accion }}</small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-check-circle fs-1"></i>
+                            <p>Todo marcha bien. No hay recomendaciones por ahora.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anomalías y Tendencias -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Anomalías Detectadas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if anomalias %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Categoría</th>
+                                        <th>Fecha</th>
+                                        <th class="text-end">Monto</th>
+                                        <th class="text-end">Variación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for anom in anomalias %}
+                                        <tr class="{% if anom.tipo == 'alto' %}table-danger{% else %}table-warning{% endif %}">
+                                            <td>
+                                                <small>{{ anom.categoria }}</small>
+                                            </td>
+                                            <td>
+                                                <small>{{ anom.fecha|date:"d/m/Y" }}</small>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong>${{ anom.monto|floatformat:0|intcomma }}</strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="badge bg-{% if anom.tipo == 'alto' %}danger{% else %}warning{% endif %}">
+                                                    {% if anom.variacion > 0 %}+{% endif %}{{ anom.variacion|floatformat:0 }}%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-shield-check fs-1"></i>
+                            <p>No se detectaron anomalías</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        Tendencias por Categoría
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if tendencias %}
+                        {% for tend in tendencias %}
+                            <div class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>
+                                        <i class="bi {{ tend.categoria.icono }}"></i>
+                                        {{ tend.categoria.nombre }}
+                                    </span>
+                                    <span>
+                                        {{ tend.icono }}
+                                        <span class="badge bg-{{ tend.color }}">
+                                            {{ tend.tendencia }}
+                                            ({% if tend.variacion > 0 %}+{% endif %}{{ tend.variacion|floatformat:0 }}%)
+                                        </span>
+                                    </span>
+                                </div>
+                                <small class="text-muted">
+                                    Total reciente: ${{ tend.total_reciente|floatformat:0|intcomma }}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-graph-up fs-1"></i>
+                            <p>No hay suficientes datos para analizar tendencias</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+{% if predicciones.predicciones %}
+// Gráfica de Predicciones
+const ctxPred = document.getElementById('graficaPredicciones').getContext('2d');
+new Chart(ctxPred, {
+    type: 'line',
+    data: {
+        labels: [{% for pred in predicciones.predicciones %}'{{ pred.mes }}',{% endfor %}],
+        datasets: [{
+            label: 'Predicción',
+            data: [{% for pred in predicciones.predicciones %}{{ pred.prediccion }},{% endfor %}],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Rango Máximo',
+            data: [{% for pred in predicciones.predicciones %}{{ pred.maximo }},{% endfor %}],
+            borderColor: 'rgba(255, 99, 132, 0.5)',
+            borderDash: [5, 5],
+            fill: false
+        }, {
+            label: 'Rango Mínimo',
+            data: [{% for pred in predicciones.predicciones %}{{ pred.minimo }},{% endfor %}],
+            borderColor: 'rgba(54, 162, 235, 0.5)',
+            borderDash: [5, 5],
+            fill: false
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom'
+            }
+        },
+        scales: {
+            y: {
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+
+{% endblock %}

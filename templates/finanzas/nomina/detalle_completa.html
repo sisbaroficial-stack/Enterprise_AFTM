@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Detalle Nómina{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard' %}">Finanzas</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:lista_nominas' %}">Nóminas</a></li>
+                    <li class="breadcrumb-item active">Detalle</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-receipt"></i>
+                        Desprendible de Pago
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- Información del Empleado -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Empleado</h6>
+                            <p class="fw-bold mb-0">{{ nomina.empleado.nombre_completo }}</p>
+                            <small class="text-muted">{{ nomina.empleado.numero_documento }}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Cargo</h6>
+                            <p class="fw-bold mb-0">{{ nomina.empleado.cargo }}</p>
+                            <small class="text-muted">{{ nomina.empleado.sucursal.nombre }}</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Período</h6>
+                            <p class="fw-bold">{{ nomina.mes|stringformat:"02d" }}/{{ nomina.anio }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Estado</h6>
+                            {% if nomina.pagado %}
+                                <span class="badge bg-success fs-6">
+                                    <i class="bi bi-check-circle"></i> Pagado
+                                </span>
+                                <p class="small text-muted mb-0">{{ nomina.fecha_pago|date:"d/m/Y" }}</p>
+                            {% else %}
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <i class="bi bi-clock"></i> Pendiente
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- DEVENGADO -->
+                    <h5 class="text-success mb-3">
+                        <i class="bi bi-plus-circle"></i> DEVENGADO
+                    </h5>
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td>Salario Base</td>
+                                <td class="text-end fw-bold">${{ nomina.salario_base|floatformat:0|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Auxilio de Transporte</td>
+                                <td class="text-end fw-bold">${{ nomina.auxilio_transporte|floatformat:0|intcomma }}</td>
+                            </tr>
+                            {% if nomina.horas_extras > 0 %}
+                            <tr>
+                                <td>Horas Extras</td>
+                                <td class="text-end fw-bold">${{ nomina.horas_extras|floatformat:0|intcomma }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if nomina.bonificaciones > 0 %}
+                            <tr>
+                                <td>Bonificaciones</td>
+                                <td class="text-end fw-bold">${{ nomina.bonificaciones|floatformat:0|intcomma }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if nomina.comisiones > 0 %}
+                            <tr>
+                                <td>Comisiones</td>
+                                <td class="text-end fw-bold">${{ nomina.comisiones|floatformat:0|intcomma }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="border-top">
+                                <td class="fw-bold fs-5">TOTAL DEVENGADO</td>
+                                <td class="text-end fw-bold text-success fs-5">
+                                    ${{ nomina.total_devengado|floatformat:0|intcomma }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <hr>
+
+                    <!-- DEDUCCIONES -->
+                    <h5 class="text-danger mb-3">
+                        <i class="bi bi-dash-circle"></i> DEDUCCIONES
+                    </h5>
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td>Salud (4%)</td>
+                                <td class="text-end fw-bold">${{ nomina.salud|floatformat:0|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Pensión (4%)</td>
+                                <td class="text-end fw-bold">${{ nomina.pension|floatformat:0|intcomma }}</td>
+                            </tr>
+                            {% if nomina.prestamos > 0 %}
+                            <tr>
+                                <td>Préstamos</td>
+                                <td class="text-end fw-bold">${{ nomina.prestamos|floatformat:0|intcomma }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if nomina.otras_deducciones > 0 %}
+                            <tr>
+                                <td>Otras Deducciones</td>
+                                <td class="text-end fw-bold">${{ nomina.otras_deducciones|floatformat:0|intcomma }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="border-top">
+                                <td class="fw-bold fs-5">TOTAL DEDUCCIONES</td>
+                                <td class="text-end fw-bold text-danger fs-5">
+                                    ${{ nomina.total_deducciones|floatformat:0|intcomma }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <hr>
+
+                    <!-- NETO A PAGAR -->
+                    <div class="alert alert-success text-center py-4">
+                        <h6 class="text-muted mb-2">NETO A PAGAR</h6>
+                        <h1 class="display-3 fw-bold mb-0">
+                            ${{ nomina.neto_pagar|floatformat:0|intcomma }}
+                        </h1>
+                    </div>
+
+                    <!-- Aportes Patronales (Solo visible para SUPER_ADMIN) -->
+                    {% if user.rol == 'SUPER_ADMIN' %}
+                        <hr>
+                        <details>
+                            <summary class="fw-bold text-info" style="cursor: pointer;">
+                                📊 Aportes Patronales (Solo visible para administración)
+                            </summary>
+                            <table class="table table-sm table-borderless mt-3">
+                                <tbody>
+                                    <tr>
+                                        <td>Salud Empresa (8.5%)</td>
+                                        <td class="text-end">${{ nomina.salud_empresa|floatformat:0|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Pensión Empresa (12%)</td>
+                                        <td class="text-end">${{ nomina.pension_empresa|floatformat:0|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ARL (0.522%)</td>
+                                        <td class="text-end">${{ nomina.arl|floatformat:0|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Caja de Compensación (4%)</td>
+                                        <td class="text-end">${{ nomina.caja_compensacion|floatformat:0|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ICBF (3%)</td>
+                                        <td class="text-end">${{ nomina.icbf|floatformat:0|intcomma }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>SENA (2%)</td>
+                                        <td class="text-end">${{ nomina.sena|floatformat:0|intcomma }}</td>
+                                    </tr>
+                                    <tr class="border-top">
+                                        <td class="fw-bold">Total Aportes Empresa</td>
+                                        <td class="text-end fw-bold text-info">
+                                            ${{ nomina.total_aportes_empresa|floatformat:0|intcomma }}
+                                        </td>
+                                    </tr>
+                                    <tr class="border-top">
+                                        <td class="fw-bold fs-6">COSTO TOTAL EMPRESA</td>
+                                        <td class="text-end fw-bold text-danger fs-6">
+                                            ${{ nomina.costo_total_empresa|floatformat:0|intcomma }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </details>
+                    {% endif %}
+
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'finanzas:lista_nominas' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </a>
+                        <a href="{% url 'finanzas:desprendible_pago' nomina.id %}" 
+                           class="btn btn-primary">
+                            <i class="bi bi-file-pdf"></i> Descargar PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

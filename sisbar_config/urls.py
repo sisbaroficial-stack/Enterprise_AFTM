@@ -23,6 +23,8 @@ urlpatterns = [
     path('reportes/', include('reportes.urls', namespace='reportes')),
     path('sucursales/', include('sucursales.urls', namespace='sucursales')),
     path('compras/', include('compras.urls', namespace='compras')),
+    path('finanzas/', include('finanzas.urls', namespace='finanzas')),
+    path('notificaciones/', include('notificaciones.urls', namespace='notificaciones')),
 ]
 
 # Media & Static

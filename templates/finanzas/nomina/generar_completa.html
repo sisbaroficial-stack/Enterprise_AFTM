@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}📋 Generar Nómina{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-0">
+                <i class="bi bi-cash-stack text-warning"></i>
+                Generar Nómina Mensual
+            </h1>
+            <p class="text-muted">Generación masiva para todos los empleados activos</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            
+            <div class="card border-0 shadow">
+                <div class="card-header bg-warning py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-month"></i>
+                        Seleccionar Período
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Nota:</strong> El sistema generará automáticamente la nómina 
+                        de todos los empleados activos con los cálculos según normativa Colombia 2026.
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Mes *</label>
+                                <select class="form-select form-select-lg" name="mes" required>
+                                    <option value="1" {% if mes_actual == 1 %}selected{% endif %}>Enero</option>
+                                    <option value="2" {% if mes_actual == 2 %}selected{% endif %}>Febrero</option>
+                                    <option value="3" {% if mes_actual == 3 %}selected{% endif %}>Marzo</option>
+                                    <option value="4" {% if mes_actual == 4 %}selected{% endif %}>Abril</option>
+                                    <option value="5" {% if mes_actual == 5 %}selected{% endif %}>Mayo</option>
+                                    <option value="6" {% if mes_actual == 6 %}selected{% endif %}>Junio</option>
+                                    <option value="7" {% if mes_actual == 7 %}selected{% endif %}>Julio</option>
+                                    <option value="8" {% if mes_actual == 8 %}selected{% endif %}>Agosto</option>
+                                    <option value="9" {% if mes_actual == 9 %}selected{% endif %}>Septiembre</option>
+                                    <option value="10" {% if mes_actual == 10 %}selected{% endif %}>Octubre</option>
+                                    <option value="11" {% if mes_actual == 11 %}selected{% endif %}>Noviembre</option>
+                                    <option value="12" {% if mes_actual == 12 %}selected{% endif %}>Diciembre</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Año *</label>
+                                <input type="number" 
+                                       class="form-control form-select-lg" 
+                                       name="anio" 
+                                       value="{{ anio_actual }}"
+                                       min="2020"
+                                       max="2030"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Advertencia:</strong> Si ya existe nómina para este período, 
+                            no se generará nuevamente.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'finanzas:lista_nominas' %}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-calculator"></i> Generar Nómina
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card border-0 shadow mt-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        ¿Qué se calculará?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h6>Devengado:</h6>
+                    <ul class="small">
+                        <li>Salario base</li>
+                        <li>Auxilio de transporte ($162,000 - 2026)</li>
+                        <li>Horas extras (si aplica)</li>
+                        <li>Bonificaciones (si aplica)</li>
+                    </ul>
+
+                    <h6>Deducciones del Empleado:</h6>
+                    <ul class="small">
+                        <li>Salud: 4%</li>
+                        <li>Pensión: 4%</li>
+                        <li>Préstamos (si aplica)</li>
+                    </ul>
+
+                    <h6>Aportes de la Empresa:</h6>
+                    <ul class="small">
+                        <li>Salud: 8.5%</li>
+                        <li>Pensión: 12%</li>
+                        <li>ARL: 0.522%</li>
+                        <li>Caja de Compensación: 4%</li>
+                        <li>ICBF: 3%</li>
+                        <li>SENA: 2%</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

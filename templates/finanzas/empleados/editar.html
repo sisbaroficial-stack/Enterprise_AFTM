@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}✏️ Editar Empleado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard' %}">Finanzas</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:lista_empleados' %}">Empleados</a></li>
+                    <li class="breadcrumb-item active">Editar: {{ empleado.nombre_completo }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="card border-0 shadow">
+                <div class="card-header bg-warning py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil"></i>
+                        Editar Empleado: {{ empleado.nombre_completo }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <h5 class="mb-3 text-primary">📋 Información Personal</h5>
+                        <div class="row">
+                            
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Tipo Documento *</label>
+                                <select class="form-select" name="tipo_documento" required>
+                                    <option value="CC" {% if empleado.tipo_documento == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
+                                    <option value="CE" {% if empleado.tipo_documento == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
+                                    <option value="TI" {% if empleado.tipo_documento == 'TI' %}selected{% endif %}>Tarjeta de Identidad</option>
+                                    <option value="PP" {% if empleado.tipo_documento == 'PP' %}selected{% endif %}>Pasaporte</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Número Documento *</label>
+                                <input type="text" class="form-control" name="numero_documento" 
+                                       value="{{ empleado.numero_documento }}" required>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Nombres *</label>
+                                <input type="text" class="form-control" name="nombres" 
+                                       value="{{ empleado.nombres }}" required>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Apellidos *</label>
+                                <input type="text" class="form-control" name="apellidos" 
+                                       value="{{ empleado.apellidos }}" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Fecha de Nacimiento *</label>
+                                <input type="date" class="form-control" name="fecha_nacimiento" 
+                                       value="{{ empleado.fecha_nacimiento|date:'Y-m-d' }}" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Teléfono *</label>
+                                <input type="tel" class="form-control" name="telefono" 
+                                       value="{{ empleado.telefono }}" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                <input type="email" class="form-control" name="email" 
+                                       value="{{ empleado.email }}">
+                            </div>
+
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-bold">Dirección *</label>
+                                <input type="text" class="form-control" name="direccion" 
+                                       value="{{ empleado.direccion }}" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Ciudad *</label>
+                                <input type="text" class="form-control" name="ciudad" 
+                                       value="{{ empleado.ciudad }}" required>
+                            </div>
+
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3 text-success">💼 Información Laboral</h5>
+                        <div class="row">
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cargo *</label>
+                                <input type="text" class="form-control" name="cargo" 
+                                       value="{{ empleado.cargo }}" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Sucursal *</label>
+                                <select class="form-select" name="sucursal" required 
+                                        {% if user.rol != 'SUPER_ADMIN' %}disabled{% endif %}>
+                                    {% for suc in sucursales %}
+                                        <option value="{{ suc.id }}" 
+                                                {% if empleado.sucursal.id == suc.id %}selected{% endif %}>
+                                            {{ suc.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if user.rol != 'SUPER_ADMIN' %}
+                                    <small class="text-muted">Solo SUPER_ADMIN puede cambiar sucursal</small>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Tipo de Contrato *</label>
+                                <select class="form-select" name="tipo_contrato" required>
+                                    <option value="INDEFINIDO" {% if empleado.tipo_contrato == 'INDEFINIDO' %}selected{% endif %}>Término Indefinido</option>
+                                    <option value="FIJO" {% if empleado.tipo_contrato == 'FIJO' %}selected{% endif %}>Término Fijo</option>
+                                    <option value="OBRA" {% if empleado.tipo_contrato == 'OBRA' %}selected{% endif %}>Obra o Labor</option>
+                                    <option value="PRESTACION" {% if empleado.tipo_contrato == 'PRESTACION' %}selected{% endif %}>Prestación de Servicios</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Fecha de Ingreso</label>
+                                <input type="date" class="form-control" 
+                                       value="{{ empleado.fecha_ingreso|date:'Y-m-d' }}" 
+                                       readonly>
+                                <small class="text-muted">No se puede modificar</small>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Estado *</label>
+                                <select class="form-select" name="estado" required>
+                                    <option value="ACTIVO" {% if empleado.estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
+                                    <option value="VACACIONES" {% if empleado.estado == 'VACACIONES' %}selected{% endif %}>Vacaciones</option>
+                                    <option value="LICENCIA" {% if empleado.estado == 'LICENCIA' %}selected{% endif %}>Licencia</option>
+                                    <option value="SUSPENDIDO" {% if empleado.estado == 'SUSPENDIDO' %}selected{% endif %}>Suspendido</option>
+                                    <option value="RETIRADO" {% if empleado.estado == 'RETIRADO' %}selected{% endif %}>Retirado</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3 text-warning">💰 Información Salarial</h5>
+                        <div class="row">
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Salario Base Mensual *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" name="salario_base" 
+                                           value="{{ empleado.salario_base }}"
+                                           step="1000" min="50000" required>
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Auxilio de Transporte *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" name="auxilio_transporte" 
+                                           value="{{ empleado.auxilio_transporte }}"
+                                           step="1000" required>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Antigüedad:</strong> {{ empleado.dias_trabajados }} días trabajados
+                            (Fecha ingreso: {{ empleado.fecha_ingreso|date:"d/m/Y" }})
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'finanzas:lista_empleados' %}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

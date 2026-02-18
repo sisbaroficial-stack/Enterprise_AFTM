@@ -170,6 +170,20 @@ def crear_transferencia(request):
                         estado='EN_TRANSITO',
                         fecha_envio=timezone.now()
                     )
+                    # ====== CREAR NOTIFICACIÓN ======
+                    try:
+                        from notificaciones.models import Notificacion
+                        Notificacion.crear_notificacion(
+                            tipo='TRANSFERENCIA_CREADA',
+                            titulo=f'🚚 Transferencia {sucursal_origen.nombre} → {sucursal_destino.nombre}',
+                            mensaje=f'{request.user.get_full_name()} envió {cantidad} unidades de "{producto.nombre}"',
+                            sucursal=sucursal_origen,
+                            usuario=request.user,
+                            ref_id=transferencia.id,
+                            ref_tipo='transferencia'
+                        )
+                    except:
+                        pass
                     
                     # Registrar movimiento
                     MovimientoInventario.objects.create(
@@ -298,6 +312,21 @@ def recibir_transferencia(request, transferencia_id):
     
     try:
         transferencia.recibir_transferencia(request.user)
+
+        # ====== CREAR NOTIFICACIÓN ======
+        try:
+            from notificaciones.models import Notificacion
+            Notificacion.crear_notificacion(
+                tipo='TRANSFERENCIA_RECIBIDA',
+                titulo=f'📥 Transferencia Recibida: {transferencia.codigo}',
+                mensaje=f'{request.user.get_full_name()} recibió transferencia de {transferencia.sucursal_origen.nombre}',
+                sucursal=transferencia.sucursal_destino,
+                usuario=request.user,
+                ref_id=transferencia.id,
+                ref_tipo='transferencia'
+            )
+        except:
+            pass
         messages.success(request, f'✅ Transferencia {transferencia.codigo} recibida correctamente')
     except ValueError as e:
         messages.error(request, f'❌ Error: {str(e)}')

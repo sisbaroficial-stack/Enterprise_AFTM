@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Detalle de Gasto{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard' %}">Finanzas</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:lista_gastos' %}">Gastos</a></li>
+                    <li class="breadcrumb-item active">Detalle</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Detalle del Gasto
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Fecha</label>
+                            <p class="fw-bold">
+                                <i class="bi bi-calendar"></i>
+                                {{ gasto.fecha|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Estado</label>
+                            <p>
+                                {% if gasto.estado == 'APROBADO' %}
+                                    <span class="badge bg-success fs-6">✅ Aprobado</span>
+                                {% elif gasto.estado == 'PENDIENTE' %}
+                                    <span class="badge bg-warning fs-6">⏳ Pendiente</span>
+                                {% else %}
+                                    <span class="badge bg-danger fs-6">❌ Rechazado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Categoría</label>
+                            <p>
+                                <span class="badge bg-{{ gasto.categoria.color }} fs-6">
+                                    <i class="bi {{ gasto.categoria.icono }}"></i>
+                                    {{ gasto.categoria.nombre }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Sucursal</label>
+                            <p class="fw-bold">
+                                {% if gasto.sucursal %}
+                                    <i class="bi bi-building"></i> {{ gasto.sucursal.nombre }}
+                                {% else %}
+                                    <i class="bi bi-globe"></i> Gasto General
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Concepto</label>
+                        <p class="fw-bold">{{ gasto.concepto }}</p>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Monto</label>
+                            <p class="fs-3 fw-bold text-danger mb-0">
+                                ${{ gasto.monto|floatformat:0|intcomma }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Método de Pago</label>
+                            <p class="fw-bold">{{ gasto.get_metodo_pago_display }}</p>
+                        </div>
+                    </div>
+
+                    {% if gasto.notas %}
+                        <div class="mb-3">
+                            <label class="text-muted small">Notas</label>
+                            <p>{{ gasto.notas }}</p>
+                        </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Registrado por</label>
+                            <p>{{ gasto.registrado_por.get_full_name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Fecha de registro</label>
+                            <p>{{ gasto.fecha_registro|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+
+                    {% if gasto.aprobado_por %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Aprobado por</label>
+                                <p>{{ gasto.aprobado_por.get_full_name }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Fecha de aprobación</label>
+                                <p>{{ gasto.fecha_aprobacion|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if gasto.motivo_rechazo %}
+                        <div class="alert alert-danger mt-3">
+                            <strong>Motivo de rechazo:</strong><br>
+                            {{ gasto.motivo_rechazo }}
+                        </div>
+                    {% endif %}
+
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{% url 'finanzas:lista_gastos' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Rechazar Gasto{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-danger shadow">
+                <div class="card-header bg-danger text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-x-circle"></i>
+                        Rechazar Gasto
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        ¿Estás seguro de rechazar este gasto?
+                    </div>
+
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6>{{ gasto.concepto }}</h6>
+                            <p class="mb-0">
+                                <strong>Monto:</strong> ${{ gasto.monto|floatformat:0|intcomma }}<br>
+                                <strong>Fecha:</strong> {{ gasto.fecha|date:"d/m/Y" }}<br>
+                                <strong>Registrado por:</strong> {{ gasto.registrado_por.get_full_name }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label fw-bold">
+                                Motivo del Rechazo *
+                            </label>
+                            <textarea class="form-control" 
+                                      id="motivo" 
+                                      name="motivo" 
+                                      rows="4"
+                                      required
+                                      placeholder="Explica por qué se rechaza este gasto..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'finanzas:dashboard' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-x-circle"></i> Confirmar Rechazo
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

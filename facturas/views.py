@@ -187,6 +187,21 @@ def anular_factura(request, factura_id):
                 factura.anulada = True
                 factura.motivo_anulacion = motivo
                 factura.save()
+                # ====== CREAR NOTIFICACIÓN ======
+                try:
+                    from notificaciones.models import Notificacion
+                    Notificacion.crear_notificacion(
+                        tipo='FACTURA_ANULADA',
+                        titulo=f'❌ Factura Anulada #{factura.numero_factura}',
+                        mensaje=f'{request.user.get_full_name()} anuló la factura #{factura.numero_factura}. Motivo: {motivo}',
+                        sucursal=factura.sucursal,
+                        usuario=request.user,
+                        monto=factura.total,
+                        ref_id=factura.id,
+                        ref_tipo='factura'
+                    )
+                except:
+                    pass
                 
                 registrar_actividad(
                     request.user,

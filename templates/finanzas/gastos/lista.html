@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}📋 Lista de Gastos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+                <a href="{% url 'finanzas:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="bi bi-list-ul text-primary"></i>
+                        Gastos Registrados
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {% if modo_global %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-globe"></i> Vista Global
+                            </span>
+                        {% else %}
+                            <span class="badge bg-primary">
+                                <i class="bi bi-building"></i> Sucursal Actual
+                            </span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'finanzas:registrar_gasto' %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Nuevo Gasto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-body p-0">
+                    
+                    {% if gastos %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Categoría</th>
+                                        <th>Concepto</th>
+                                        <th>Sucursal</th>
+                                        <th class="text-end">Monto</th>
+                                        <th>Estado</th>
+                                        <th>Registrado Por</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for gasto in gastos %}
+                                        <tr>
+                                            <td>
+                                                <i class="bi bi-calendar"></i>
+                                                {{ gasto.fecha|date:"d/m/Y" }}
+                                                <br>
+                                                <small class="text-muted">{{ gasto.fecha_registro|date:"H:i" }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ gasto.categoria.color }}">
+                                                    <i class="bi {{ gasto.categoria.icono }}"></i>
+                                                    {{ gasto.categoria.nombre }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <strong>{{ gasto.concepto|truncatewords:8 }}</strong>
+                                                {% if gasto.notas %}
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-journal-text"></i>
+                                                        {{ gasto.notas|truncatewords:10 }}
+                                                    </small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if gasto.sucursal %}
+                                                    <i class="bi bi-building text-primary"></i>
+                                                    {{ gasto.sucursal.nombre }}
+                                                {% else %}
+                                                    <i class="bi bi-globe text-success"></i>
+                                                    <em>General</em>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="text-danger fs-5">
+                                                    ${{ gasto.monto|floatformat:0|intcomma }}
+                                                </strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    {{ gasto.get_metodo_pago_display }}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                {% if gasto.estado == 'PENDIENTE' %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="bi bi-hourglass-split"></i>
+                                                        Pendiente
+                                                    </span>
+                                                {% elif gasto.estado == 'APROBADO' %}
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i>
+                                                        Aprobado
+                                                    </span>
+                                                    {% if gasto.aprobado_por %}
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            por {{ gasto.aprobado_por.get_full_name }}
+                                                        </small>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="bi bi-x-circle"></i>
+                                                        Rechazado
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ gasto.registrado_por.get_full_name|default:gasto.registrado_por.username }}
+                                                <br>
+                                                <small class="text-muted">
+                                                    {{ gasto.registrado_por.get_rol_display }}
+                                                </small>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{% url 'finanzas:detalle_gasto' gasto.id %}" 
+                                                       class="btn btn-outline-info"
+                                                       title="Ver detalle">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    
+                                                    {% if gasto.estado == 'PENDIENTE' and user.rol == 'SUPER_ADMIN' %}
+                                                        <a href="{% url 'finanzas:aprobar_gasto' gasto.id %}" 
+                                                           class="btn btn-outline-success"
+                                                           title="Aprobar"
+                                                           onclick="return confirm('¿Aprobar este gasto?')">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </a>
+                                                        <a href="{% url 'finanzas:rechazar_gasto' gasto.id %}" 
+                                                           class="btn btn-outline-danger"
+                                                           title="Rechazar">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    
+                                                    {% if user.rol == 'SUPER_ADMIN' %}
+                                                        <a href="{% url 'finanzas:eliminar_gasto' gasto.id %}" 
+                                                           class="btn btn-outline-danger"
+                                                           title="Eliminar"
+                                                           onclick="return confirm('¿Eliminar este gasto? Esta acción no se puede deshacer.')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox fs-1 text-muted"></i>
+                            <h4 class="text-muted mt-3">No hay gastos registrados</h4>
+                            <p class="text-muted">Comienza registrando tu primer gasto</p>
+                            <a href="{% url 'finanzas:registrar_gasto' %}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Registrar Primer Gasto
+                            </a>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+</style>
+{% endblock %}

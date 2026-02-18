@@ -824,8 +824,14 @@
                 🛒 SISBAR
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <!-- Botón hamburguesa para sidebar (solo móvil) -->
+            <button class="navbar-toggler d-lg-none me-2" type="button" onclick="toggleSidebar()">
                 <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Botón para menú usuario -->
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-person-circle"></i>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -863,6 +869,114 @@
                             </a></li>
                         </ul>
                     </li>
+                    <!-- CAMPANITA DE NOTIFICACIONES -->
+                    {% if user.rol == 'SUPER_ADMIN' %}
+                    <li class="nav-item dropdown me-3">
+                        <a class="nav-link position-relative" href="#" id="notificacionesDropdown" 
+                        role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell fs-4"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                id="notificacionesBadge" style="display: none;">0</span>
+                        </a>
+                        
+                        <div class="dropdown-menu dropdown-menu-end shadow" 
+                            style="width: 400px; max-height: 500px; overflow-y: auto;">
+                            
+                            <div class="dropdown-header bg-primary text-white py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0"><i class="bi bi-bell"></i> Notificaciones</h6>
+                                    <button class="btn btn-sm btn-light" onclick="marcarTodasLeidas()">
+                                        <small>Marcar todas leídas</small>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="listaNotificaciones">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border spinner-border-sm"></div>
+                                    <p class="mb-0 mt-2">Cargando...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-center text-primary fw-bold" 
+                            href="{% url 'notificaciones:todas' %}">
+                                Ver todas
+                            </a>
+                        </div>
+                    </li>
+                    {% endif %}
+
+                    <script>
+                    let notificacionesInterval;
+
+                    function cargarNotificaciones() {
+                        fetch('/notificaciones/api/recientes/')
+                            .then(response => response.json())
+                            .then(data => {
+                                const badge = document.getElementById('notificacionesBadge');
+                                if (data.no_leidas > 0) {
+                                    badge.textContent = data.no_leidas > 99 ? '99+' : data.no_leidas;
+                                    badge.style.display = 'block';
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                                
+                                const lista = document.getElementById('listaNotificaciones');
+                                if (data.notificaciones.length === 0) {
+                                    lista.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-inbox fs-1"></i><p>No hay notificaciones</p></div>';
+                                    return;
+                                }
+                                
+                                let html = '';
+                                data.notificaciones.forEach(n => {
+                                    const leida = n.leida ? '' : 'bg-light';
+                                    const bold = n.leida ? '' : 'fw-bold';
+                                    html += `
+                                        <a href="/notificaciones/${n.id}/marcar-leida/" class="dropdown-item ${leida} py-3 border-bottom">
+                                            <h6 class="mb-1 ${bold}">${n.titulo}</h6>
+                                            <p class="mb-1 small text-muted">${n.mensaje}</p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-clock"></i> ${n.tiempo_transcurrido}
+                                                ${n.sucursal ? `<span class="badge bg-secondary ms-1">${n.sucursal}</span>` : ''}
+                                            </small>
+                                        </a>
+                                    `;
+                                });
+                                lista.innerHTML = html;
+                            })
+                            .catch(error => console.error('Error:', error));
+                    }
+
+                    function marcarTodasLeidas() {
+                        fetch('/notificaciones/marcar-todas-leidas/', {
+                            method: 'POST',
+                            headers: {'X-CSRFToken': getCookie('csrftoken')}
+                        }).then(() => cargarNotificaciones());
+                    }
+
+                    function getCookie(name) {
+                        let cookieValue = null;
+                        if (document.cookie && document.cookie !== '') {
+                            const cookies = document.cookie.split(';');
+                            for (let i = 0; i < cookies.length; i++) {
+                                const cookie = cookies[i].trim();
+                                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        {% if user.rol == 'SUPER_ADMIN' %}
+                            cargarNotificaciones();
+                            notificacionesInterval = setInterval(cargarNotificaciones, 30000);
+                        {% endif %}
+                    });
+                    </script>
 
                     <!-- Indicador de Sucursal -->
                     <li class="nav-item ms-3">
@@ -1034,6 +1148,17 @@
                         </li>
                         {% endif %}
 
+                        <!-- 💰 FINANZAS - NUEVO MÓDULO -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item">
+                            <a href="{% url 'finanzas:dashboard' %}" 
+                            class="sidebar-link {% if 'finanzas' in request.path %}active{% endif %}">
+                                <i class="bi bi-cash-coin"></i>
+                                <span>Finanzas</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
                         <!-- ✅ AGREGAR ESTE BLOQUE NUEVO -->
                         <li class="nav-item">
                             <a href="{% url 'facturas:lista_facturas' %}" 
@@ -1042,6 +1167,13 @@
                                 Facturas
                             </a>
                         </li>
+
+                        <!-- ========== SEPARADOR ADMINISTRACIÓN ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item mt-3">
+                            <hr>
+                        </li>
+                        {% endif %}
 
                         <!-- ========== TRANSFERENCIAS (ADMIN Y SUPER_ADMIN) ========== -->
                         {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' or user.rol == 'EMPLEADO' %}
@@ -1143,6 +1275,20 @@
             } else {
                 navbar.classList.remove('scrolled');
             }
+        });
+        // Toggle sidebar en móvil
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('show');
+        }
+
+        // Cerrar sidebar al hacer click en un link
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.sidebar').classList.remove('show');
+                }
+            });
         });
     </script>
     

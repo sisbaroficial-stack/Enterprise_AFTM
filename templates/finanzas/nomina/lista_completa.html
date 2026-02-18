@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}💰 Nóminas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="bi bi-cash-stack text-success"></i>
+                        Nóminas Generadas
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {{ total_nominas }} nóminas generadas
+                    </p>
+                </div>
+                <div>
+                    {% if user.rol == 'SUPER_ADMIN' %}
+                        <a href="{% url 'finanzas:generar_nomina' %}" class="btn btn-warning">
+                            <i class="bi bi-calculator"></i> Generar Nómina
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Nóminas</h6>
+                    <h2 class="mb-0">{{ total_nominas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Neto a Pagar</h6>
+                    <h2 class="mb-0 text-success">${{ total_neto|floatformat:0|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Costo Total Empresa</h6>
+                    <h2 class="mb-0 text-danger">${{ total_costo|floatformat:0|intcomma }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Nóminas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-body p-0">
+                    {% if nominas %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Empleado</th>
+                                        <th>Período</th>
+                                        <th class="text-end">Devengado</th>
+                                        <th class="text-end">Deducciones</th>
+                                        <th class="text-end">Neto a Pagar</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for nomina in nominas %}
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ nomina.empleado.nombre_completo }}</strong><br>
+                                                    <small class="text-muted">
+                                                        {{ nomina.empleado.cargo }}
+                                                    </small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">
+                                                    {{ nomina.mes|stringformat:"02d" }}/{{ nomina.anio }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="text-success">
+                                                    ${{ nomina.total_devengado|floatformat:0|intcomma }}
+                                                </strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="text-danger">
+                                                    ${{ nomina.total_deducciones|floatformat:0|intcomma }}
+                                                </strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="text-primary fs-5">
+                                                    ${{ nomina.neto_pagar|floatformat:0|intcomma }}
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                {% if nomina.pagado %}
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> Pagado
+                                                    </span>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        {{ nomina.fecha_pago|date:"d/m/Y" }}
+                                                    </small>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="bi bi-clock"></i> Pendiente
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'finanzas:detalle_nomina' nomina.id %}" 
+                                                       class="btn btn-outline-info"
+                                                       title="Ver detalle">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'finanzas:desprendible_pago' nomina.id %}" 
+                                                       class="btn btn-outline-primary"
+                                                       title="Descargar Desprendible PDF">
+                                                        <i class="bi bi-file-pdf"></i>
+                                                    </a>
+                                                    {% if not nomina.pagado and user.rol == 'SUPER_ADMIN' %}
+                                                        <a href="{% url 'finanzas:marcar_nomina_pagada' nomina.id %}" 
+                                                           class="btn btn-outline-success"
+                                                           title="Marcar como pagada"
+                                                           onclick="return confirm('¿Marcar esta nómina como pagada?')">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-cash-stack fs-1 text-muted"></i>
+                            <h4 class="text-muted mt-3">No hay nóminas generadas</h4>
+                            <p class="text-muted">Genera tu primera nómina del mes</p>
+                            {% if user.rol == 'SUPER_ADMIN' %}
+                                <a href="{% url 'finanzas:generar_nomina' %}" class="btn btn-warning">
+                                    <i class="bi bi-calculator"></i> Generar Nómina
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

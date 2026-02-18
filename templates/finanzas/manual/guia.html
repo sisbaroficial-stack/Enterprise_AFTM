@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}📊 Manual de Usuario - Finanzas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-0">
+                <i class="bi bi-question-circle text-info"></i>
+                Manual de Usuario - Módulo Finanzas
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3">
+            <!-- Índice -->
+            <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">📚 Índice</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#intro" class="list-group-item list-group-item-action">Introducción</a>
+                    <a href="#dashboard" class="list-group-item list-group-item-action">Dashboard</a>
+                    <a href="#gastos" class="list-group-item list-group-item-action">Gestión de Gastos</a>
+                    <a href="#nomina" class="list-group-item list-group-item-action">Nómina</a>
+                    <a href="#reportes" class="list-group-item list-group-item-action">Reportes</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            
+            <!-- Introducción -->
+            <section id="intro" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3>📖 Introducción</h3>
+                        <p class="lead">
+                            El módulo de Finanzas te permite gestionar todos los gastos operativos
+                            de tu empresa y calcular automáticamente la utilidad neta del negocio.
+                        </p>
+                        
+                        <h5 class="mt-4">¿Qué puedes hacer?</h5>
+                        <ul>
+                            <li>📝 Registrar gastos operativos (nómina, arriendo, servicios, etc.)</li>
+                            <li>✅ Sistema de aprobación automática</li>
+                            <li>📊 Ver utilidad neta en tiempo real</li>
+                            <li>👥 Gestionar empleados y nómina</li>
+                            <li>📈 Análisis comparativos mes a mes</li>
+                            <li>🌍 Modo Global o por Sucursal</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard -->
+            <section id="dashboard" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3>📊 Dashboard Financiero</h3>
+                        <p>
+                            El dashboard te muestra un resumen completo de la salud financiera
+                            de tu negocio en el mes actual.
+                        </p>
+                        
+                        <h5 class="mt-4">KPIs Principales:</h5>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="border-start border-success border-4 ps-3 mb-3">
+                                    <h6>💵 Ventas Totales</h6>
+                                    <p class="mb-0 small text-muted">
+                                        Total de ingresos del mes según facturas registradas
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border-start border-danger border-4 ps-3 mb-3">
+                                    <h6>💸 Gastos Totales</h6>
+                                    <p class="mb-0 small text-muted">
+                                        Suma de todos los gastos operativos aprobados
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border-start border-info border-4 ps-3 mb-3">
+                                    <h6>✨ Utilidad Bruta</h6>
+                                    <p class="mb-0 small text-muted">
+                                        Ventas menos costo de mercancía vendida
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="border-start border-primary border-4 ps-3 mb-3">
+                                    <h6>✅ Utilidad Neta</h6>
+                                    <p class="mb-0 small text-muted">
+                                        Ganancia final después de todos los gastos
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gastos -->
+            <section id="gastos" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3>💸 Gestión de Gastos</h3>
+                        
+                        <h5 class="mt-4">Cómo Registrar un Gasto:</h5>
+                        <ol>
+                            <li>Haz clic en el botón "Registrar Gasto"</li>
+                            <li>Selecciona la fecha del gasto</li>
+                            <li>Elige la categoría (Nómina, Servicios, etc.)</li>
+                            <li>Escribe el concepto/descripción</li>
+                            <li>Ingresa el monto</li>
+                            <li>Selecciona el método de pago</li>
+                            <li>Haz clic en "Registrar"</li>
+                        </ol>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Auto-aprobación:</strong> Los gastos menores a $100,000
+                            se aprueban automáticamente. Los mayores requieren aprobación del SUPER_ADMIN.
+                        </div>
+                        
+                        <h5 class="mt-4">Categorías de Gastos:</h5>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <h6 class="text-primary">Gastos Fijos</h6>
+                                <ul class="small">
+                                    <li>Nómina y Personal</li>
+                                    <li>Arriendo</li>
+                                    <li>Seguros</li>
+                                    <li>Software y Licencias</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-warning">Gastos Variables</h6>
+                                <ul class="small">
+                                    <li>Servicios Públicos</li>
+                                    <li>Transporte</li>
+                                    <li>Publicidad</li>
+                                    <li>Mantenimiento</li>
+                                    <li>Insumos Operativos</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-secondary">Otros</h6>
+                                <ul class="small">
+                                    <li>Impuestos</li>
+                                    <li>Gastos Bancarios</li>
+                                    <li>Imprevistos</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Nómina -->
+            <section id="nomina" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3>👥 Nómina de Empleados</h3>
+                        <p>
+                            El sistema calcula automáticamente la nómina según la normativa
+                            colombiana 2026, incluyendo:
+                        </p>
+                        <ul>
+                            <li>✅ Salario base</li>
+                            <li>✅ Auxilio de transporte</li>
+                            <li>✅ Deducciones (Salud 4%, Pensión 4%)</li>
+                            <li>✅ Aportes patronales (Salud, Pensión, ARL, Caja, ICBF, SENA)</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reportes -->
+            <section id="reportes" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3>📈 Reportes y Análisis</h3>
+                        <p>Puedes generar reportes y comparativas para analizar el desempeño financiero:</p>
+                        <ul>
+                            <li>📊 Comparativas mes a mes</li>
+                            <li>📈 Análisis de tendencias</li>
+                            <li>📄 Exportar a Excel</li>
+                            <li>📄 Exportar a PDF</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

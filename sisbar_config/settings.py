@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     'sucursales',
     'facturas',
     'compras',
+    'finanzas',
+    'notificaciones',
     'crispy_forms',
 ]
 
@@ -141,7 +143,11 @@ if not DEBUG:
 # ===================== DATABASE =====================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sisbar_db',
+        'USER': 'postgres',
+        'PASSWORD': 'Holama.1521',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }

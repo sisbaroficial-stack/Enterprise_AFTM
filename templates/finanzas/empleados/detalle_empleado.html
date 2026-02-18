@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}👤 {{ empleado.nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard' %}">Finanzas</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:lista_empleados' %}">Empleados</a></li>
+                    <li class="breadcrumb-item active">{{ empleado.nombre_completo }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna Izquierda -->
+        <div class="col-lg-8">
+            
+            <!-- Información Principal -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-person-circle"></i>
+                            {{ empleado.nombre_completo }}
+                        </h4>
+                        <div>
+                            {% if empleado.estado == 'ACTIVO' %}
+                                <span class="badge bg-success fs-6">✅ Activo</span>
+                            {% elif empleado.estado == 'VACACIONES' %}
+                                <span class="badge bg-info fs-6">🏖️ Vacaciones</span>
+                            {% elif empleado.estado == 'LICENCIA' %}
+                                <span class="badge bg-warning fs-6">🏥 Licencia</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">{{ empleado.get_estado_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <div class="row">
+                        <!-- Información Personal -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="text-primary mb-3">📋 Información Personal</h5>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small">Documento</label>
+                                <p class="fw-bold mb-1">{{ empleado.get_tipo_documento_display }}: {{ empleado.numero_documento }}</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small">Fecha de Nacimiento</label>
+                                <p class="fw-bold mb-1">{{ empleado.fecha_nacimiento|date:"d/m/Y" }}</p>
+                                <small class="text-muted">{{ empleado.edad }} años</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small">Contacto</label>
+                                <p class="mb-1">
+                                    <i class="bi bi-telephone"></i> {{ empleado.telefono }}<br>
+                                    {% if empleado.email %}
+                                        <i class="bi bi-envelope"></i> {{ empleado.email }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small">Dirección</label>
+                                <p class="mb-1">
+                                    {{ empleado.direccion }}<br>
+                                    {{ empleado.ciudad }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Información Laboral -->
+                        <div class="col-md-6 mb-4">
+                            <h5 class="text-success mb-3">💼 Información Laboral</h5>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small">Cargo</label>
+                                <p class="fw-bold mb-1">
+                                    <span class="badge bg-primary fs-6">{{ empleado.cargo }}</span>
+                                </p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small">Sucursal</label>
+                                <p class="fw-bold mb-1">
+                                    <i class="bi bi-building"></i> {{ empleado.sucursal.nombre }}
+                                </p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small">Tipo de Contrato</label>
+                                <p class="mb-1">{{ empleado.get_tipo_contrato_display }}</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small">Fecha de Ingreso</label>
+                                <p class="fw-bold mb-1">{{ empleado.fecha_ingreso|date:"d/m/Y" }}</p>
+                            </div>
+                            
+                            <div class="alert alert-info mb-0">
+                                <strong>Antigüedad:</strong><br>
+                                {{ empleado.dias_trabajados }} días trabajados<br>
+                                ({{ empleado.years_worked }} años)
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Información Salarial -->
+                    <h5 class="text-warning mb-3">💰 Información Salarial</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Salario Base</small>
+                                    <h4 class="text-success mb-0">${{ empleado.salario_base|floatformat:0|intcomma }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Auxilio Transporte</small>
+                                    <h4 class="text-info mb-0">${{ empleado.auxilio_transporte|floatformat:0|intcomma }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <small class="text-muted">Total Mensual</small>
+                                    <h4 class="text-primary mb-0">
+                                        ${{ empleado.salario_base|add:empleado.auxilio_transporte|floatformat:0|intcomma }}
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'finanzas:lista_empleados' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </a>
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                            <a href="{% url 'finanzas:editar_empleado' empleado.id %}" class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="col-lg-4">
+            
+            <!-- Nóminas del Empleado -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-cash-stack"></i>
+                        Historial de Nóminas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if empleado.nominas.all %}
+                        <div class="list-group list-group-flush">
+                            {% for nomina in empleado.nominas.all|slice:":5" %}
+                                <a href="{% url 'finanzas:detalle_nomina' nomina.id %}" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>{{ nomina.mes|stringformat:"02d" }}/{{ nomina.anio }}</strong>
+                                        </div>
+                                        <div>
+                                            {% if nomina.pagado %}
+                                                <span class="badge bg-success">Pagado</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Neto: ${{ nomina.neto_pagar|floatformat:0|intcomma }}
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1"></i>
+                            <p class="mb-0">No hay nóminas generadas</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="card border-0 shadow">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning"></i>
+                        Acciones Rápidas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'finanzas:lista_nominas' %}?empleado={{ empleado.id }}" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-cash-stack"></i> Ver Todas las Nóminas
+                        </a>
+                        {% if user.rol == 'SUPER_ADMIN' %}
+                            <a href="{% url 'finanzas:generar_nomina' %}" 
+                               class="btn btn-outline-success">
+                                <i class="bi bi-calculator"></i> Generar Nómina
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

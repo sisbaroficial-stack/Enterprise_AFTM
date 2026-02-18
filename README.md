@@ -26,7 +26,6 @@ SISBAR1.1_AFTM-SAS
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
-├─ crear_datos_prueba.py
 ├─ dashboard
 │  ├─ admin.py
 │  ├─ apps.py
@@ -48,6 +47,36 @@ SISBAR1.1_AFTM-SAS
 │  ├─ tests.py
 │  ├─ urls.py
 │  ├─ views.py
+│  └─ __init__.py
+├─ finanzas
+│  ├─ admin.py
+│  ├─ apps.py
+│  ├─ forms.py
+│  ├─ management
+│  │  ├─ commands
+│  │  │  ├─ cargar_categorias_gastos.py
+│  │  │  ├─ generar_gastos_prueba.py
+│  │  │  └─ __init__.py
+│  │  └─ fsdfsf
+│  ├─ migrations
+│  │  ├─ 0001_initial.py
+│  │  ├─ 0002_registroasistencia_turno_horarioempleado.py
+│  │  └─ __init__.py
+│  ├─ models.py
+│  ├─ services
+│  │  ├─ calculador_finanzas.py
+│  │  ├─ exportador.py
+│  │  ├─ ia_predictor.py
+│  │  ├─ nomina_colombia.py
+│  │  └─ __init__.py
+│  ├─ signals.py
+│  ├─ templatetags
+│  │  └─ __init__.py
+│  ├─ tests.py
+│  ├─ urls.py
+│  ├─ utils.py
+│  ├─ views.py
+│  ├─ views_avanzadas.py
 │  └─ __init__.py
 ├─ inventario
 │  ├─ admin.py
@@ -76,6 +105,7 @@ SISBAR1.1_AFTM-SAS
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
+├─ limpiar_json.py
 ├─ manage.py
 ├─ movimientos
 │  ├─ admin.py
@@ -85,6 +115,25 @@ SISBAR1.1_AFTM-SAS
 │  │  ├─ 0002_alter_movimiento_producto.py
 │  │  └─ __init__.py
 │  ├─ models.py
+│  ├─ tests.py
+│  ├─ urls.py
+│  ├─ views.py
+│  └─ __init__.py
+├─ notificaciones
+│  ├─ admin.py
+│  ├─ apps.py
+│  ├─ management
+│  │  ├─ commands
+│  │  │  ├─ test_notificaciones.py
+│  │  │  └─ __init__.py
+│  │  └─ __init__.py
+│  ├─ migrations
+│  │  ├─ 0001_initial.py
+│  │  └─ __init__.py
+│  ├─ models.py
+│  ├─ templatetags
+│  │  ├─ notificaciones_extras.py
+│  │  └─ __init__.py
 │  ├─ tests.py
 │  ├─ urls.py
 │  ├─ views.py
@@ -171,6 +220,27 @@ SISBAR1.1_AFTM-SAS
 │  │  ├─ imprimir.html
 │  │  ├─ lista.html
 │  │  └─ ver_factura.html
+│  ├─ finanzas
+│  │  ├─ analisis
+│  │  │  └─ principal.html
+│  │  ├─ dashboard.html
+│  │  ├─ empleados
+│  │  │  ├─ crear_completo.html
+│  │  │  ├─ detalle_completo.html
+│  │  │  ├─ detalle_empleado.html
+│  │  │  ├─ editar.html
+│  │  │  └─ lista_completa.html
+│  │  ├─ gastos
+│  │  │  ├─ detalle.html
+│  │  │  ├─ lista.html
+│  │  │  ├─ rechazar.html
+│  │  │  └─ registrar.html
+│  │  ├─ manual
+│  │  │  └─ guia.html
+│  │  └─ nomina
+│  │     ├─ detalle_completa.html
+│  │     ├─ generar_completa.html
+│  │     └─ lista_completa.html
 │  ├─ index.html
 │  ├─ inventario
 │  │  ├─ agregar_producto_existente.html
@@ -188,6 +258,8 @@ SISBAR1.1_AFTM-SAS
 │  │  ├─ alertas.html
 │  │  ├─ listar.html
 │  │  └─ panel_inventario.html
+│  ├─ notificaciones
+│  │  └─ todas.html
 │  ├─ proveedores
 │  │  ├─ crear.html
 │  │  ├─ editar.html

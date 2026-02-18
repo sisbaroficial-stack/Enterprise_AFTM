@@ -127,7 +127,7 @@ def sugerencias_compra(request):
     # PAGINACIÓN PARA CADA TAB
     # Tab "Urgentes"
     page_urgentes = request.GET.get('page_urgentes', 1)
-    paginator_urgentes = Paginator(urgentes_qs, 20)  # 20 por página
+    paginator_urgentes = Paginator(urgentes_qs, 10)  # 20 por página
     try:
         urgentes = paginator_urgentes.page(page_urgentes)
     except PageNotAnInteger:
@@ -147,7 +147,7 @@ def sugerencias_compra(request):
     
     # Tab "Todas" (tabla completa)
     page = request.GET.get('page', 1)
-    paginator_todas = Paginator(sugerencias, 50)  # 50 por página
+    paginator_todas = Paginator(sugerencias, 20)  # 50 por página
     try:
         sugerencias_paginadas = paginator_todas.page(page)
     except PageNotAnInteger:

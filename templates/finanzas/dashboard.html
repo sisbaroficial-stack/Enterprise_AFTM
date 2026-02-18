@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}💰 Finanzas - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Header con Modo Global/Sucursal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="bi bi-cash-coin text-success"></i>
+                        Dashboard Financiero
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {{ mes_nombre }} {{ anio }}
+                        {% if modo_global %}
+                            <span class="badge bg-success ms-2">
+                                <i class="bi bi-globe"></i> Modo Global - Todas las Sucursales
+                            </span>
+                        {% else %}
+                            <span class="badge bg-primary ms-2">
+                                <i class="bi bi-building"></i> {{ sucursal_actual.nombre }}
+                            </span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <div class="btn-group me-2" role="group">
+                        <a href="{% url 'finanzas:exportar_excel' %}" class="btn btn-success">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </a>
+                        <a href="{% url 'finanzas:exportar_pdf' %}" class="btn btn-danger">
+                            <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+                        </a>
+                    </div>
+                    <a href="{% url 'finanzas:analisis' %}" class="btn btn-primary me-2">
+                        <i class="bi bi-robot"></i> Análisis IA
+                    </a>
+                    <a href="{% url 'finanzas:registrar_gasto' %}" class="btn btn-warning me-2">
+                        <i class="bi bi-plus-circle"></i> Registrar Gasto
+                    </a>
+                    <a href="{% url 'finanzas:manual' %}" class="btn btn-outline-info">
+                        <i class="bi bi-question-circle"></i> Manual
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs Principales -->
+    <div class="row mb-4">
+        <!-- Total Ventas -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">💵 Ventas Totales</h6>
+                        <i class="bi bi-arrow-up-circle fs-3"></i>
+                    </div>
+                    <h2 class="mb-0">${{ datos.total_ventas|floatformat:0|intcomma }}</h2>
+                    <small>{{ datos.num_facturas }} facturas</small>
+                    {% if comparativa.variaciones.ventas != 0 %}
+                        <div class="mt-2">
+                            {% if comparativa.variaciones.ventas > 0 %}
+                                <span class="badge bg-light text-success">
+                                    <i class="bi bi-arrow-up"></i> +{{ comparativa.variaciones.ventas|floatformat:1 }}%
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-danger">
+                                    <i class="bi bi-arrow-down"></i> {{ comparativa.variaciones.ventas|floatformat:1 }}%
+                                </span>
+                            {% endif %}
+                            vs mes anterior
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Gastos -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">💸 Gastos Totales</h6>
+                        <i class="bi bi-arrow-down-circle fs-3"></i>
+                    </div>
+                    <h2 class="mb-0">${{ datos.total_gastos|floatformat:0|intcomma }}</h2>
+                    <small>{{ datos.num_gastos }} gastos registrados</small>
+                    {% if comparativa.variaciones.gastos != 0 %}
+                        <div class="mt-2">
+                            {% if comparativa.variaciones.gastos > 0 %}
+                                <span class="badge bg-light text-danger">
+                                    <i class="bi bi-arrow-up"></i> +{{ comparativa.variaciones.gastos|floatformat:1 }}%
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-success">
+                                    <i class="bi bi-arrow-down"></i> {{ comparativa.variaciones.gastos|floatformat:1 }}%
+                                </span>
+                            {% endif %}
+                            vs mes anterior
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Utilidad Bruta -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">✨ Utilidad Bruta</h6>
+                        <i class="bi bi-gem fs-3"></i>
+                    </div>
+                    <h2 class="mb-0">${{ datos.utilidad_bruta|floatformat:0|intcomma }}</h2>
+                    <small>Margen: {{ datos.margen_bruto|floatformat:1 }}%</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Utilidad Neta -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" 
+                 style="background: {% if datos.utilidad_neta >= 0 %}linear-gradient(135deg, #43e97b 0%, #38f9d7 100%){% else %}linear-gradient(135deg, #fa709a 0%, #fee140 100%){% endif %};">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">{% if datos.utilidad_neta >= 0 %}✅{% else %}⚠️{% endif %} Utilidad Neta</h6>
+                        <i class="bi bi-trophy fs-3"></i>
+                    </div>
+                    <h2 class="mb-0">${{ datos.utilidad_neta|floatformat:0|intcomma }}</h2>
+                    <small>Margen: {{ datos.margen_neto|floatformat:1 }}%</small>
+                    {% if comparativa.variaciones.utilidad_neta != 0 %}
+                        <div class="mt-2">
+                            {% if comparativa.variaciones.utilidad_neta > 0 %}
+                                <span class="badge bg-light text-success">
+                                    <i class="bi bi-arrow-up"></i> +{{ comparativa.variaciones.utilidad_neta|floatformat:1 }}%
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-danger">
+                                    <i class="bi bi-arrow-down"></i> {{ comparativa.variaciones.utilidad_neta|floatformat:1 }}%
+                                </span>
+                            {% endif %}
+                            vs mes anterior
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna Izquierda -->
+        <div class="col-lg-8">
+            
+            <!-- Desglose Financiero -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart-line text-primary"></i>
+                        Desglose Financiero del Mes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">💵 Ventas Totales</td>
+                                <td class="text-end text-success fw-bold">
+                                    +${{ datos.total_ventas|floatformat:0|intcomma }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-4">📦 Costo de Mercancía</td>
+                                <td class="text-end text-danger">
+                                    -${{ datos.costo_mercancia|floatformat:0|intcomma }}
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="fw-bold ps-4">✨ Utilidad Bruta</td>
+                                <td class="text-end fw-bold text-info">
+                                    ${{ datos.utilidad_bruta|floatformat:0|intcomma }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-4">💸 Gastos Operativos</td>
+                                <td class="text-end text-danger">
+                                    -${{ datos.total_gastos|floatformat:0|intcomma }}
+                                </td>
+                            </tr>
+                            <tr class="border-top bg-light">
+                                <td class="fw-bold">
+                                    {% if datos.utilidad_neta >= 0 %}
+                                        ✅ UTILIDAD NETA
+                                    {% else %}
+                                        ⚠️ PÉRDIDA NETA
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-bold fs-5 {% if datos.utilidad_neta >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    ${{ datos.utilidad_neta|floatformat:0|intcomma }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Punto de Equilibrio -->
+                    <div class="alert alert-info mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Punto de Equilibrio:</strong> ${{ punto_equilibrio.punto_equilibrio|floatformat:0|intcomma }}
+                            </div>
+                            <div>
+                                <span class="badge {% if punto_equilibrio.en_riesgo %}bg-danger{% else %}bg-success{% endif %}">
+                                    {% if punto_equilibrio.en_riesgo %}
+                                        ⚠️ En Riesgo
+                                    {% else %}
+                                        ✅ Margen: {{ punto_equilibrio.porcentaje_margen|floatformat:0 }}%
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gastos por Categoría -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pie-chart text-warning"></i>
+                        Gastos por Categoría
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if datos.gastos_por_categoria %}
+                        {% for item in datos.gastos_por_categoria %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>
+                                        <i class="bi {{ item.categoria.icono }} text-{{ item.categoria.color }}"></i>
+                                        {{ item.categoria.nombre }}
+                                    </span>
+                                    <span class="fw-bold">${{ item.total|floatformat:0|intcomma }}</span>
+                                </div>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-{{ item.categoria.color }}" 
+                                         role="progressbar" 
+                                         style="width: {{ item.porcentaje }}%">
+                                        {{ item.porcentaje|floatformat:0 }}%
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ item.num_gastos }} gastos</small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1"></i>
+                            <p class="mb-0">No hay gastos registrados este mes</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="col-lg-4">
+            
+            <!-- Gastos Pendientes de Aprobación (Solo SUPER_ADMIN) -->
+            {% if user.rol == 'SUPER_ADMIN' and gastos_pendientes %}
+                <div class="card border-0 shadow-sm mb-4 border-warning border-2">
+                    <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
+                        <h6 class="mb-0">
+                            <i class="bi bi-hourglass-split text-warning"></i>
+                            Pendientes de Aprobación ({{ gastos_pendientes|length }})
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for gasto in gastos_pendientes %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1">{{ gasto.concepto|truncatewords:5 }}</h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar"></i> {{ gasto.fecha|date:"d/m/Y" }}
+                                                {% if gasto.sucursal %}
+                                                    <br><i class="bi bi-building"></i> {{ gasto.sucursal.nombre }}
+                                                {% else %}
+                                                    <br><i class="bi bi-globe"></i> Gasto General
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-danger">${{ gasto.monto|floatformat:0|intcomma }}</span>
+                                    </div>
+                                    <div class="btn-group btn-group-sm w-100" role="group">
+                                        <a href="{% url 'finanzas:aprobar_gasto' gasto.id %}" 
+                                           class="btn btn-success btn-sm"
+                                           onclick="return confirm('¿Aprobar este gasto?')">
+                                            <i class="bi bi-check-circle"></i> Aprobar
+                                        </a>
+                                        <a href="{% url 'finanzas:rechazar_gasto' gasto.id %}" 
+                                           class="btn btn-danger btn-sm">
+                                            <i class="bi bi-x-circle"></i> Rechazar
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Accesos Rápidos -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning text-primary"></i>
+                        Accesos Rápidos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'finanzas:registrar_gasto' %}" class="btn btn-outline-success">
+                            <i class="bi bi-plus-circle"></i> Registrar Gasto
+                        </a>
+                        <a href="{% url 'finanzas:lista_gastos' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-list-ul"></i> Ver Todos los Gastos
+                        </a>
+                        <a href="{% url 'finanzas:lista_empleados' %}" class="btn btn-outline-info">
+                            <i class="bi bi-people"></i> Empleados
+                        </a>
+                        <a href="{% url 'finanzas:lista_nominas' %}" class="btn btn-outline-warning">
+                            <i class="bi bi-cash-stack"></i> Nómina
+                        </a>
+                        <a href="{% url 'finanzas:analisis' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-graph-up"></i> Análisis con IA
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparativa Mes Anterior -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0">
+                        <i class="bi bi-arrow-left-right text-info"></i>
+                        vs Mes Anterior
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td>Ventas</td>
+                                <td class="text-end">
+                                    {% if comparativa.variaciones.ventas > 0 %}
+                                        <span class="text-success">
+                                            <i class="bi bi-arrow-up"></i>
+                                            +{{ comparativa.variaciones.ventas|floatformat:1 }}%
+                                        </span>
+                                    {% elif comparativa.variaciones.ventas < 0 %}
+                                        <span class="text-danger">
+                                            <i class="bi bi-arrow-down"></i>
+                                            {{ comparativa.variaciones.ventas|floatformat:1 }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="bi bi-arrow-right"></i> 0%
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Gastos</td>
+                                <td class="text-end">
+                                    {% if comparativa.variaciones.gastos > 0 %}
+                                        <span class="text-danger">
+                                            <i class="bi bi-arrow-up"></i>
+                                            +{{ comparativa.variaciones.gastos|floatformat:1 }}%
+                                        </span>
+                                    {% elif comparativa.variaciones.gastos < 0 %}
+                                        <span class="text-success">
+                                            <i class="bi bi-arrow-down"></i>
+                                            {{ comparativa.variaciones.gastos|floatformat:1 }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="bi bi-arrow-right"></i> 0%
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Utilidad Neta</td>
+                                <td class="text-end fw-bold">
+                                    {% if comparativa.variaciones.utilidad_neta > 0 %}
+                                        <span class="text-success">
+                                            <i class="bi bi-arrow-up"></i>
+                                            +{{ comparativa.variaciones.utilidad_neta|floatformat:1 }}%
+                                        </span>
+                                    {% elif comparativa.variaciones.utilidad_neta < 0 %}
+                                        <span class="text-danger">
+                                            <i class="bi bi-arrow-down"></i>
+                                            {{ comparativa.variaciones.utilidad_neta|floatformat:1 }}%
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="bi bi-arrow-right"></i> 0%
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+</style>
+{% endblock %}

@@ -6,16 +6,25 @@ from django.utils import timezone
 # Importar los modelos correctos desde la app inventario
 from inventario.models import MovimientoInventario, AlertaInventario
 from facturas.models import Factura
+from django.core.paginator import Paginator
+
 @login_required
 def listar_movimientos_view(request):
     """Lista todos los movimientos"""
     dias = int(request.GET.get('dias', 7))
     fecha_desde = timezone.now() - timedelta(days=dias)
     
-    movimientos = MovimientoInventario.objects.filter(
+    # Ordenar por fecha y hora descendente (del más reciente al más antiguo)
+    movimientos_list = MovimientoInventario.objects.filter(
         fecha__gte=fecha_desde
-    ).select_related('producto', 'usuario', 'sucursal').order_by('-fecha')
-    
+    ).select_related('producto', 'usuario', 'sucursal').order_by('-fecha', '-id')
+
+    # ----- PAGINACION -----
+    paginator = Paginator(movimientos_list, 15)  # 15 movimientos por página
+    page_number = request.GET.get('page')
+    movimientos = paginator.get_page(page_number)
+    # ----------------------
+
     context = {
         'movimientos': movimientos,
         'dias': dias,

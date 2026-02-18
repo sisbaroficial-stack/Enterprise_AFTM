@@ -86,6 +86,19 @@ def registro_view(request):
                 usuario.aprobado = False  # requiere aprobación
                 usuario.is_active = True
                 usuario.save()
+                # ====== CREAR NOTIFICACIÓN ======
+                try:
+                    from notificaciones.models import Notificacion
+                    Notificacion.crear_notificacion(
+                        tipo='USUARIO_REGISTRADO',
+                        titulo=f'👤 Nuevo Usuario: {usuario.get_full_name()}',
+                        mensaje=f'{usuario.get_full_name()} ({usuario.email}) se registró y espera aprobación',
+                        usuario=usuario,
+                        ref_id=usuario.id,
+                        ref_tipo='usuario'
+                    )
+                except:
+                    pass
 
                 # Registrar actividad
                 registrar_actividad(

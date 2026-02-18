@@ -196,6 +196,20 @@ def crear_producto(request):
                     producto = form.save(commit=False)
                     producto.creado_por = request.user
                     producto.save()
+                    # ====== CREAR NOTIFICACIÓN ======
+                    try:
+                        from notificaciones.models import Notificacion
+                        Notificacion.crear_notificacion(
+                            tipo='PRODUCTO_CREADO',
+                            titulo=f'📦 Producto Creado: {producto.nombre}',
+                            mensaje=f'{request.user.get_full_name()} creó el producto "{producto.nombre}" (Stock inicial: {cantidad_inicial})',
+                            sucursal=sucursal,
+                            usuario=request.user,
+                            ref_id=producto.id,
+                            ref_tipo='producto'
+                        )
+                    except:
+                        pass
 
                     cantidad_inicial = int(request.POST.get('cantidad_inicial', 0))
 
@@ -348,6 +362,20 @@ def descontar_producto(request, producto_id):
 
             inventario.cantidad -= cantidad
             inventario.save()
+            # ====== CREAR NOTIFICACIÓN ======
+            try:
+                from notificaciones.models import Notificacion
+                Notificacion.crear_notificacion(
+                    tipo='STOCK_DESCONTADO',
+                    titulo=f'📉 Stock Descontado: {inventario.producto.nombre}',
+                    mensaje=f'{request.user.get_full_name()} descontó {cantidad} unidades. Stock actual: {inventario.cantidad}',
+                    sucursal=sucursal,
+                    usuario=request.user,
+                    ref_id=inventario.producto.id,
+                    ref_tipo='producto'
+                )
+            except:
+                pass
 
             MovimientoInventario.objects.create(
                 producto=inventario.producto,
@@ -417,6 +445,20 @@ def agregar_stock(request, producto_id):
             
             inventario.cantidad += cantidad
             inventario.save()
+            # ====== CREAR NOTIFICACIÓN ======
+            try:
+                from notificaciones.models import Notificacion
+                Notificacion.crear_notificacion(
+                    tipo='STOCK_AGREGADO',
+                    titulo=f'📈 Stock Agregado: {inventario.producto.nombre}',
+                    mensaje=f'{request.user.get_full_name()} agregó {cantidad} unidades. Stock actual: {inventario.cantidad}',
+                    sucursal=sucursal,
+                    usuario=request.user,
+                    ref_id=inventario.producto.id,
+                    ref_tipo='producto'
+                )
+            except:
+                pass
             
             MovimientoInventario.objects.create(
                 producto=inventario.producto,
@@ -816,6 +858,21 @@ def venta_rapida(request):
                     factura.cambio = monto_recibido - factura.total
                 
                 factura.save()
+                # ====== CREAR NOTIFICACIÓN ======
+                try:
+                    from notificaciones.models import Notificacion
+                    Notificacion.crear_notificacion(
+                        tipo='VENTA',
+                        titulo=f'🛒 Venta #{factura.numero_factura} - ${factura.total:,.0f}',
+                        mensaje=f'{request.user.get_full_name()} realizó una venta de ${factura.total:,.0f} con {len(carrito)} productos',
+                        sucursal=sucursal,
+                        usuario=request.user,
+                        monto=factura.total,
+                        ref_id=factura.id,
+                        ref_tipo='factura'
+                    )
+                except:
+                    pass
                 
                 # 4. Registrar actividad
                 registrar_actividad(

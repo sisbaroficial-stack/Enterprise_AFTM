@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}💸 Registrar Gasto{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard' %}">Finanzas</a></li>
+                    <li class="breadcrumb-item active">Registrar Gasto</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+        <div class="col-auto">
+            <a href="{% url 'finanzas:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <div class="card border-0 shadow">
+                <div class="card-header bg-success text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-circle"></i>
+                        Registrar Nuevo Gasto
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- Alerta de Auto-aprobación -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Nota:</strong> Los gastos menores a $50,000 se aprobarán automáticamente.
+                        Los gastos mayores requerirán aprobación del SUPER_ADMIN.
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            
+                            <!-- Fecha -->
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha" class="form-label fw-bold">
+                                    <i class="bi bi-calendar"></i> Fecha del Gasto *
+                                </label>
+                                <input type="date" 
+                                       class="form-control form-control-lg" 
+                                       id="fecha" 
+                                       name="fecha" 
+                                       <input type="date" 
+                                                class="form-control form-control-lg" 
+                                                id="fecha" 
+                                                name="fecha" 
+                                                value="{% if request.POST.fecha %}{{ request.POST.fecha }}{% else %}{% now 'Y-m-d' %}{% endif %}"
+                                                required>
+
+                                       required>
+                            </div>
+
+                            <!-- Categoría -->
+                            <div class="col-md-6 mb-3">
+                                <label for="categoria" class="form-label fw-bold">
+                                    <i class="bi bi-tag"></i> Categoría *
+                                </label>
+                                <select class="form-select form-select-lg" 
+                                        id="categoria" 
+                                        name="categoria" 
+                                        required>
+                                    <option value="">Seleccione...</option>
+                                    {% for cat in categorias %}
+                                        <option value="{{ cat.id }}">
+                                            {{ cat.nombre }} ({{ cat.get_tipo_display }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Concepto -->
+                            <div class="col-12 mb-3">
+                                <label for="concepto" class="form-label fw-bold">
+                                    <i class="bi bi-card-text"></i> Concepto/Descripción *
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="concepto" 
+                                       name="concepto" 
+                                       placeholder="Ej: Compra de vinipel para empaque"
+                                       required>
+                            </div>
+
+                            <!-- Monto -->
+                            <div class="col-md-6 mb-3">
+                                <label for="monto" class="form-label fw-bold">
+                                    <i class="bi bi-cash"></i> Monto *
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="monto" 
+                                           name="monto" 
+                                           step="0.01"
+                                           min="0.01"
+                                           placeholder="0.00"
+                                           required>
+                                </div>
+                                <small class="text-muted">
+                                    <span id="monto-texto"></span>
+                                </small>
+                            </div>
+
+                            <!-- Método de Pago -->
+                            <div class="col-md-6 mb-3">
+                                <label for="metodo_pago" class="form-label fw-bold">
+                                    <i class="bi bi-credit-card"></i> Método de Pago *
+                                </label>
+                                <select class="form-select form-select-lg" 
+                                        id="metodo_pago" 
+                                        name="metodo_pago" 
+                                        required>
+                                    <option value="EFECTIVO">💵 Efectivo</option>
+                                    <option value="TARJETA">💳 Tarjeta</option>
+                                    <option value="TRANSFERENCIA">🏦 Transferencia</option>
+                                    <option value="CHEQUE">📝 Cheque</option>
+                                    <option value="NEQUI">📱 Nequi</option>
+                                    <option value="DAVIPLATA">📱 Daviplata</option>
+                                    <option value="OTRO">🔄 Otro</option>
+                                </select>
+                            </div>
+
+                            <!-- Sucursal (Solo SUPER_ADMIN) -->
+                            {% if user.rol == 'SUPER_ADMIN' %}
+                                <div class="col-md-6 mb-3">
+                                    <label for="sucursal" class="form-label fw-bold">
+                                        <i class="bi bi-building"></i> Sucursal
+                                    </label>
+                                    <select class="form-select form-select-lg" 
+                                            id="sucursal" 
+                                            name="sucursal">
+                                        <option value="">Gasto General (Todas)</option>
+                                        {% for suc in sucursales %}
+                                            <option value="{{ suc.id }}">{{ suc.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="text-muted">
+                                        Dejar en "Gasto General" si aplica a toda la empresa
+                                    </small>
+                                </div>
+                            {% endif %}
+
+                            <!-- Notas -->
+                            <div class="col-12 mb-3">
+                                <label for="notas" class="form-label fw-bold">
+                                    <i class="bi bi-journal-text"></i> Notas Adicionales
+                                </label>
+                                <textarea class="form-control" 
+                                          id="notas" 
+                                          name="notas" 
+                                          rows="3"
+                                          placeholder="Información adicional sobre el gasto (opcional)"></textarea>
+                            </div>
+
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'finanzas:lista_gastos' %}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Registrar Gasto
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Formatear monto mientras escribe
+document.getElementById('monto').addEventListener('input', function(e) {
+    const valor = parseFloat(e.target.value) || 0;
+    const texto = document.getElementById('monto-texto');
+    
+    if (valor > 0) {
+        const formateado = valor.toLocaleString('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0
+        });
+        
+        texto.textContent = formateado;
+        
+        // Alerta si es mayor a 100k
+        if (valor >= 50000) {
+            texto.innerHTML = formateado + ' <span class="badge bg-warning text-dark ms-2">Requiere aprobación</span>';
+        } else {
+            texto.innerHTML = formateado + ' <span class="badge bg-success ms-2">Auto-aprobado</span>';
+        }
+    } else {
+        texto.textContent = '';
+    }
+});
+
+// Establecer fecha actual por defecto
+document.addEventListener('DOMContentLoaded', function() {
+    const hoy = new Date().toISOString().split('T')[0];
+    if (!document.getElementById('fecha').value) {
+        document.getElementById('fecha').value = hoy;
+    }
+});
+</script>
+
+<style>
+.form-control-lg, .form-select-lg {
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+}
+
+.input-group-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

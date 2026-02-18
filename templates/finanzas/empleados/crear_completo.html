@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}➕ Crear Empleado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard' %}">Finanzas</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'finanzas:lista_empleados' %}">Empleados</a></li>
+                    <li class="breadcrumb-item active">Crear Empleado</li>
+                </ol>
+            </nav>
+                        <a href="{% url 'finanzas:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-plus"></i>
+                        Crear Nuevo Empleado
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <h5 class="mb-3 text-primary">📋 Información Personal</h5>
+                        <div class="row">
+                            
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Tipo Documento *</label>
+                                <select class="form-select" name="tipo_documento" required>
+                                    <option value="CC">Cédula de Ciudadanía</option>
+                                    <option value="CE">Cédula de Extranjería</option>
+                                    <option value="TI">Tarjeta de Identidad</option>
+                                    <option value="PP">Pasaporte</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Número Documento *</label>
+                                <input type="text" class="form-control" name="numero_documento" required>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Nombres *</label>
+                                <input type="text" class="form-control" name="nombres" required>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-bold">Apellidos *</label>
+                                <input type="text" class="form-control" name="apellidos" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Fecha de Nacimiento *</label>
+                                <input type="date" class="form-control" name="fecha_nacimiento" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Teléfono *</label>
+                                <input type="tel" class="form-control" name="telefono" 
+                                       placeholder="3001234567" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                <input type="email" class="form-control" name="email" 
+                                       placeholder="ejemplo@email.com">
+                            </div>
+
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-bold">Dirección *</label>
+                                <input type="text" class="form-control" name="direccion" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Ciudad *</label>
+                                <input type="text" class="form-control" name="ciudad" 
+                                       value="Bogotá" required>
+                            </div>
+
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3 text-success">💼 Información Laboral</h5>
+                        <div class="row">
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cargo *</label>
+                                <input type="text" class="form-control" name="cargo" 
+                                       placeholder="Ej: Vendedor, Cajero, Gerente" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Sucursal *</label>
+                                <select class="form-select" name="sucursal" required>
+                                    <option value="">Seleccione...</option>
+                                    {% for suc in sucursales %}
+                                        <option value="{{ suc.id }}">{{ suc.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Tipo de Contrato *</label>
+                                <select class="form-select" name="tipo_contrato" required>
+                                    <option value="INDEFINIDO">Término Indefinido</option>
+                                    <option value="FIJO">Término Fijo</option>
+                                    <option value="OBRA">Obra o Labor</option>
+                                    <option value="PRESTACION">Prestación de Servicios</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Fecha de Ingreso *</label>
+                                <input type="date" class="form-control" name="fecha_ingreso" required>
+                            </div>
+
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3 text-warning">💰 Información Salarial</h5>
+                        <div class="row">
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Salario Base Mensual *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" name="salario_base" 
+                                           step="1000" min="50000" required>
+                                </div>
+                                <small class="text-muted">
+                                    Salario mínimo 2026: $1,423,000
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Auxilio de Transporte *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" name="auxilio_transporte" 
+                                           value="162000" step="1000" required>
+                                </div>
+                                <small class="text-muted">
+                                    Solo si gana <= 2 SMMLV ($2,847,000)
+                                </small>
+                            </div>
+
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'finanzas:lista_empleados' %}" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Crear Empleado
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
