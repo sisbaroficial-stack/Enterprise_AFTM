@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Plantillas de Horario - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Encabezado -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h1 class="h2 mb-1">🗓️ Plantillas de Horario</h1>
+            <p class="text-muted">Crea y gestiona los turnos que puedes asignar a los usuarios</p>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <a href="{% url 'horarios:lista_asignaciones' %}" class="btn btn-outline-primary">
+                <i class="bi bi-people me-2"></i>Ver Asignaciones
+            </a>
+            <a href="{% url 'horarios:crear_plantilla' %}" class="btn btn-gradient">
+                <i class="bi bi-plus-lg me-2"></i>Nueva Plantilla
+            </a>
+        </div>
+    </div>
+
+    <!-- Sin plantillas -->
+    {% if not plantillas %}
+    <div class="card card-custom border-0 text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-calendar-x display-1 text-muted"></i>
+            <h4 class="mt-3 text-muted">No hay plantillas de horario aún</h4>
+            <p class="text-muted">Crea tu primer turno para empezar a asignarlos a los usuarios.</p>
+            <a href="{% url 'horarios:crear_plantilla' %}" class="btn btn-gradient mt-2">
+                <i class="bi bi-plus-lg me-2"></i>Crear Primera Plantilla
+            </a>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Grid de plantillas -->
+    <div class="row g-4">
+        {% for plantilla in plantillas %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card card-custom border-0 h-100" style="border-top: 4px solid {{ plantilla.color }} !important;">
+                <div class="card-body">
+                    <!-- Header de la tarjeta -->
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
+                             style="width:48px;height:48px;background:{{ plantilla.color }}20;">
+                            <i class="bi bi-clock fs-4" style="color:{{ plantilla.color }};"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ plantilla.nombre }}</h5>
+                            {% if plantilla.activo %}
+                                <span class="badge bg-success-subtle text-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary">Inactivo</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if plantilla.descripcion %}
+                    <p class="text-muted small mb-3">{{ plantilla.descripcion }}</p>
+                    {% endif %}
+
+                    <!-- Resumen de días -->
+                    <div class="d-flex gap-1 flex-wrap mb-3">
+                        {% for dia in plantilla.dias.all %}
+                        <span class="badge rounded-pill {% if dia.es_descanso %}bg-light text-muted border{% else %}text-white{% endif %}"
+                              style="{% if not dia.es_descanso %}background-color:{{ plantilla.color }};{% endif %} font-size:0.7rem;">
+                            {{ dia.get_dia_semana_display|slice:":3" }}
+                            {% if dia.es_descanso %}😴{% endif %}
+                        </span>
+                        {% empty %}
+                        <small class="text-muted">Sin días configurados</small>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="bg-light rounded p-2 text-center">
+                                <div class="fw-bold text-success">{{ plantilla.dias_laborales }}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Días laborales</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="bg-light rounded p-2 text-center">
+                                <div class="fw-bold text-warning">{{ plantilla.dias_descanso }}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Días descanso</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horario detallado -->
+                    <div class="border rounded p-2 mb-3" style="font-size:0.8rem;">
+                        {% for dia in plantilla.dias.all %}
+                        <div class="d-flex justify-content-between py-1 {% if not forloop.last %}border-bottom{% endif %}">
+                            <span class="text-muted">{{ dia.get_dia_semana_display }}</span>
+                            {% if dia.es_descanso %}
+                                <span class="text-warning">😴 Descanso</span>
+                            {% else %}
+                                <span class="fw-semibold">{{ dia.hora_entrada|time:"H:i" }} - {{ dia.hora_salida|time:"H:i" }}</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Usuarios asignados -->
+                    <div class="text-muted small mb-3">
+                        <i class="bi bi-people me-1"></i>
+                        {{ plantilla.asignaciones.all|length }} usuario(s) asignado(s)
+                    </div>
+                </div>
+
+                <!-- Acciones -->
+                <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3">
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'horarios:editar_plantilla' plantilla.id %}"
+                           class="btn btn-sm btn-outline-primary flex-fill">
+                            <i class="bi bi-pencil me-1"></i>Editar
+                        </a>
+                        <a href="{% url 'horarios:asignar_horario' %}"
+                           class="btn btn-sm btn-outline-success flex-fill">
+                            <i class="bi bi-person-plus me-1"></i>Asignar
+                        </a>
+                        <a href="{% url 'horarios:eliminar_plantilla' plantilla.id %}"
+                           class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

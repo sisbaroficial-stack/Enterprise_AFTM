@@ -78,6 +78,17 @@ SISBAR1.1_AFTM-SAS
 │  ├─ views.py
 │  ├─ views_avanzadas.py
 │  └─ __init__.py
+├─ horarios
+│  ├─ admin.py
+│  ├─ apps.py
+│  ├─ migrations
+│  │  ├─ 0001_initial.py
+│  │  └─ __init__.py
+│  ├─ models.py
+│  ├─ tests.py
+│  ├─ urls.py
+│  ├─ views.py
+│  └─ __init__.py
 ├─ inventario
 │  ├─ admin.py
 │  ├─ apps.py
@@ -235,12 +246,21 @@ SISBAR1.1_AFTM-SAS
 │  │  │  ├─ lista.html
 │  │  │  ├─ rechazar.html
 │  │  │  └─ registrar.html
+│  │  ├─ horarios
 │  │  ├─ manual
 │  │  │  └─ guia.html
 │  │  └─ nomina
 │  │     ├─ detalle_completa.html
 │  │     ├─ generar_completa.html
 │  │     └─ lista_completa.html
+│  ├─ horarios
+│  │  ├─ asignar_horario.html
+│  │  ├─ confirmar_eliminar_plantilla.html
+│  │  ├─ crear_plantilla.html
+│  │  ├─ editar_plantilla.html
+│  │  ├─ lista_asignaciones.html
+│  │  ├─ lista_plantillas.html
+│  │  └─ mi_horario.html
 │  ├─ index.html
 │  ├─ inventario
 │  │  ├─ agregar_producto_existente.html

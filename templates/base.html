@@ -1158,6 +1158,16 @@
                             </a>
                         </li>
                         {% endif %}
+                        <!-- ========== HORARIOS (ADMIN Y SUPER_ADMIN) ========== -->
+                        {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+                        <li class="nav-item">
+                            <a class="sidebar-link {% if 'horarios' in request.path %}active{% endif %}" 
+                            href="{% url 'horarios:lista_plantillas' %}">
+                                <i class="bi bi-calendar-week"></i>
+                                <span>Horarios</span>
+                            </a>
+                        </li>
+                        {% endif %}
 
                         <!-- ✅ AGREGAR ESTE BLOQUE NUEVO -->
                         <li class="nav-item">

@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Plantilla - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'horarios:lista_plantillas' %}">Horarios</a></li>
+                    <li class="breadcrumb-item active">Editar Plantilla</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-1">✏️ Editar: {{ plantilla.nombre }}</h1>
+            <p class="text-muted">Modifica el turno y los días configurados</p>
+        </div>
+    </div>
+
+    <form method="post" id="formPlantilla">
+        {% csrf_token %}
+        <div class="row g-4">
+
+            <!-- Datos generales -->
+            <div class="col-lg-4">
+                <div class="card card-custom border-0">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">📋 Información General</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre del Turno <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre" class="form-control"
+                                   value="{{ plantilla.nombre }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="3">{{ plantilla.descripcion|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Color identificador</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="color" name="color" id="colorPicker"
+                                       value="{{ plantilla.color }}"
+                                       class="form-control form-control-color" style="width:60px;height:44px;">
+                                <div class="flex-fill">
+                                    <div class="rounded p-2 text-center text-white fw-bold" id="colorPreview"
+                                         style="background:{{ plantilla.color }};">
+                                        Vista previa
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <p class="fw-semibold mb-2">⚡ Horario rápido:</p>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="aplicarHorario('08:00','17:00',[0,1,2,3,4])">
+                                    Lun-Vie 8am-5pm
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="aplicarHorario('06:00','14:00',[0,1,2,3,4,5])">
+                                    Lun-Sáb 6am-2pm
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="aplicarHorario('14:00','22:00',[0,1,2,3,4])">
+                                    Lun-Vie 2pm-10pm
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Días de la semana -->
+            <div class="col-lg-8">
+                <div class="card card-custom border-0">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">📅 Días de la Semana</h5>
+                    </div>
+                    <div class="card-body">
+
+                        {% for i in indices %}
+                        
+                        <div class="card mb-3 border" id="diaCard_{{ i }}">
+                            <div class="card-body py-3">
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                                    <div style="min-width:100px;">
+                                        <span class="fw-bold">
+                                            {% if i == 0 %}Lunes
+                                            {% elif i == 1 %}Martes
+                                            {% elif i == 2 %}Miércoles
+                                            {% elif i == 3 %}Jueves
+                                            {% elif i == 4 %}Viernes
+                                            {% elif i == 5 %}Sábado
+                                            {% elif i == 6 %}Domingo
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    {% with dia=dias_data|dictsort:"dia_semana" %}
+                                    {% for d in dias_data.values %}
+                                    {% if d.dia_semana == i %}
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="toggle_{{ i }}"
+                                               data-dia="{{ i }}"
+                                               onchange="toggleDia({{ i }})"
+                                               {% if not d.es_descanso %}checked{% endif %}>
+                                        <label class="form-check-label text-muted small"
+                                               for="toggle_{{ i }}" id="labelToggle_{{ i }}">
+                                            {% if d.es_descanso %}😴 Descanso{% else %}✅ Laboral{% endif %}
+                                        </label>
+                                        <input type="checkbox" name="descanso_{{ i }}"
+                                               id="descanso_{{ i }}" style="display:none;"
+                                               {% if d.es_descanso %}checked{% endif %}>
+                                    </div>
+
+                                    <div class="horas-container d-flex align-items-center gap-2 flex-fill"
+                                         id="horas_{{ i }}"
+                                         style="{% if d.es_descanso %}display:none !important;{% endif %}">
+                                        <div>
+                                            <label class="form-label small mb-1 text-muted">Entrada</label>
+                                            <input type="time" name="entrada_{{ i }}"
+                                                   class="form-control form-control-sm"
+                                                   style="min-width:120px;"
+                                                   value="{% if d.hora_entrada %}{{ d.hora_entrada|time:'H:i' }}{% else %}08:00{% endif %}">
+                                        </div>
+                                        <div class="mt-3 text-muted">→</div>
+                                        <div>
+                                            <label class="form-label small mb-1 text-muted">Salida</label>
+                                            <input type="time" name="salida_{{ i }}"
+                                                   class="form-control form-control-sm"
+                                                   style="min-width:120px;"
+                                                   value="{% if d.hora_salida %}{{ d.hora_salida|time:'H:i' }}{% else %}17:00{% endif %}">
+                                        </div>
+                                    </div>
+
+                                    <div id="badgeDescanso_{{ i }}" class="ms-auto"
+                                         style="{% if not d.es_descanso %}display:none;{% endif %}">
+                                        <span class="badge bg-light text-muted border px-3 py-2">
+                                            <i class="bi bi-moon me-1"></i>Descanso
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% endwith %}
+
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <a href="{% url 'horarios:lista_plantillas' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-gradient">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('colorPicker').addEventListener('input', function() {
+        document.getElementById('colorPreview').style.background = this.value;
+    });
+
+    function toggleDia(i) {
+        const toggle = document.getElementById('toggle_' + i);
+        const descansoHidden = document.getElementById('descanso_' + i);
+        const horasContainer = document.getElementById('horas_' + i);
+        const badgeDescanso = document.getElementById('badgeDescanso_' + i);
+        const label = document.getElementById('labelToggle_' + i);
+
+        const esLaboral = toggle.checked;
+        descansoHidden.checked = !esLaboral;
+
+        if (esLaboral) {
+            horasContainer.style.display = 'flex';
+            badgeDescanso.style.display = 'none';
+            label.innerHTML = '✅ Laboral';
+        } else {
+            horasContainer.style.display = 'none';
+            badgeDescanso.style.display = 'block';
+            label.innerHTML = '😴 Descanso';
+        }
+    }
+
+    function aplicarHorario(entrada, salida, diasLaborales) {
+        for (let i = 0; i < 7; i++) {
+            const toggle = document.getElementById('toggle_' + i);
+            const esLaboral = diasLaborales.includes(i);
+            toggle.checked = esLaboral;
+            toggleDia(i);
+            if (esLaboral) {
+                document.querySelector(`input[name="entrada_${i}"]`).value = entrada;
+                document.querySelector(`input[name="salida_${i}"]`).value = salida;
+            }
+        }
+    }
+</script>
+{% endblock %}

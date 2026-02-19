@@ -1,552 +1,850 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISBAR - Sistema de Inventario</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-        }
-        
-        /* Hero Section */
-        .hero-section {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
-            background-size: cover;
-            background-position: bottom;
-        }
-        
-        /* Navbar */
-        .navbar-landing {
-            background: transparent;
-            padding: 20px 0;
-            transition: all 0.3s ease;
-        }
-        
-        .navbar-landing.scrolled {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .navbar-brand-landing {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: white;
-        }
-        
-        .navbar-landing.scrolled .navbar-brand-landing {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .nav-link-landing {
-            color: white;
-            font-weight: 500;
-            margin: 0 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .navbar-landing.scrolled .nav-link-landing {
-            color: #333;
-        }
-        
-        .nav-link-landing:hover {
-            color: #f0f0f0;
-            transform: translateY(-2px);
-        }
-        
-        .btn-landing {
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-landing-primary {
-            background: white;
-            color: #667eea;
-            border: none;
-        }
-        
-        .btn-landing-primary:hover {
-            background: #f0f0f0;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .btn-landing-outline {
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-        }
-        
-        .btn-landing-outline:hover {
-            background: white;
-            color: #667eea;
-        }
-        
-        /* Hero Content */
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            padding: 150px 0 100px;
-            color: white;
-        }
-        
-        .hero-title {
-            font-size: 4rem;
-            font-weight: 900;
-            margin-bottom: 20px;
-            animation: fadeInUp 1s ease;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.5rem;
-            font-weight: 300;
-            margin-bottom: 40px;
-            opacity: 0.9;
-            animation: fadeInUp 1s ease 0.2s both;
-        }
-        
-        .hero-buttons {
-            animation: fadeInUp 1s ease 0.4s both;
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Features Section */
-        .features-section {
-            padding: 100px 0;
-            background: white;
-        }
-        
-        .feature-card {
-            padding: 40px 30px;
-            border-radius: 20px;
-            background: white;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            height: 100%;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
-        }
-        
-        .feature-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            font-size: 2.5rem;
-        }
-        
-        .feature-icon-1 {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .feature-icon-2 {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        
-        .feature-icon-3 {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-        
-        .feature-icon-4 {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            color: white;
-        }
-        
-        .feature-icon-5 {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            color: white;
-        }
-        
-        .feature-icon-6 {
-            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-            color: white;
-        }
-        
-        /* CTA Section */
-        .cta-section {
-            padding: 100px 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-        }
-        
-        .cta-title {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-        
-        .cta-subtitle {
-            font-size: 1.3rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-        
-        /* Footer */
-        .footer {
-            background: #1a1a2e;
-            color: white;
-            padding: 40px 0 20px;
-        }
-        
-        .footer-links a {
-            color: #b8b8b8;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-links a:hover {
-            color: #667eea;
-        }
-        /* Modo oscuro para landing page */
-body.modo-oscuro-landing {
-    background: #0f0f1e;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SISBAR — Sistema de Gestión Empresarial Inteligente</title>
+<meta name="description" content="SISBAR es el sistema SaaS colombiano para gestionar inventario, finanzas, nómina, sucursales y ventas con Inteligencia Artificial. Multi-sucursal, nómina Colombia 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+:root {
+  --azul:       #0a1628;
+  --azul-mid:   #0f2d5e;
+  --azul-vivo:  #1a6ff5;
+  --azul-claro: #3b8bf5;
+  --acento:     #00e5a0;
+  --acento2:    #ff6b35;
+  --gris-bg:    #f4f7fe;
+  --gris-borde: #e2e8f5;
+  --blanco:     #ffffff;
+  --texto:      #0a1628;
+  --texto-mid:  #4a5a7a;
+  --texto-light:#8496b8;
+  --sombra:     0 4px 30px rgba(10,22,40,0.08);
+  --sombra-lg:  0 16px 60px rgba(10,22,40,0.14);
 }
 
-body.modo-oscuro-landing .hero-section {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--blanco);color:var(--texto);overflow-x:hidden;}
 
-body.modo-oscuro-landing .features-section {
-    background: #0f0f1e;
-}
+/* ── NAVBAR ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 40px;height:72px;display:flex;align-items:center;justify-content:space-between;transition:all 0.4s ease;}
+.nav.scrolled{background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);box-shadow:0 1px 0 rgba(10,22,40,0.08),var(--sombra);}
+.nav-logo{font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;color:var(--blanco);text-decoration:none;display:flex;align-items:center;gap:8px;transition:color 0.3s;}
+.nav.scrolled .nav-logo{color:var(--azul);}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--acento);display:inline-block;animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.7);}}
+.nav-links{display:flex;align-items:center;gap:8px;list-style:none;}
+.nav-links a{color:rgba(255,255,255,0.85);text-decoration:none;font-size:15px;font-weight:500;padding:8px 16px;border-radius:100px;transition:all 0.2s;}
+.nav.scrolled .nav-links a{color:var(--texto-mid);}
+.nav-links a:hover{background:rgba(255,255,255,0.15);color:#fff;}
+.nav.scrolled .nav-links a:hover{background:var(--gris-bg);color:var(--azul-vivo);}
+.btn-nav{background:var(--acento)!important;color:var(--azul)!important;font-weight:700!important;border-radius:100px;padding:10px 24px!important;transition:all 0.25s!important;}
+.btn-nav:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,229,160,0.4)!important;background:#00f5ad!important;}
+.hamburger{display:none;background:none;border:2px solid rgba(255,255,255,0.6);border-radius:10px;padding:8px 10px;cursor:pointer;color:#fff;font-size:18px;transition:all 0.2s;}
+.nav.scrolled .hamburger{border-color:var(--gris-borde);color:var(--texto);}
 
-body.modo-oscuro-landing .feature-card {
-    background: #1a1a2e;
-    color: #e4e4e4;
-}
+/* ── HERO ── */
+.hero{min-height:100vh;background:linear-gradient(135deg,#050e1e 0%,#0a1f45 40%,#0d2e6a 70%,#0a4a8a 100%);position:relative;display:flex;align-items:center;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(26,111,245,0.15) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+.orb-1{width:500px;height:500px;background:rgba(0,229,160,0.12);top:-100px;right:-100px;}
+.orb-2{width:400px;height:400px;background:rgba(26,111,245,0.18);bottom:-50px;left:-80px;}
+.orb-3{width:300px;height:300px;background:rgba(255,107,53,0.08);top:40%;right:30%;}
+.hero-container{max-width:1200px;margin:0 auto;padding:140px 40px 100px;position:relative;z-index:1;width:100%;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.3);border-radius:100px;padding:8px 20px;font-size:13px;font-weight:600;color:var(--acento);letter-spacing:0.06em;margin-bottom:28px;animation:fadeUp 0.7s ease both;}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--acento);animation:blink 1.5s ease-in-out infinite;}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(2.8rem,6vw,5rem);font-weight:800;color:var(--blanco);line-height:1.08;margin-bottom:24px;animation:fadeUp 0.7s ease 0.1s both;}
+.hero-title .highlight{background:linear-gradient(135deg,var(--acento),#00c4f0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:1.15rem;color:rgba(255,255,255,0.65);max-width:560px;line-height:1.75;margin-bottom:44px;font-weight:300;animation:fadeUp 0.7s ease 0.2s both;}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:64px;animation:fadeUp 0.7s ease 0.3s both;}
+.btn-hero-primary{display:inline-flex;align-items:center;gap:10px;background:var(--acento);color:var(--azul);font-family:'Syne',sans-serif;font-weight:700;font-size:15px;padding:16px 32px;border-radius:100px;text-decoration:none;border:none;cursor:pointer;transition:all 0.25s;box-shadow:0 8px 32px rgba(0,229,160,0.35);}
+.btn-hero-primary:hover{transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,229,160,0.5);color:var(--azul);background:#00f5ad;}
+.btn-hero-ghost{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.9);font-weight:600;font-size:15px;padding:16px 32px;border-radius:100px;text-decoration:none;border:1px solid rgba(255,255,255,0.2);cursor:pointer;transition:all 0.25s;}
+.btn-hero-ghost:hover{background:rgba(255,255,255,0.14);color:#fff;transform:translateY(-2px);}
+.hero-stats{display:flex;gap:48px;flex-wrap:wrap;animation:fadeUp 0.7s ease 0.4s both;}
+.hero-stat .val{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--blanco);display:block;}
+.hero-stat .val span{color:var(--acento);}
+.hero-stat .lbl{font-size:13px;color:rgba(255,255,255,0.5);margin-top:2px;}
 
-body.modo-oscuro-landing .text-muted {
-    color: #b8b8b8 !important;
-}
+/* Dashboard visual hero */
+.hero-visual{position:absolute;right:0;top:50%;transform:translateY(-50%);width:50%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.dashboard-mock{width:520px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:24px;backdrop-filter:blur(20px);padding:24px;box-shadow:0 32px 100px rgba(0,0,0,0.4);animation:float 4s ease-in-out infinite, fadeUp 1s ease 0.5s both;}
+@keyframes float{0%,100%{transform:translateY(0px);}50%{transform:translateY(-12px);}}
+.mock-topbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.mock-dot{width:10px;height:10px;border-radius:50%;}
+.mock-kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.mock-kpi{border-radius:14px;padding:16px;position:relative;overflow:hidden;}
+.mock-kpi::after{content:'';position:absolute;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.07);top:-15px;right:-10px;}
+.mk1{background:linear-gradient(135deg,rgba(26,111,245,0.4),rgba(26,111,245,0.2));}
+.mk2{background:linear-gradient(135deg,rgba(0,229,160,0.4),rgba(0,229,160,0.2));}
+.mk3{background:linear-gradient(135deg,rgba(255,107,53,0.4),rgba(255,107,53,0.2));}
+.mk4{background:linear-gradient(135deg,rgba(139,92,246,0.4),rgba(139,92,246,0.2));}
+.mock-kpi .mk-lbl{font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;}
+.mock-kpi .mk-val{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#fff;}
+.mock-kpi .mk-sub{font-size:10px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.mock-chart{background:rgba(255,255,255,0.03);border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.06);}
+.mock-chart-bars{display:flex;align-items:flex-end;gap:8px;height:60px;margin-bottom:8px;}
+.mock-bar-item{flex:1;border-radius:6px 6px 0 0;background:linear-gradient(to top,rgba(26,111,245,0.6),rgba(0,229,160,0.4));animation:growBar 1.5s ease both;}
+@keyframes growBar{from{transform:scaleY(0);transform-origin:bottom;}to{transform:scaleY(1);transform-origin:bottom;}}
 
-body.modo-oscuro-landing .lead {
-    color: #e4e4e4 !important;
-}
+/* ── CONTAINERS ── */
+.container{max-width:1200px;margin:0 auto;padding:0 40px;}
+section{position:relative;}
+.section-label{display:inline-flex;align-items:center;gap:8px;background:rgba(26,111,245,0.08);border:1px solid rgba(26,111,245,0.18);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:700;color:var(--azul-vivo);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px;}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:800;color:var(--texto);line-height:1.15;margin-bottom:16px;}
+.section-title .hl{color:var(--azul-vivo);}
+.section-sub{font-size:1.05rem;color:var(--texto-mid);max-width:560px;line-height:1.75;}
 
-body.modo-oscuro-landing .display-4 {
-    color: #e4e4e4;
+/* ── PROOF TICKER ── */
+.proof{background:var(--gris-bg);padding:28px 0;overflow:hidden;border-top:1px solid var(--gris-borde);border-bottom:1px solid var(--gris-borde);}
+.proof-inner{display:flex;align-items:center;gap:60px;white-space:nowrap;animation:marquee 25s linear infinite;}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+.proof-item{display:flex;align-items:center;gap:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--texto-light);flex-shrink:0;}
+.proof-item i{font-size:16px;color:var(--azul-vivo);}
+
+/* ── MÓDULOS ── */
+.modulos{padding:120px 0;background:var(--blanco);}
+.modulos-header{text-align:center;margin-bottom:72px;}
+.modulos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.mod-card{background:var(--blanco);border:1px solid var(--gris-borde);border-radius:24px;padding:32px 28px;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);cursor:default;position:relative;overflow:hidden;}
+.mod-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--color-a),var(--color-b));opacity:0;transition:opacity 0.35s;border-radius:inherit;}
+.mod-card:hover{transform:translateY(-8px) scale(1.02);box-shadow:var(--sombra-lg);border-color:transparent;}
+.mod-card:hover::before{opacity:1;}
+.mod-card:hover h3{color:var(--blanco);}
+.mod-card:hover p{color:rgba(255,255,255,0.8);}
+.mod-card:hover .mod-tag{background:rgba(255,255,255,0.2);color:#fff;}
+.mod-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px;transition:all 0.3s;position:relative;z-index:1;}
+.mod-card h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;color:var(--texto);margin-bottom:10px;position:relative;z-index:1;transition:color 0.3s;}
+.mod-card p{font-size:13.5px;color:var(--texto-mid);line-height:1.65;position:relative;z-index:1;transition:color 0.3s;}
+.mod-tag{display:inline-block;background:rgba(26,111,245,0.08);color:var(--azul-vivo);font-size:11px;font-weight:700;border-radius:100px;padding:3px 10px;margin-bottom:12px;position:relative;z-index:1;transition:all 0.3s;}
+
+/* ── IA SECTION ── */
+.ia-section{padding:120px 0;background:linear-gradient(160deg,#050e1e 0%,#0a1f45 50%,#061230 100%);overflow:hidden;position:relative;}
+.ia-section::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(26,111,245,0.08) 1px,transparent 1px);background-size:40px 40px;}
+.orb-ia{position:absolute;border-radius:50%;filter:blur(80px);}
+.orb-ia-1{width:400px;height:400px;background:rgba(0,229,160,0.10);right:-100px;top:0;}
+.orb-ia-2{width:300px;height:300px;background:rgba(26,111,245,0.15);left:10%;bottom:0;}
+.ia-content{position:relative;z-index:1;}
+.ia-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.ia-title{font-family:'Syne',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:800;color:var(--blanco);line-height:1.15;margin-bottom:20px;}
+.ia-title .hl-ia{color:var(--acento);}
+.ia-sub{font-size:1rem;color:rgba(255,255,255,0.6);line-height:1.8;margin-bottom:36px;}
+.ia-features{display:flex;flex-direction:column;gap:16px;}
+.ia-feat{display:flex;gap:16px;align-items:flex-start;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px 20px;transition:all 0.3s;}
+.ia-feat:hover{background:rgba(255,255,255,0.07);border-color:rgba(0,229,160,0.3);transform:translateX(6px);}
+.ia-feat-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ia-feat h4{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#fff;margin-bottom:4px;}
+.ia-feat p{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.6;}
+.ia-panel{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);border-radius:24px;padding:28px;backdrop-filter:blur(10px);box-shadow:0 32px 80px rgba(0,0,0,0.4);}
+.ia-score-ring{width:160px;height:160px;border-radius:50%;background:conic-gradient(var(--acento) 0% 72%,rgba(255,255,255,0.05) 72% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;animation:spinOnce 1.5s ease 0.5s both;}
+@keyframes spinOnce{from{transform:rotate(-90deg);opacity:0;}to{transform:rotate(0);opacity:1;}}
+.ia-score-inner{width:120px;height:120px;border-radius:50%;background:#0a1628;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ia-score-val{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--acento);}
+.ia-score-lbl{font-size:11px;color:rgba(255,255,255,0.5);}
+.ia-predictions{display:flex;flex-direction:column;gap:10px;}
+.ia-pred-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border-radius:10px;padding:12px 14px;border:1px solid rgba(255,255,255,0.06);}
+.ia-pred-row .mes{font-size:13px;color:rgba(255,255,255,0.6);}
+.ia-pred-row .val{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--acento);}
+.ia-pred-row .bar-wrap{flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin:0 14px;}
+.ia-pred-row .bar-fill{height:100%;border-radius:2px;background:linear-gradient(to right,var(--azul-vivo),var(--acento));}
+
+/* ── SUCURSALES ── */
+.suc-section{padding:120px 0;background:var(--gris-bg);}
+.suc-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.suc-feature-list{display:flex;flex-direction:column;gap:14px;margin-top:32px;}
+.suc-feat{display:flex;align-items:center;gap:14px;background:var(--blanco);border-radius:14px;padding:16px 20px;box-shadow:var(--sombra);border:1px solid var(--gris-borde);transition:all 0.25s;}
+.suc-feat:hover{transform:translateX(6px);box-shadow:var(--sombra-lg);}
+.suc-feat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.suc-feat h4{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--texto);margin-bottom:2px;}
+.suc-feat p{font-size:13px;color:var(--texto-light);}
+.suc-visual{background:var(--blanco);border-radius:24px;padding:32px;box-shadow:var(--sombra-lg);border:1px solid var(--gris-borde);}
+.suc-nodes{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.suc-node{border-radius:16px;padding:18px;text-align:center;transition:transform 0.3s;}
+.suc-node:hover{transform:scale(1.04);}
+.suc-node.central{grid-column:1/-1;background:linear-gradient(135deg,var(--azul-vivo),var(--azul-mid));color:#fff;}
+.suc-node.regular{background:var(--gris-bg);border:1px solid var(--gris-borde);}
+.suc-node .sn-emoji{font-size:24px;margin-bottom:6px;display:block;}
+.suc-node .sn-name{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;}
+.suc-node.central .sn-name{color:#fff;}
+.suc-node.regular .sn-name{color:var(--texto);}
+.suc-node .sn-status{font-size:11px;margin-top:4px;}
+.suc-node.central .sn-status{color:rgba(255,255,255,0.7);}
+.suc-node.regular .sn-status{color:var(--acento);font-weight:600;}
+.suc-connector{width:100%;height:2px;background:linear-gradient(to right,transparent,var(--azul-vivo),transparent);margin:6px 0;opacity:0.25;grid-column:1/-1;}
+
+/* ── ROLES ── */
+.roles-section{padding:120px 0;background:var(--blanco);}
+.roles-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:56px;}
+.rol-card{border-radius:24px;padding:32px 24px;text-align:center;border:1px solid var(--gris-borde);transition:all 0.35s;background:var(--blanco);}
+.rol-card:hover{transform:translateY(-10px);box-shadow:var(--sombra-lg);border-color:var(--azul-vivo);}
+.rol-emoji{font-size:3rem;display:block;margin-bottom:16px;}
+.rol-nombre{font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;color:var(--texto);margin-bottom:8px;}
+.rol-desc{font-size:13px;color:var(--texto-mid);line-height:1.65;margin-bottom:16px;}
+.rol-permisos{display:flex;flex-direction:column;gap:6px;}
+.rol-perm{background:var(--gris-bg);border-radius:100px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--texto-mid);text-align:left;display:flex;align-items:center;gap:6px;}
+.rol-perm i{color:var(--acento);font-size:11px;}
+
+/* ── PLANES ── */
+.planes-section{padding:120px 0;background:linear-gradient(160deg,#f4f7fe 0%,#eef2ff 100%);}
+.planes-header{text-align:center;margin-bottom:64px;}
+.planes-toggle{display:inline-flex;background:var(--blanco);border-radius:100px;padding:4px;border:1px solid var(--gris-borde);margin-bottom:0;box-shadow:var(--sombra);}
+.planes-toggle button{border:none;background:none;padding:10px 24px;border-radius:100px;font-family:'Outfit',sans-serif;font-weight:600;font-size:14px;color:var(--texto-light);cursor:pointer;transition:all 0.25s;}
+.planes-toggle button.active{background:var(--azul-vivo);color:#fff;box-shadow:0 4px 16px rgba(26,111,245,0.35);}
+.planes-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:start;margin-top:48px;}
+.plan-card{background:var(--blanco);border-radius:24px;padding:32px 24px;border:1px solid var(--gris-borde);position:relative;transition:all 0.35s;}
+.plan-card:hover{transform:translateY(-6px);box-shadow:var(--sombra-lg);}
+.plan-card.popular{border:2px solid var(--azul-vivo);transform:scale(1.04);box-shadow:var(--sombra-lg);}
+.plan-card.popular:hover{transform:scale(1.04) translateY(-6px);}
+.popular-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--azul-vivo),#5b21b6);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;padding:5px 16px;border-radius:100px;white-space:nowrap;}
+.plan-icon{font-size:2.2rem;margin-bottom:12px;display:block;}
+.plan-nombre{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:var(--texto);margin-bottom:6px;}
+.plan-desc{font-size:13px;color:var(--texto-light);margin-bottom:20px;line-height:1.5;}
+.plan-precio{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--gris-borde);}
+.plan-precio .val{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;color:var(--texto);}
+.plan-precio .cur{font-size:1.2rem;font-weight:600;color:var(--texto-mid);vertical-align:super;}
+.plan-precio .per{font-size:14px;color:var(--texto-light);}
+.plan-precio .anual{font-size:12px;color:var(--acento);font-weight:600;margin-top:4px;display:block;}
+.plan-features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;}
+.plan-feat{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--texto-mid);}
+.plan-feat i{color:var(--acento);font-size:14px;margin-top:2px;flex-shrink:0;}
+.plan-feat.no i{color:#ddd;}
+.plan-feat.no span{color:#c0c9d8;text-decoration:line-through;}
+.btn-plan{width:100%;padding:14px;border-radius:14px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:all 0.25s;text-align:center;text-decoration:none;display:block;}
+.btn-plan-outline{background:var(--gris-bg);color:var(--texto);border:1px solid var(--gris-borde);}
+.btn-plan-outline:hover{background:var(--gris-borde);color:var(--texto);}
+.btn-plan-primary{background:linear-gradient(135deg,var(--azul-vivo),#1e40af);color:#fff;box-shadow:0 8px 24px rgba(26,111,245,0.4);}
+.btn-plan-primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(26,111,245,0.5);color:#fff;}
+
+/* ── TESTIMONIOS ── */
+.testimonios{padding:120px 0;background:var(--blanco);}
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px;}
+.test-card{background:var(--gris-bg);border-radius:24px;padding:28px;border:1px solid var(--gris-borde);transition:all 0.3s;position:relative;}
+.test-card:hover{transform:translateY(-6px);box-shadow:var(--sombra-lg);background:var(--blanco);}
+.test-stars{color:#f59e0b;font-size:14px;margin-bottom:16px;}
+.test-text{font-size:15px;color:var(--texto-mid);line-height:1.75;margin-bottom:20px;font-style:italic;}
+.test-text::before{content:'\201C';font-size:3rem;color:var(--azul-vivo);opacity:0.2;font-family:'Syne',sans-serif;line-height:0;vertical-align:-0.6em;margin-right:4px;}
+.test-autor{display:flex;align-items:center;gap:12px;}
+.test-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff;flex-shrink:0;}
+.test-nombre{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--texto);}
+.test-cargo{font-size:12.5px;color:var(--texto-light);}
+
+/* ── FAQ ── */
+.faq-landing{padding:120px 0;background:var(--gris-bg);}
+.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 60px;margin-top:56px;}
+.faq-item-l{border-bottom:1px solid var(--gris-borde);padding:24px 0;}
+.faq-item-l button{background:none;border:none;width:100%;text-align:left;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--texto);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:0;transition:color 0.2s;}
+.faq-item-l button:hover{color:var(--azul-vivo);}
+.faq-item-l button i{transition:transform 0.3s;flex-shrink:0;color:var(--texto-light);}
+.faq-item-l.open button i{transform:rotate(180deg);color:var(--azul-vivo);}
+.faq-ans{max-height:0;overflow:hidden;transition:max-height 0.35s ease;font-size:14px;color:var(--texto-mid);line-height:1.75;}
+.faq-item-l.open .faq-ans{max-height:300px;padding-top:14px;}
+
+/* ── CTA FINAL ── */
+.cta-final{padding:120px 0;background:linear-gradient(135deg,#050e1e 0%,#0a1f45 50%,#0d2e6a 100%);text-align:center;position:relative;overflow:hidden;}
+.cta-final::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(26,111,245,0.12) 1px,transparent 1px);background-size:40px 40px;}
+.orb-cta{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;}
+.orb-c1{width:500px;height:500px;background:rgba(0,229,160,0.10);top:-150px;right:-100px;}
+.orb-c2{width:400px;height:400px;background:rgba(26,111,245,0.15);bottom:-100px;left:-80px;}
+.cta-final-content{position:relative;z-index:1;}
+.cta-final h2{font-family:'Syne',sans-serif;font-size:clamp(2.4rem,5vw,3.5rem);font-weight:800;color:#fff;margin-bottom:16px;}
+.cta-final h2 span{color:var(--acento);}
+.cta-final p{font-size:1.1rem;color:rgba(255,255,255,0.6);max-width:500px;margin:0 auto 44px;line-height:1.75;}
+.cta-btns{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
+
+/* ── FOOTER ── */
+.footer{background:#030b18;padding:72px 0 32px;color:rgba(255,255,255,0.55);}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:56px;}
+.footer-logo{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:12px;}
+.footer-tagline{font-size:14px;line-height:1.7;margin-bottom:20px;}
+.footer-social{display:flex;gap:10px;}
+.footer-social a{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:16px;text-decoration:none;transition:all 0.2s;}
+.footer-social a:hover{background:var(--azul-vivo);border-color:var(--azul-vivo);color:#fff;}
+.footer-col h6{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-bottom:18px;}
+.footer-col a{display:block;color:rgba(255,255,255,0.5);text-decoration:none;font-size:14px;margin-bottom:10px;transition:color 0.2s;}
+.footer-col a:hover{color:var(--acento);}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.07);padding-top:28px;display:flex;justify-content:space-between;align-items:center;font-size:13px;flex-wrap:wrap;gap:12px;}
+.footer-badges{display:flex;gap:10px;flex-wrap:wrap;}
+.footer-badge-item{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:100px;padding:4px 12px;font-size:12px;color:rgba(255,255,255,0.5);}
+
+/* ── ANIMACIONES ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 0.6s ease,transform 0.6s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .modulos-grid{grid-template-columns:1fr 1fr;}
+  .planes-grid{grid-template-columns:1fr 1fr;}
+  .roles-grid{grid-template-columns:1fr 1fr;}
+  .hero-visual{display:none;}
+  .ia-grid{grid-template-columns:1fr;}
+  .suc-grid{grid-template-columns:1fr;}
+  .test-grid{grid-template-columns:1fr 1fr;}
+  .faq-grid{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
 }
-    </style>
+@media(max-width:768px){
+  .nav-links{display:none;}
+  .nav-links.open{display:flex;flex-direction:column;position:absolute;top:72px;left:0;right:0;background:rgba(10,22,40,0.97);backdrop-filter:blur(16px);padding:20px;gap:4px;}
+  .hamburger{display:flex;align-items:center;}
+  .modulos-grid{grid-template-columns:1fr;}
+  .planes-grid{grid-template-columns:1fr;}
+  .roles-grid{grid-template-columns:1fr 1fr;}
+  .test-grid{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr;}
+  .hero-stats{gap:28px;}
+  .container{padding:0 20px;}
+  .plan-card.popular{transform:none;}
+  .hero-container{padding:120px 20px 80px;}
+}
+</style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-landing fixed-top">
-        <div class="container">
-            <a class="navbar-brand-landing" href="#">
-                🛒 SISBAR
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
-                <span class="navbar-toggler-icon" style="filter: brightness(0) invert(1);"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-landing" href="#inicio">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-landing" href="#caracteristicas">Características</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-landing" href="#contacto">Contacto</a>
-                    </li>
-                                
-                   <li class="nav-item me-3">
-                       <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="modoOscuroIndex" 
-                                   style="cursor: pointer; width: 3em; height: 1.5em;">
-                            <label class="form-check-label nav-link-landing ms-2" for="modoOscuroIndex" 
-                                   style="cursor: pointer;">
-                                 <i class="bi bi-moon-stars"></i>
-                            </label>
-                        </div>
-                    </li>
-         
-                                            
-                    <li class="nav-item ms-3">
-                        <a href="{% url 'usuarios:login' %}" class="btn btn-landing btn-landing-primary">
-                            Iniciar Sesión
-                        </a>
-                    </li>
-                </ul>
-            </div>
+
+<!-- ══ NAVBAR ═══════════════════════════════════════════ -->
+<nav class="nav" id="navbar">
+  <a href="#" class="nav-logo">🛒 SISBAR <span class="logo-dot"></span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#modulos">Módulos</a></li>
+    <li><a href="#ia">IA</a></li>
+    <li><a href="#sucursales">Sucursales</a></li>
+    <li><a href="#planes">Planes</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="{% url 'usuarios:login' %}" style="opacity:0.75;">Iniciar sesión</a></li>
+    <li><a href="{% url 'usuarios:registro' %}" class="btn-nav">Empezar gratis</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()"><i class="bi bi-list"></i></button>
+</nav>
+
+<!-- ══ HERO ═══════════════════════════════════════════ -->
+<section class="hero" id="inicio">
+  <div class="hero-orb orb-1"></div>
+  <div class="hero-orb orb-2"></div>
+  <div class="hero-orb orb-3"></div>
+
+  <div class="hero-visual">
+    <div class="dashboard-mock">
+      <div class="mock-topbar">
+        <div class="mock-dot" style="background:#ef4444;"></div>
+        <div class="mock-dot" style="background:#f59e0b;"></div>
+        <div class="mock-dot" style="background:#22c55e;"></div>
+        <span style="font-size:12px;color:rgba(255,255,255,0.4);margin-left:8px;font-family:'Syne',sans-serif;">Dashboard — SISBAR</span>
+      </div>
+      <div class="mock-kpis">
+        <div class="mock-kpi mk1"><div class="mk-lbl">Ventas</div><div class="mk-val">$18.4M</div><div class="mk-sub">↑ 12% vs mes ant.</div></div>
+        <div class="mock-kpi mk2"><div class="mk-lbl">Utilidad Neta</div><div class="mk-val">$4.1M</div><div class="mk-sub">↑ 8% vs mes ant.</div></div>
+        <div class="mock-kpi mk3"><div class="mk-lbl">Productos</div><div class="mk-val">1,248</div><div class="mk-sub">3 alertas stock</div></div>
+        <div class="mock-kpi mk4"><div class="mk-lbl">Sucursales</div><div class="mk-val">4</div><div class="mk-sub">Todas activas</div></div>
+      </div>
+      <div class="mock-chart">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:10px;font-family:'Syne',sans-serif;">VENTAS ÚLTIMOS 7 DÍAS</div>
+        <div class="mock-chart-bars">
+          <div class="mock-bar-item" style="height:40%;animation-delay:0.1s;"></div>
+          <div class="mock-bar-item" style="height:65%;animation-delay:0.2s;"></div>
+          <div class="mock-bar-item" style="height:55%;animation-delay:0.3s;"></div>
+          <div class="mock-bar-item" style="height:80%;animation-delay:0.4s;"></div>
+          <div class="mock-bar-item" style="height:70%;animation-delay:0.5s;"></div>
+          <div class="mock-bar-item" style="height:90%;animation-delay:0.6s;"></div>
+          <div class="mock-bar-item" style="height:100%;animation-delay:0.7s;"></div>
         </div>
-    </nav>
-    
-    <!-- Hero Section -->
-    <section class="hero-section" id="inicio">
-        <div class="container">
-            <div class="row align-items-center hero-content">
-                <div class="col-lg-6">
-                    <h1 class="hero-title">
-                        Controla tu inventario sin complicaciones
-                    </h1>
-                    <p class="hero-subtitle">
-                        Sistema moderno y completo para la gestión de inventario empresarial. 
-                        Controla productos, categorías, proveedores y movimientos en tiempo real.
-                    </p>
-                    <div class="hero-buttons">
-                        <a href="{% url 'usuarios:registro' %}" class="btn btn-landing btn-landing-primary btn-lg me-3">
-                            <i class="bi bi-person-plus me-2"></i>Registrarme
-                        </a>
-                        <a href="{% url 'usuarios:login' %}" class="btn btn-landing btn-landing-outline btn-lg">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-6 text-center d-none d-lg-block">
-                    <div style="font-size: 15rem; animation: float 3s ease-in-out infinite;">
-                        📦
-                    </div>
-                </div>
-            </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.3);"><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-container">
+    <div class="hero-badge"><span class="badge-dot"></span> SaaS · Colombia 2026 · Nómina actualizada</div>
+    <h1 class="hero-title">El sistema que tu<br>negocio necesitaba<br><span class="highlight">desde ayer.</span></h1>
+    <p class="hero-sub">SISBAR centraliza inventario, finanzas, nómina, ventas y sucursales en una sola plataforma inteligente. Con IA que predice y cuida tu negocio.</p>
+    <div class="hero-btns">
+      <a href="{% url 'usuarios:registro' %}" class="btn-hero-primary"><i class="bi bi-rocket-takeoff-fill"></i> Empezar gratis</a>
+      <a href="{% url 'usuarios:login' %}" class="btn-hero-ghost"><i class="bi bi-box-arrow-in-right"></i> Ya tengo cuenta</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="val">13<span>+</span></span><div class="lbl">Módulos integrados</div></div>
+      <div class="hero-stat"><span class="val">100<span>%</span></span><div class="lbl">Colombiano</div></div>
+      <div class="hero-stat"><span class="val">4<span></span></span><div class="lbl">Roles de usuario</div></div>
+      <div class="hero-stat"><span class="val">IA</span><div class="lbl">Análisis predictivo</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TICKER ═══════════════════════════════════════════ -->
+<div class="proof">
+  <div class="proof-inner">
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Nómina Colombia 2026</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Multi-sucursal</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Inteligencia Artificial</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Facturación integrada</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Reportes Excel y PDF</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Análisis ABC inventario</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Gestión de horarios</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Notificaciones en tiempo real</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> 4 roles de usuario</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Kylie IA — sugerencias compra</div>
+    <!-- loop -->
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Nómina Colombia 2026</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Multi-sucursal</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Inteligencia Artificial</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Facturación integrada</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Reportes Excel y PDF</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Análisis ABC inventario</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Gestión de horarios</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Notificaciones en tiempo real</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> 4 roles de usuario</div>
+    <div class="proof-item"><i class="bi bi-check-circle-fill"></i> Kylie IA — sugerencias compra</div>
+  </div>
+</div>
+
+<!-- ══ MÓDULOS ═══════════════════════════════════════════ -->
+<section class="modulos" id="modulos">
+  <div class="container">
+    <div class="modulos-header">
+      <div style="display:flex;justify-content:center;"><span class="section-label"><i class="bi bi-grid-3x3-gap-fill"></i> Módulos</span></div>
+      <h2 class="section-title" style="text-align:center;">Todo lo que tu negocio<br><span class="hl">necesita en un solo lugar</span></h2>
+      <p class="section-sub" style="text-align:center;margin:0 auto;">13 módulos que se comunican entre sí para darte visión completa en tiempo real.</p>
+    </div>
+    <div class="modulos-grid">
+      <div class="mod-card reveal" style="--color-a:#1a6ff5;--color-b:#0a4a8a;"><span class="mod-tag">Core</span><div class="mod-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">📊</div><h3>Dashboard Inteligente</h3><p>KPIs en tiempo real: ventas, utilidad, stock crítico y métricas clave del negocio en un vistazo.</p></div>
+      <div class="mod-card reveal" style="--color-a:#059669;--color-b:#047857;"><span class="mod-tag">Inventario</span><div class="mod-icon" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">📦</div><h3>Inventario y Productos</h3><p>Stock en tiempo real, alertas automáticas, ajustes, clasificación ABC y control de movimientos.</p></div>
+      <div class="mod-card reveal" style="--color-a:#dc2626;--color-b:#b91c1c;"><span class="mod-tag">Ventas</span><div class="mod-icon" style="background:linear-gradient(135deg,#fee2e2,#fecaca);">🛒</div><h3>Ventas Rápidas</h3><p>Registra ventas al instante. Descuenta stock automáticamente y genera comprobante al momento.</p></div>
+      <div class="mod-card reveal" style="--color-a:#7c3aed;--color-b:#6d28d9;"><span class="mod-tag">Facturación</span><div class="mod-icon" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);">🧾</div><h3>Facturas y Clientes</h3><p>Crea, imprime y gestiona facturas formales. Base completa de clientes con historial y anulaciones.</p></div>
+      <div class="mod-card reveal" style="--color-a:#d97706;--color-b:#b45309;"><span class="mod-tag">Finanzas</span><div class="mod-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">💰</div><h3>Módulo de Finanzas</h3><p>Gastos, análisis financiero con IA, nómina Colombia 2026 y exportación profesional a Excel y PDF.</p></div>
+      <div class="mod-card reveal" style="--color-a:#0284c7;--color-b:#0369a1;"><span class="mod-tag">IA</span><div class="mod-icon" style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);">🤖</div><h3>Kylie IA — Compras</h3><p>Sugerencias de compra basadas en rotación real de inventario. Sabe qué comprar antes de que se agote.</p></div>
+      <div class="mod-card reveal" style="--color-a:#065f46;--color-b:#047857;"><span class="mod-tag">Reportes</span><div class="mod-icon" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">📈</div><h3>Reportes Avanzados</h3><p>Análisis ABC, rotación de inventario, productos sin movimiento. Excel y PDF con formato profesional.</p></div>
+      <div class="mod-card reveal" style="--color-a:#0f2d5e;--color-b:#1a4a8a;"><span class="mod-tag">Multi-sucursal</span><div class="mod-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">🏢</div><h3>Sucursales y Transferencias</h3><p>Múltiples puntos de venta desde una cuenta. Transfiere stock entre sucursales con trazabilidad total.</p></div>
+      <div class="mod-card reveal" style="--color-a:#1f2937;--color-b:#374151;"><span class="mod-tag">Personas</span><div class="mod-icon" style="background:linear-gradient(135deg,#f1f5f9,#e2e8f0);">👥</div><h3>Gestión de Usuarios</h3><p>4 roles con permisos específicos. Aprobación de cuentas, asignación de sucursal y control total.</p></div>
+      <div class="mod-card reveal" style="--color-a:#78350f;--color-b:#92400e;"><span class="mod-tag">RRHH</span><div class="mod-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">👤</div><h3>Empleados y Nómina</h3><p>Gestión completa de empleados con contratos y cargos. Nómina automática ley colombiana 2026.</p></div>
+      <div class="mod-card reveal" style="--color-a:#0a5c36;--color-b:#147a4a;"><span class="mod-tag">RRHH</span><div class="mod-icon" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">🗓️</div><h3>Horarios de Trabajo</h3><p>Crea plantillas de turno y asígnalas a usuarios. Cada empleado consulta su horario desde el perfil.</p></div>
+      <div class="mod-card reveal" style="--color-a:#9d174d;--color-b:#be185d;"><span class="mod-tag">Alertas</span><div class="mod-icon" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);">🔔</div><h3>Notificaciones en Tiempo Real</h3><p>Alertas automáticas de stock bajo, usuarios pendientes, transferencias y movimientos inusuales.</p></div>
+      <div class="mod-card reveal" style="--color-a:#374151;--color-b:#4b5563;"><span class="mod-tag">Trazabilidad</span><div class="mod-icon" style="background:linear-gradient(135deg,#f1f5f9,#e2e8f0);">🔄</div><h3>Movimientos y Trazabilidad</h3><p>Historial completo de entradas, salidas y ajustes. Trazabilidad total de cada unidad de inventario.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ IA ═══════════════════════════════════════════ -->
+<section class="ia-section" id="ia">
+  <div class="orb-ia orb-ia-1"></div>
+  <div class="orb-ia orb-ia-2"></div>
+  <div class="container ia-content">
+    <div class="ia-grid">
+      <div>
+        <span class="section-label" style="background:rgba(0,229,160,0.1);border-color:rgba(0,229,160,0.3);color:var(--acento);"><i class="bi bi-cpu-fill"></i> Inteligencia Artificial</span>
+        <h2 class="ia-title reveal">Tu negocio con<br><span class="hl-ia">Inteligencia Artificial</span><br>integrada</h2>
+        <p class="ia-sub reveal">SISBAR usa Prophet (Meta) para predicciones financieras y algoritmos propios para optimizar inventario. Decisiones basadas en datos reales.</p>
+        <div class="ia-features">
+          <div class="ia-feat reveal">
+            <div class="ia-feat-icon" style="background:rgba(0,229,160,0.15);">🤖</div>
+            <div><h4>Kylie IA — Sugerencias de Compra</h4><p>Analiza rotación y sugiere qué comprar, cuándo y cuánto. Nunca más te quedes sin stock.</p></div>
+          </div>
+          <div class="ia-feat reveal">
+            <div class="ia-feat-icon" style="background:rgba(26,111,245,0.15);">📊</div>
+            <div><h4>Predicción de Gastos (Prophet)</h4><p>Predice gastos de los próximos 3 meses con 95% de confianza estadística.</p></div>
+          </div>
+          <div class="ia-feat reveal">
+            <div class="ia-feat-icon" style="background:rgba(255,107,53,0.15);">🚨</div>
+            <div><h4>Detección de Anomalías</h4><p>Detecta automáticamente gastos o movimientos inusuales antes de que sean problema.</p></div>
+          </div>
+          <div class="ia-feat reveal">
+            <div class="ia-feat-icon" style="background:rgba(245,158,11,0.15);">⭐</div>
+            <div><h4>Score de Salud Financiera</h4><p>Puntaje 0–100 en tiempo real de qué tan bien va tu negocio, con desglose y recomendaciones.</p></div>
+          </div>
         </div>
-    </section>
-    
-    <!-- Features Section -->
-    <section class="features-section" id="caracteristicas">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="display-4 fw-bold mb-3">✨ Características Principales</h2>
-                <p class="lead text-muted">Todo lo que necesitas para gestionar tu inventario</p>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon feature-icon-1">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Gestión Completa</h4>
-                        <p class="text-muted">
-                            Crea, edita y organiza productos con toda su información: 
-                            código, categoría, cantidad, precio y proveedor.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon feature-icon-2">
-                            <i class="bi bi-arrow-down-circle"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Descuento Inteligente</h4>
-                        <p class="text-muted">
-                            Descuenta productos rápidamente escaneando códigos de barras 
-                            o buscando por código. Búsqueda en tiempo real.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon feature-icon-3">
-                            <i class="bi bi-bell"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Alertas Automáticas</h4>
-                        <p class="text-muted">
-                            Recibe alertas cuando un producto se agota o está por agotarse. 
-                            Control visual con colores verde, amarillo y rojo.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon feature-icon-4">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Control por Roles</h4>
-                        <p class="text-muted">
-                            4 roles diferentes: Super Admin, Administrador, Empleado y Auditor. 
-                            Cada uno con permisos específicos.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon feature-icon-5">
-                            <i class="bi bi-graph-up"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Dashboard Completo</h4>
-                        <p class="text-muted">
-                            Visualiza estadísticas en tiempo real con gráficas interactivas. 
-                            Control total del estado de tu inventario.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon feature-icon-6">
-                            <i class="bi bi-file-earmark-bar-graph"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Reportes Profesionales</h4>
-                        <p class="text-muted">
-                            Exporta reportes en Excel y PDF con formato profesional. 
-                            Historial completo de todos los movimientos.
-                        </p>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="ia-panel reveal">
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px;">Score de salud financiera</div>
+        <div class="ia-score-ring"><div class="ia-score-inner"><span class="ia-score-val">85</span><span class="ia-score-lbl">MUY BUENO</span></div></div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Predicción próximos 3 meses</div>
+        <div class="ia-predictions">
+          <div class="ia-pred-row"><span class="mes">Marzo</span><div class="bar-wrap"><div class="bar-fill" style="width:75%;"></div></div><span class="val">$3.2M</span></div>
+          <div class="ia-pred-row"><span class="mes">Abril</span><div class="bar-wrap"><div class="bar-fill" style="width:85%;"></div></div><span class="val">$3.5M</span></div>
+          <div class="ia-pred-row"><span class="mes">Mayo</span><div class="bar-wrap"><div class="bar-fill" style="width:68%;"></div></div><span class="val">$3.1M</span></div>
         </div>
-    </section>
-    
-    <!-- CTA Section -->
-    <section class="cta-section" id="contacto">
-        <div class="container">
-            <h2 class="cta-title">¿Listo para empezar?</h2>
-            <p class="cta-subtitle">
-                Regístrate ahora y comienza a gestionar tu inventario de forma profesional
-            </p>
-            <div>
-                <a href="{% url 'usuarios:registro' %}" class="btn btn-landing-primary btn-lg me-3">
-                    <i class="bi bi-rocket-takeoff me-2"></i>Crear mi cuenta gratis
-                </a>
-                <a href="{% url 'usuarios:login' %}" class="btn btn-landing-outline btn-lg">
-                    Ya tengo cuenta
-                </a>
-            </div>
+        <div style="margin-top:16px;background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);border-radius:12px;padding:14px;">
+          <div style="font-size:12px;color:var(--acento);font-weight:700;margin-bottom:4px;">💡 Recomendación Kylie</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.6);">Reabastecer "Vinipel Transparente" · Stock: 3 uds · Rotación: alta</div>
         </div>
-    </section>
-    
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <h5 class="mb-3">🛒 SISBAR </h5>
-                    <p class="text-muted">
-                        Sistema de Inventario Empresarial.<br>
-                    </p>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <h6 class="mb-3">Enlaces</h6>
-                    <div class="footer-links">
-                        <a href="{% url 'usuarios:login' %}" class="d-block mb-2">Iniciar Sesión</a>
-                        <a href="{% url 'usuarios:registro' %}" class="d-block mb-2">Registrarse</a>
-                        <a href="/admin/" class="d-block mb-2">Panel Admin</a>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <h6 class="mb-3">Contacto</h6>
-                    <p class="text-muted small">
-                        <i class="bi bi-envelope me-2"></i>sisbaroficial@gmail.com<br>
-                        <i class="bi bi-phone me-2"></i>+57 
-                    </p>
-                </div>
-            </div>
-            <hr style="border-color: rgba(255,255,255,0.1);">
-            <div class="text-center text-muted">
-                <p class="mb-0">©  SISBAR - Sistema de Inventario Empresarial. Todos los derechos reservados.</p>
-            </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SUCURSALES ═══════════════════════════════════════════ -->
+<section class="suc-section" id="sucursales">
+  <div class="container">
+    <div class="suc-grid">
+      <div>
+        <span class="section-label"><i class="bi bi-building"></i> Multi-sucursal</span>
+        <h2 class="section-title reveal">Crece sin límites.<br><span class="hl">Una cuenta, todas las sucursales.</span></h2>
+        <p class="section-sub reveal">El Super Admin tiene visión global consolidada. Cada sucursal con su inventario, empleados, finanzas y reportes propios.</p>
+        <div class="suc-feature-list">
+          <div class="suc-feat reveal"><div class="suc-feat-icon" style="background:#dbeafe;">🌐</div><div><h4>Modo Global</h4><p>Consolida todas las sucursales en una sola pantalla.</p></div></div>
+          <div class="suc-feat reveal"><div class="suc-feat-icon" style="background:#d1fae5;">🔄</div><div><h4>Transferencias entre sucursales</h4><p>Mueve stock con trazabilidad total y aprobaciones.</p></div></div>
+          <div class="suc-feat reveal"><div class="suc-feat-icon" style="background:#fef3c7;">👤</div><div><h4>Usuarios por sucursal</h4><p>Cada empleado ve solo los datos de su punto asignado.</p></div></div>
+          <div class="suc-feat reveal"><div class="suc-feat-icon" style="background:#ede9fe;">💰</div><div><h4>Finanzas por sucursal</h4><p>Gastos, nómina y análisis separado por punto de venta.</p></div></div>
         </div>
-    </footer>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Efecto de scroll en navbar
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar-landing');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-        
-        // Animación flotante
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes float {
-                0%, 100% { transform: translateY(0px); }
-                50% { transform: translateY(-20px); }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
-    <script>
-    // Modo oscuro en index
-    document.addEventListener('DOMContentLoaded', function() {
-        const modoOscuro = localStorage.getItem('modoOscuro') === 'true';
-        const checkbox = document.getElementById('modoOscuroIndex');
-        
-        if (modoOscuro) {
-            document.body.classList.add('modo-oscuro-landing');
-            if (checkbox) checkbox.checked = true;
-        }
-        
-        if (checkbox) {
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
-                    document.body.classList.add('modo-oscuro-landing');
-                    localStorage.setItem('modoOscuro', 'true');
-                } else {
-                    document.body.classList.remove('modo-oscuro-landing');
-                    localStorage.setItem('modoOscuro', 'false');
-                }
-            });
-        }
-    });
+      </div>
+      <div class="suc-visual reveal">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--texto);margin-bottom:20px;">🏢 Red de Sucursales</div>
+        <div class="suc-nodes">
+          <div class="suc-node central"><span class="sn-emoji">👑</span><div class="sn-name">Super Admin — Modo Global</div><div class="sn-status">Visión consolidada de todo</div></div>
+          <div class="suc-connector"></div>
+          <div class="suc-node regular"><span class="sn-emoji">🏪</span><div class="sn-name">Sucursal Principal</div><div class="sn-status">● En línea</div></div>
+          <div class="suc-node regular"><span class="sn-emoji">🏬</span><div class="sn-name">Sucursal Norte</div><div class="sn-status">● En línea</div></div>
+          <div class="suc-node regular"><span class="sn-emoji">🏭</span><div class="sn-name">Bodega Central</div><div class="sn-status">● En línea</div></div>
+          <div class="suc-node regular"><span class="sn-emoji">🛍️</span><div class="sn-name">Punto Express</div><div class="sn-status">● En línea</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ROLES ═══════════════════════════════════════════ -->
+<section class="roles-section">
+  <div class="container">
+    <div style="text-align:center;">
+      <span class="section-label"><i class="bi bi-person-badge"></i> Roles</span>
+      <h2 class="section-title" style="text-align:center;">El nivel de acceso<br><span class="hl">correcto para cada quien</span></h2>
+      <p class="section-sub" style="text-align:center;margin:0 auto;">4 roles con permisos específicos para que cada persona haga exactamente lo que le corresponde.</p>
+    </div>
+    <div class="roles-grid">
+      <div class="rol-card reveal">
+        <span class="rol-emoji">👑</span>
+        <div class="rol-nombre">Super Admin</div>
+        <p class="rol-desc">Control total del sistema. Visión global de todas las sucursales y funciones.</p>
+        <div class="rol-permisos">
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Acceso total al sistema</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Generar y aprobar nómina</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Aprobar/rechazar gastos</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Crear plantillas de horario</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ver todas las sucursales</div>
+        </div>
+      </div>
+      <div class="rol-card reveal">
+        <span class="rol-emoji">👨‍💼</span>
+        <div class="rol-nombre">Administrador</div>
+        <p class="rol-desc">Gestión operativa completa de su sucursal asignada.</p>
+        <div class="rol-permisos">
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Gestionar inventario</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Registrar gastos</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ver empleados</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Asignar horarios</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Exportar reportes</div>
+        </div>
+      </div>
+      <div class="rol-card reveal">
+        <span class="rol-emoji">👤</span>
+        <div class="rol-nombre">Empleado</div>
+        <p class="rol-desc">Acceso operativo para el trabajo diario en el mostrador.</p>
+        <div class="rol-permisos">
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ventas rápidas</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ver productos y stock</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ver movimientos</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Transferencias</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ver mi horario</div>
+        </div>
+      </div>
+      <div class="rol-card reveal">
+        <span class="rol-emoji">👁️</span>
+        <div class="rol-nombre">Auditor</div>
+        <p class="rol-desc">Solo lectura para contabilidad y auditoría externa.</p>
+        <div class="rol-permisos">
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ver reportes financieros</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ver finanzas y gastos</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Ver movimientos</div>
+          <div class="rol-perm"><i class="bi bi-check-circle-fill"></i> Exportar datos</div>
+          <div class="rol-perm" style="opacity:0.4;"><i class="bi bi-x-circle"></i> Sin modificaciones</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PLANES ═══════════════════════════════════════════ -->
+<section class="planes-section" id="planes">
+  <div class="container">
+    <div class="planes-header">
+      <div style="display:inline-flex;"><span class="section-label"><i class="bi bi-tag-fill"></i> Planes</span></div>
+      <h2 class="section-title">El plan perfecto para<br><span class="hl">el tamaño de tu negocio</span></h2>
+      <p class="section-sub" style="margin:0 auto 28px;">Sin sorpresas. Sin letras pequeñas. Cancela cuando quieras.</p>
+      <div style="display:flex;justify-content:center;">
+        <div class="planes-toggle">
+          <button class="active" id="btnMensual" onclick="setModo('mensual')">Mensual</button>
+          <button id="btnAnual" onclick="setModo('anual')">Anual <span style="background:#d1fae5;color:#065f46;border-radius:100px;padding:2px 8px;font-size:11px;margin-left:4px;">-20%</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="planes-grid">
+      <!-- Básico -->
+      <div class="plan-card reveal">
+        <span class="plan-icon">🆓</span>
+        <div class="plan-nombre">Básico</div>
+        <div class="plan-desc">Para empezar a conocer SISBAR sin comprometer un peso.</div>
+        <div class="plan-precio">
+          <span class="cur">$</span><span class="val precio-val" data-m="0" data-a="0">0</span><span class="per">/mes</span>
+          <span class="anual anual-msg" data-m="" data-a="Para siempre gratis"></span>
+        </div>
+        <div class="plan-features">
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>1 sucursal</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Hasta 50 productos</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>2 usuarios</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Dashboard básico</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Movimientos básicos</span></div>
+          <div class="plan-feat no"><i class="bi bi-x-circle"></i><span>IA y reportes avanzados</span></div>
+          <div class="plan-feat no"><i class="bi bi-x-circle"></i><span>Multi-sucursal</span></div>
+          <div class="plan-feat no"><i class="bi bi-x-circle"></i><span>Nómina y finanzas</span></div>
+        </div>
+        <a href="{% url 'usuarios:registro' %}" class="btn-plan btn-plan-outline">Empezar gratis</a>
+      </div>
+      <!-- Emprendedor -->
+      <div class="plan-card reveal">
+        <span class="plan-icon">🚀</span>
+        <div class="plan-nombre">Emprendedor</div>
+        <div class="plan-desc">Para negocios en crecimiento que necesitan control real.</div>
+        <div class="plan-precio">
+          <span class="cur">$</span><span class="val precio-val" data-m="79.000" data-a="63.000">79.000</span><span class="per">/mes</span>
+          <span class="anual anual-msg" data-m="" data-a="Ahorras $192.000 al año"></span>
+        </div>
+        <div class="plan-features">
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>1 sucursal</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Productos ilimitados</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>5 usuarios</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Ventas rápidas y facturas</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Reportes Excel y PDF</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Notificaciones en tiempo real</span></div>
+          <div class="plan-feat no"><i class="bi bi-x-circle"></i><span>Multi-sucursal</span></div>
+          <div class="plan-feat no"><i class="bi bi-x-circle"></i><span>IA y nómina</span></div>
+        </div>
+        <a href="{% url 'usuarios:registro' %}" class="btn-plan btn-plan-outline">Elegir Emprendedor</a>
+      </div>
+      <!-- Pro POPULAR -->
+      <div class="plan-card popular reveal">
+        <div class="popular-badge">⭐ Más popular</div>
+        <span class="plan-icon">💼</span>
+        <div class="plan-nombre">Profesional</div>
+        <div class="plan-desc">El todo-en-uno para negocios serios con múltiples sucursales.</div>
+        <div class="plan-precio">
+          <span class="cur">$</span><span class="val precio-val" data-m="189.000" data-a="151.000">189.000</span><span class="per">/mes</span>
+          <span class="anual anual-msg" data-m="" data-a="Ahorras $456.000 al año"></span>
+        </div>
+        <div class="plan-features">
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Hasta 5 sucursales</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Usuarios ilimitados</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Kylie IA + sugerencias compra</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Finanzas + Análisis IA completo</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Nómina Colombia 2026</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Score de salud financiera</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Gestión de horarios</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Soporte prioritario</span></div>
+        </div>
+        <a href="{% url 'usuarios:registro' %}" class="btn-plan btn-plan-primary">Elegir Profesional</a>
+      </div>
+      <!-- Enterprise -->
+      <div class="plan-card reveal">
+        <span class="plan-icon">🏢</span>
+        <div class="plan-nombre">Enterprise</div>
+        <div class="plan-desc">Para cadenas y franquicias que necesitan escala total.</div>
+        <div class="plan-precio">
+          <span class="val" style="font-size:1.8rem;">CUSTOM</span>
+          <span class="per" style="display:block;font-size:13px;margin-top:4px;">precio según uso</span>
+        </div>
+        <div class="plan-features">
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Sucursales ilimitadas</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Todo lo del plan Pro</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Integración a medida</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>SLA garantizado</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Onboarding dedicado</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Soporte 24/7</span></div>
+          <div class="plan-feat"><i class="bi bi-check-circle-fill"></i><span>Datos en servidor propio</span></div>
+        </div>
+        <a href="mailto:sisbaroficial@gmail.com" class="btn-plan btn-plan-outline">Hablar con ventas</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIOS ═══════════════════════════════════════════ -->
+<section class="testimonios">
+  <div class="container">
+    <div style="text-align:center;">
+      <span class="section-label"><i class="bi bi-chat-quote-fill"></i> Testimonios</span>
+      <h2 class="section-title" style="text-align:center;">Lo que dicen quienes<br><span class="hl">ya usan SISBAR</span></h2>
+    </div>
+    <div class="test-grid">
+      <div class="test-card reveal">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">Antes llevaba el inventario en Excel y siempre había diferencias. Con SISBAR tengo todo en tiempo real y las alertas me han salvado varias veces.</p>
+        <div class="test-autor">
+          <div class="test-avatar" style="background:linear-gradient(135deg,#1a6ff5,#0a4a8a);">CM</div>
+          <div><div class="test-nombre">Carlos Mendoza</div><div class="test-cargo">Dueño · Distribuidora Medellín</div></div>
+        </div>
+      </div>
+      <div class="test-card reveal">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">La nómina automática me ahorra 4 horas al mes. Antes calculaba todo a mano con errores. Ahora solo reviso, apruebo y listo.</p>
+        <div class="test-autor">
+          <div class="test-avatar" style="background:linear-gradient(135deg,#059669,#047857);">LG</div>
+          <div><div class="test-nombre">Laura Gómez</div><div class="test-cargo">Administradora · Mini-mercado Bogotá</div></div>
+        </div>
+      </div>
+      <div class="test-card reveal">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">Manejo 3 sucursales desde un solo lugar. Kylie me sugirió comprar antes de que se agotara un producto y tenía toda la razón. La IA funciona.</p>
+        <div class="test-autor">
+          <div class="test-avatar" style="background:linear-gradient(135deg,#d97706,#b45309);">AR</div>
+          <div><div class="test-nombre">Andrés Restrepo</div><div class="test-cargo">Gerente · Cadena de Tiendas Cali</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ═══════════════════════════════════════════ -->
+<section class="faq-landing" id="faq">
+  <div class="container">
+    <div style="text-align:center;">
+      <span class="section-label"><i class="bi bi-question-circle-fill"></i> FAQ</span>
+      <h2 class="section-title" style="text-align:center;">Preguntas <span class="hl">frecuentes</span></h2>
+      <p class="section-sub" style="text-align:center;margin:0 auto;">Resolvemos las dudas más comunes antes de que las tengas.</p>
+    </div>
+    <div class="faq-grid">
+      <div class="faq-item-l"><button onclick="toggleFaqL(this)">¿SISBAR funciona en celular y tablet? <i class="bi bi-chevron-down"></i></button><div class="faq-ans">Sí. SISBAR es 100% responsivo y funciona en cualquier dispositivo con navegador moderno. No necesitas instalar nada. Ideal para ventas rápidas desde el celular en mostrador.</div></div>
+      <div class="faq-item-l"><button onclick="toggleFaqL(this)">¿La nómina es válida para Colombia 2026? <i class="bi bi-chevron-down"></i></button><div class="faq-ans">Sí. Usa salario mínimo actualizado ($1,423,500), auxilio de transporte ($162,000) y los porcentajes de seguridad social vigentes en Colombia para 2026. Siempre actualizado.</div></div>
+      <div class="faq-item-l"><button onclick="toggleFaqL(this)">¿Cuántas sucursales puedo manejar? <i class="bi bi-chevron-down"></i></button><div class="faq-ans">Depende del plan. Profesional soporta hasta 5 sucursales y Enterprise tiene sucursales ilimitadas. Los planes Básico y Emprendedor son para una sola sucursal.</div></div>
+      <div class="faq-item-l"><button onclick="toggleFaqL(this)">¿Necesito conocimientos técnicos? <i class="bi bi-chevron-down"></i></button><div class="faq-ans">No. SISBAR está diseñado para ser intuitivo. Si sabes usar WhatsApp, puedes usar SISBAR. Además hay manuales completos dentro del sistema para cada módulo.</div></div>
+      <div class="faq-item-l"><button onclick="toggleFaqL(this)">¿Cómo funciona la Inteligencia Artificial? <i class="bi bi-chevron-down"></i></button><div class="faq-ans">Usamos Prophet (Meta) para predicciones de gastos financieros, y un sistema propio para análisis de rotación de inventario (Kylie IA). Mientras más datos, mejores predicciones.</div></div>
+      <div class="faq-item-l"><button onclick="toggleFaqL(this)">¿Mis datos están seguros? <i class="bi bi-chevron-down"></i></button><div class="faq-ans">Sí. Cada empresa tiene su propia base de datos aislada. Los datos viajan encriptados y se hacen respaldos automáticos. El plan Enterprise permite datos en servidor propio.</div></div>
+      <div class="faq-item-l"><button onclick="toggleFaqL(this)">¿Puedo cancelar en cualquier momento? <i class="bi bi-chevron-down"></i></button><div class="faq-ans">Sí, sin penalizaciones ni cobros ocultos. Si cancelas un plan anual, puedes seguir usando SISBAR hasta que termine el período pagado. Sin sorpresas.</div></div>
+      <div class="faq-item-l"><button onclick="toggleFaqL(this)">¿El soporte es en español colombiano? <i class="bi bi-chevron-down"></i></button><div class="faq-ans">Sí, todo el soporte es en español colombiano. Escríbenos a sisbaroficial@gmail.com. Los planes Profesional y Enterprise tienen soporte prioritario con tiempo de respuesta garantizado.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA FINAL ═══════════════════════════════════════════ -->
+<section class="cta-final">
+  <div class="orb-cta orb-c1"></div>
+  <div class="orb-cta orb-c2"></div>
+  <div class="container cta-final-content">
+    <h2 class="reveal">Tu negocio merece<br><span>tecnología de verdad.</span></h2>
+    <p class="reveal">Únete a SISBAR hoy. Sin tarjeta de crédito, sin compromisos. Tu primera cuenta es completamente gratis.</p>
+    <div class="cta-btns reveal">
+      <a href="{% url 'usuarios:registro' %}" class="btn-hero-primary"><i class="bi bi-rocket-takeoff-fill"></i> Crear mi cuenta gratis</a>
+      <a href="{% url 'usuarios:login' %}" class="btn-hero-ghost"><i class="bi bi-box-arrow-in-right"></i> Ya tengo cuenta</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">🛒 SISBAR</div>
+        <div class="footer-tagline">Sistema de Gestión Empresarial Inteligente para negocios colombianos. Inventario, finanzas, nómina y sucursales en una sola plataforma.</div>
+        <div class="footer-social">
+          <a href="mailto:sisbaroficial@gmail.com" title="Email"><i class="bi bi-envelope-fill"></i></a>
+          <a href="#" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="#" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h6>Producto</h6>
+        <a href="#modulos">Módulos</a>
+        <a href="#ia">Inteligencia Artificial</a>
+        <a href="#sucursales">Multi-sucursal</a>
+        <a href="#planes">Precios</a>
+      </div>
+      <div class="footer-col">
+        <h6>Recursos</h6>
+        <a href="{% url 'usuarios:login' %}">Iniciar sesión</a>
+        <a href="{% url 'usuarios:registro' %}">Registrarse</a>
+        <a href="/admin/">Panel Admin</a>
+        <a href="#faq">Preguntas frecuentes</a>
+      </div>
+      <div class="footer-col">
+        <h6>Contacto</h6>
+        <a href="mailto:sisbaroficial@gmail.com"><i class="bi bi-envelope me-1"></i> sisbaroficial@gmail.com</a>
+        <a href="#"><i class="bi bi-telephone me-1"></i> +57 (Colombia)</a>
+        <a href="#"><i class="bi bi-clock me-1"></i> Lun–Vie 8am–6pm</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 SISBAR — Todos los derechos reservados.</span>
+      <div class="footer-badges">
+        <span class="footer-badge-item">🇨🇴 Hecho en Colombia</span>
+        <span class="footer-badge-item">🔒 Datos seguros</span>
+        <span class="footer-badge-item">📱 100% Responsivo</span>
+        <span class="footer-badge-item">🤖 IA integrada</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ SCRIPTS ═══════════════════════════════════════════ -->
+<script>
+/* Navbar scroll */
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>50);
+});
+
+/* Menú hamburguesa */
+function toggleMenu(){
+  const nl=document.getElementById('navLinks');
+  nl.classList.toggle('open');
+}
+
+/* Reveal on scroll */
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');}});
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+/* FAQ accordion */
+function toggleFaqL(btn){
+  const item=btn.closest('.faq-item-l');
+  const isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item-l.open').forEach(el=>el.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+
+/* Toggle planes mensual/anual */
+function setModo(modo){
+  document.getElementById('btnMensual').classList.toggle('active',modo==='mensual');
+  document.getElementById('btnAnual').classList.toggle('active',modo==='anual');
+
+  document.querySelectorAll('.precio-val').forEach(el=>{
+    const val=modo==='mensual'?el.dataset.m:el.dataset.a;
+    if(val==='CUSTOM'||val==='0'){
+      el.closest('.plan-precio').querySelector('.cur').style.display=val==='CUSTOM'?'none':'';
+    }
+    el.textContent=val;
+  });
+
+  document.querySelectorAll('.anual-msg').forEach(el=>{
+    const msg=modo==='mensual'?el.dataset.m:el.dataset.a;
+    el.textContent=msg;
+    el.style.display=msg?'block':'none';
+  });
+}
+
+/* Inicializar estado anual-msg */
+document.querySelectorAll('.anual-msg').forEach(el=>{
+  el.style.display='none';
+});
+
+/* Smooth scroll para nav links */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const target=document.querySelector(a.getAttribute('href'));
+    if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'start'});}
+  });
+});
 </script>
 </body>
 </html>

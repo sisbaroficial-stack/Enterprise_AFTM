@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Asignaciones de Horario - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Encabezado -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'horarios:lista_plantillas' %}">Horarios</a></li>
+                    <li class="breadcrumb-item active">Asignaciones</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-1">👥 Asignaciones de Horario</h1>
+            <p class="text-muted">Usuarios con turnos asignados</p>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <a href="{% url 'horarios:lista_plantillas' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-week me-2"></i>Ver Plantillas
+            </a>
+            <a href="{% url 'horarios:asignar_horario' %}" class="btn btn-gradient">
+                <i class="bi bi-person-plus me-2"></i>Asignar Horario
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats rápidas -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card card-custom border-0 text-center py-3">
+                <div class="h3 fw-bold text-primary mb-0">{{ asignaciones|length }}</div>
+                <div class="text-muted small">Total Asignaciones</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom border-0 text-center py-3">
+                <div class="h3 fw-bold text-success mb-0">
+                    {{ asignaciones|length }}
+                </div>
+                <div class="text-muted small">Activas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    {% if not asignaciones %}
+    <div class="card card-custom border-0 text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-person-x display-1 text-muted"></i>
+            <h4 class="mt-3 text-muted">Ningún usuario tiene horario asignado</h4>
+            <a href="{% url 'horarios:asignar_horario' %}" class="btn btn-gradient mt-3">
+                <i class="bi bi-person-plus me-2"></i>Asignar primer horario
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="card card-custom border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Usuario</th>
+                            <th>Turno Asignado</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Estado</th>
+                            <th>Asignado Por</th>
+                            <th class="text-end pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asignacion in asignaciones %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar" style="width:36px;height:36px;font-size:0.8rem;">
+                                        {{ asignacion.usuario.first_name.0|upper }}{{ asignacion.usuario.last_name.0|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ asignacion.usuario.get_full_name }}</div>
+                                        <div class="text-muted small">{{ asignacion.usuario.get_rol_display }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge text-white px-3 py-2"
+                                      style="background: {{ asignacion.plantilla.color }};">
+                                    <i class="bi bi-clock me-1"></i>{{ asignacion.plantilla.nombre }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ asignacion.fecha_inicio|date:"d/m/Y" }}</span>
+                            </td>
+                            <td>
+                                {% if asignacion.fecha_fin %}
+                                    <span class="text-muted small">{{ asignacion.fecha_fin|date:"d/m/Y" }}</span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">Sin fecha fin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if asignacion.activo %}
+                                    <span class="badge bg-success-subtle text-success">✅ Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-muted small">
+                                    {% if asignacion.asignado_por %}
+                                        {{ asignacion.asignado_por.get_full_name }}
+                                    {% else %}—{% endif %}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a href="{% url 'horarios:asignar_horario_usuario' asignacion.usuario.id %}"
+                                       class="btn btn-sm btn-outline-primary" title="Reasignar horario">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </a>
+                                    {% if asignacion.activo %}
+                                    <form method="post" action="{% url 'horarios:desactivar_asignacion' asignacion.id %}"
+                                          onsubmit="return confirm('¿Desactivar esta asignación?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Desactivar">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

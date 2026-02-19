@@ -25,6 +25,7 @@ urlpatterns = [
     path('compras/', include('compras.urls', namespace='compras')),
     path('finanzas/', include('finanzas.urls', namespace='finanzas')),
     path('notificaciones/', include('notificaciones.urls', namespace='notificaciones')),
+    path('horarios/', include('horarios.urls', namespace='horarios')),
 ]
 
 # Media & Static

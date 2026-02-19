@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Plantilla de Horario - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Encabezado -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'horarios:lista_plantillas' %}">Horarios</a></li>
+                    <li class="breadcrumb-item active">Nueva Plantilla</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-1">➕ Nueva Plantilla de Horario</h1>
+            <p class="text-muted">Define un turno con sus días, horas de entrada y salida</p>
+        </div>
+    </div>
+
+    <form method="post" id="formPlantilla">
+        {% csrf_token %}
+        <div class="row g-4">
+
+            <!-- Columna izquierda: datos generales -->
+            <div class="col-lg-4">
+                <div class="card card-custom border-0">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <h5 class="mb-0">📋 Información General</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre del Turno <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Ej: Turno Mañana, Turno Noche..." required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="3"
+                                      placeholder="Detalles adicionales del turno..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Color identificador</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="color" name="color" id="colorPicker" value="#4e73df"
+                                       class="form-control form-control-color" style="width:60px;height:44px;">
+                                <div class="flex-fill">
+                                    <div class="rounded p-2 text-center text-white fw-bold" id="colorPreview"
+                                         style="background:#4e73df;">
+                                        Vista previa
+                                    </div>
+                                </div>
+                            </div>
+                            <small class="text-muted">Se usará para identificar visualmente este turno</small>
+                        </div>
+
+                        <!-- Accesos rápidos de tiempo -->
+                        <div class="mt-4">
+                            <p class="fw-semibold mb-2">⚡ Aplicar horario rápido:</p>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="aplicarHorario('08:00','17:00',[0,1,2,3,4])">
+                                    Lun-Vie 8am-5pm
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="aplicarHorario('06:00','14:00',[0,1,2,3,4,5])">
+                                    Lun-Sáb 6am-2pm
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="aplicarHorario('14:00','22:00',[0,1,2,3,4])">
+                                    Lun-Vie 2pm-10pm
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="marcarTodosDescanso()">
+                                    Limpiar todo
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna derecha: días de la semana -->
+            <div class="col-lg-8">
+                <div class="card card-custom border-0">
+                    <div class="card-header bg-transparent border-0 pt-4 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">📅 Configurar Días</h5>
+                        <small class="text-muted">Activa el switch para marcar como día laboral</small>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="dias-container">
+                            {% for i in indices %}
+                            {% with dia_nombre=dias|slice:i %}
+                            <div class="dia-row card mb-3 border" id="diaCard_{{ i }}">
+                                <div class="card-body py-3">
+                                    <div class="d-flex align-items-center gap-3">
+
+                                        <!-- Nombre del día -->
+                                        <div style="min-width:100px;">
+                                            <span class="fw-bold dia-nombre-label">
+                                                {% if i == 0 %}Lunes
+                                                {% elif i == 1 %}Martes
+                                                {% elif i == 2 %}Miércoles
+                                                {% elif i == 3 %}Jueves
+                                                {% elif i == 4 %}Viernes
+                                                {% elif i == 5 %}Sábado
+                                                {% elif i == 6 %}Domingo
+                                                {% endif %}
+                                            </span>
+                                        </div>
+
+                                        <!-- Toggle descanso/laboral -->
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input toggle-descanso"
+                                                   type="checkbox"
+                                                   id="toggle_{{ i }}"
+                                                   data-dia="{{ i }}"
+                                                   onchange="toggleDia({{ i }})">
+                                            <label class="form-check-label text-muted small"
+                                                   for="toggle_{{ i }}" id="labelToggle_{{ i }}">
+                                                😴 Descanso
+                                            </label>
+                                            <!-- Campo oculto real para descanso -->
+                                            <input type="checkbox" name="descanso_{{ i }}"
+                                                   id="descanso_{{ i }}" style="display:none;" checked>
+                                        </div>
+
+                                        <!-- Horas (ocultas por defecto = descanso) -->
+                                        <div class="horas-container d-flex align-items-center gap-2 flex-fill"
+                                             id="horas_{{ i }}" style="display:none !important;">
+                                            <div>
+                                                <label class="form-label small mb-1 text-muted">Entrada</label>
+                                                <input type="time" name="entrada_{{ i }}"
+                                                       class="form-control form-control-sm"
+                                                       style="min-width:120px;" value="08:00">
+                                            </div>
+                                            <div class="mt-3 text-muted">→</div>
+                                            <div>
+                                                <label class="form-label small mb-1 text-muted">Salida</label>
+                                                <input type="time" name="salida_{{ i }}"
+                                                       class="form-control form-control-sm"
+                                                       style="min-width:120px;" value="17:00">
+                                            </div>
+                                        </div>
+
+                                        <!-- Badge descanso -->
+                                        <div id="badgeDescanso_{{ i }}" class="ms-auto">
+                                            <span class="badge bg-light text-muted border px-3 py-2">
+                                                <i class="bi bi-moon me-1"></i>Descanso
+                                            </span>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            {% endwith %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <a href="{% url 'horarios:lista_plantillas' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-gradient">
+                                <i class="bi bi-save me-2"></i>Guardar Plantilla
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Actualizar preview de color
+    document.getElementById('colorPicker').addEventListener('input', function() {
+        document.getElementById('colorPreview').style.background = this.value;
+    });
+
+    function toggleDia(i) {
+        const toggle = document.getElementById('toggle_' + i);
+        const descansoHidden = document.getElementById('descanso_' + i);
+        const horasContainer = document.getElementById('horas_' + i);
+        const badgeDescanso = document.getElementById('badgeDescanso_' + i);
+        const label = document.getElementById('labelToggle_' + i);
+        const card = document.getElementById('diaCard_' + i);
+
+        const esLaboral = toggle.checked;
+
+        if (esLaboral) {
+            // Día laboral
+            descansoHidden.checked = false;
+            horasContainer.style.display = 'flex';
+            badgeDescanso.style.display = 'none';
+            label.innerHTML = '✅ Laboral';
+            card.style.borderLeftColor = document.getElementById('colorPicker').value;
+            card.style.borderLeftWidth = '4px';
+        } else {
+            // Día descanso
+            descansoHidden.checked = true;
+            horasContainer.style.display = 'none';
+            badgeDescanso.style.display = 'block';
+            label.innerHTML = '😴 Descanso';
+            card.style.borderLeftColor = '';
+            card.style.borderLeftWidth = '';
+        }
+    }
+
+    function aplicarHorario(entrada, salida, diasLaborales) {
+        for (let i = 0; i < 7; i++) {
+            const toggle = document.getElementById('toggle_' + i);
+            const esLaboral = diasLaborales.includes(i);
+            toggle.checked = esLaboral;
+            toggleDia(i);
+
+            if (esLaboral) {
+                document.querySelector(`input[name="entrada_${i}"]`).value = entrada;
+                document.querySelector(`input[name="salida_${i}"]`).value = salida;
+            }
+        }
+    }
+
+    function marcarTodosDescanso() {
+        for (let i = 0; i < 7; i++) {
+            const toggle = document.getElementById('toggle_' + i);
+            toggle.checked = false;
+            toggleDia(i);
+        }
+    }
+</script>
+{% endblock %}

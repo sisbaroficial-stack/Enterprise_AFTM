@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Plantilla - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+
+            <div class="card card-custom border-0 mt-4">
+                <div class="card-body text-center py-5">
+
+                    <div class="mb-4">
+                        <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                             style="width:80px;height:80px;background:#fee2e2;">
+                            <i class="bi bi-trash text-danger" style="font-size:2rem;"></i>
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold mb-2">¿Eliminar esta plantilla?</h4>
+                    <p class="text-muted mb-1">
+                        Estás a punto de eliminar la plantilla
+                        <strong>"{{ plantilla.nombre }}"</strong>.
+                    </p>
+
+                    {% with total=plantilla.asignaciones.all|length %}
+                    {% if total > 0 %}
+                    <div class="alert alert-warning mx-auto mt-3" style="max-width:400px;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Esta plantilla tiene <strong>{{ total }} asignación(es) activa(s)</strong>.
+                        Al eliminarla, esas asignaciones también serán borradas.
+                    </div>
+                    {% else %}
+                    <p class="text-muted small">Esta acción no se puede deshacer.</p>
+                    {% endif %}
+                    {% endwith %}
+
+                    <!-- Resumen del horario -->
+                    <div class="border rounded p-3 mx-auto mt-4 text-start" style="max-width:380px;">
+                        {% for dia in plantilla.dias.all %}
+                        <div class="d-flex justify-content-between py-1 small {% if not forloop.last %}border-bottom{% endif %}">
+                            <span class="text-muted">{{ dia.get_dia_semana_display }}</span>
+                            {% if dia.es_descanso %}
+                                <span class="text-warning">😴 Descanso</span>
+                            {% else %}
+                                <span class="fw-semibold">{{ dia.hora_entrada|time:"H:i" }} - {{ dia.hora_salida|time:"H:i" }}</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <a href="{% url 'horarios:lista_plantillas' %}" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-x me-2"></i>Cancelar
+                        </a>
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-trash me-2"></i>Sí, eliminar
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

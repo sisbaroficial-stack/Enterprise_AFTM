@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'compras',
     'finanzas',
     'notificaciones',
+    'horarios',
     'crispy_forms',
 ]
 
