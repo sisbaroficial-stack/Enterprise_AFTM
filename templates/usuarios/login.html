@@ -1,102 +1,203 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
-
-{% block title %}Iniciar Sesión - SISBAR {% endblock %}
-
+{% block title %}Iniciar Sesión — SISBAR{% endblock %}
 {% block auth_content %}
-<div class="row min-vh-100 align-items-center">
-    <div class="col-md-5 mx-auto">
-        <div class="card card-custom border-0 shadow-lg">
-            <div class="card-body p-5">
-                <!-- Logo y título -->
-                <div class="text-center mb-4">
-                    <div class="mb-3">
-                        <h1 style="font-size: 3rem;">🛒</h1>
-                    </div>
-                    <h2 class="mb-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
-                        SISBAR 
-                    </h2>
-                    <p class="text-muted">Sistema de Inventario Empresarial</p>
-                </div>
-                
-                <!-- Formulario de login -->
-                <form method="post" class="mt-4">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
-                            <i class="bi bi-person me-2"></i>Usuario
-                        </label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.username.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold">
-                            <i class="bi bi-lock me-2"></i>Contraseña
-                        </label>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ form.password.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger" role="alert">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-                    
-                    <button type="submit" class="btn btn-gradient w-100 py-3 mb-3">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>
-                        Iniciar Sesión
-                    </button>
-                    <a href="{% url 'index' %}" class="btn btn-secondary w-100 py-2 mt-2">
-                        <i class="bi bi-arrow-left me-2"></i>
-                        Volver al inicio
-                    </a>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap');
 
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-                </form>
-                
-                <!-- Separador -->
-                <div class="text-center my-4">
-                    <hr class="my-3">
-                    <small class="text-muted">¿No tienes cuenta?</small>
-                </div>
-                
-                <!-- Botón de registro -->
-                <a href="{% url 'usuarios:registro' %}" class="btn btn-outline-secondary w-100 py-3">
-                    <i class="bi bi-person-plus me-2"></i>
-                    Crear Nueva Cuenta
-                </a>
-                <a href="{% url 'dashboard:home' %}" class="btn btn-outline-primary w-100 py-3 mb-3">
-                    <i class="bi bi-house me-2"></i>
-                    Ir al Inicio
-                </a>
+/* ══ FONDO CLARO Y REALISTA ══ */
+.lb {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    /* Imagen de inventario clara y profesional */
+    background: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), 
+                url('https://diccionarioecom.net/wp-content/uploads/moderno-organizado-modelo-inventario.webp');
+    background-size: cover;
+    background-position: center;
+}
 
-                <!-- Info adicional -->
-                <div class="mt-4 p-3 bg-light rounded">
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Nota:</strong> Las cuentas nuevas deben ser aprobadas por un administrador.
-                    </small>
-                </div>
+/* ══ LAYOUT ══ */
+.lw {
+    position: relative; z-index: 10;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* ══ CARD EFECTO ESPEJO (GLASSMORPHISM CLARO) ══ */
+.lc {
+    width: 100%; max-width: 420px;
+    /* Fondo blanco muy transparente para el efecto espejo */
+    background: rgba(255, 255, 255, 0.45); 
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 30px;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 
+                inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    animation: cardFade 0.8s ease-out;
+}
+
+@keyframes cardFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.lc-body { padding: 40px; }
+
+/* ══ LOGO Y TEXTOS ══ */
+.llogo { text-align: center; margin-bottom: 30px; }
+.llogo-icon {
+    width: 65px; height: 65px; border-radius: 18px;
+    background: linear-gradient(135deg, #007bff, #00d4ff);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; margin: 0 auto 15px;
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+}
+
+.lbrand {
+    font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800;
+    color: #1a1a1a; letter-spacing: -0.5px;
+}
+.ltagline { font-size: 13px; color: #555; font-weight: 500; }
+
+/* ══ INPUTS CLAROS ══ */
+.fw { margin-bottom: 18px; }
+.flbl { font-size: 13px; color: #333; margin-bottom: 6px; font-weight: 600; display: block; }
+.fwrap { position: relative; }
+
+.lc input {
+    width: 100% !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 14px 16px 14px 45px !important;
+    color: #1a1a1a !important;
+    font-size: 15px !important;
+    transition: all 0.3s ease;
+}
+
+.lc input:focus {
+    background: #fff !important;
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1) !important;
+    outline: none;
+}
+
+.ficon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #007bff; font-size: 18px; }
+
+/* ══ BOTÓN ACCEDER ══ */
+.btn-go {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff; border: none; border-radius: 12px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+    cursor: pointer; transition: 0.3s; margin-top: 10px;
+    box-shadow: 0 10px 15px rgba(0, 86, 179, 0.2);
+}
+
+.btn-go:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(0, 86, 179, 0.3); }
+
+/* ══ BOTÓN REGISTRO ══ */
+.btn-sec {
+    width: 100%; padding: 12px;
+    background: rgba(255, 255, 255, 0.5); color: #0056b3;
+    border: 1px solid rgba(0, 86, 179, 0.2); border-radius: 12px;
+    font-size: 14px; text-decoration: none; display: flex; 
+    align-items: center; justify-content: center; gap: 8px; transition: 0.3s;
+}
+.btn-sec:hover { background: #fff; border-color: #007bff; }
+
+/* Status */
+.lstatus {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255, 255, 255, 0.8); padding: 5px 12px;
+    border-radius: 20px; color: #00b341; font-size: 11px; margin-top: 10px;
+    font-weight: 700; border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.sdot { width: 6px; height: 6px; background: #00b341; border-radius: 50%; }
+</style>
+
+<div class="lb"></div>
+
+<div class="lw">
+    <div class="lc">
+        <div class="lc-body">
+            <div class="llogo">
+                <div class="llogo-icon">📦</div>
+                <div class="lbrand">SISBAR</div>
+                <div class="ltagline">SISTEMA DE INVENTARIO PROFESIONAL</div>
+                <div class="lstatus"><span class="sdot"></span> ONLINE • 2026</div>
             </div>
+
+            <form method="post" id="loginForm">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div style="background:#fee2e2; color:#b91c1c; padding:10px; border-radius:10px; margin-bottom:15px; font-size:13px; text-align:center; border: 1px solid #f87171;">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="fw">
+                    <label class="flbl">Usuario</label>
+                    <div class="fwrap">
+                        <i class="bi bi-person ficon"></i>
+                        {{ form.username }}
+                    </div>
+                </div>
+
+                <div class="fw">
+                    <label class="flbl">Contraseña</label>
+                    <div class="fwrap">
+                        <i class="bi bi-lock ficon"></i>
+                        {{ form.password }}
+                        <button type="button" onclick="togglePw()" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); background:none; border:none; color:#007bff; cursor:pointer;">
+                            <i class="bi bi-eye" id="pwi"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-go" id="sbtn">
+                    Entrar al Sistema
+                </button>
+            </form>
+
+            <div style="text-align:center; margin: 20px 0; color:#888; font-size:12px; font-weight:600;">O</div>
+
+            <a href="{% url 'usuarios:registro' %}" class="btn-sec" style="margin-bottom:10px">
+                <i class="bi bi-person-plus-fill"></i> Crear Cuenta
+            </a>
+            
+            <a href="{% url 'index' %}" style="display:block; text-align:center; color:#888; font-size:13px; text-decoration:none; margin-top:15px;">
+                <i class="bi bi-arrow-left"></i> Volver al Inicio
+            </a>
         </div>
         
-        <!-- Footer -->
-        <div class="text-center mt-4">
-            <p class="text-white">
-                <small>©  SISBAR - Sistema de Inventario Empresarial</small>
-            </p>
+        <div style="padding: 15px; text-align:center; background: rgba(0,0,0,0.03); border-radius: 0 0 30px 30px;">
+            <p style="font-size:11px; color:#666; font-weight:500;">SISBAR v4.2 • Colombia 2026</p>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const u = document.querySelector('input[name="username"]');
+    const p = document.querySelector('input[name="password"]');
+    if(u) u.placeholder = 'Escribe tu usuario';
+    if(p) p.placeholder = 'Tu clave';
+});
+
+function togglePw() {
+    const p = document.querySelector('input[name="password"]');
+    const i = document.getElementById('pwi');
+    if (p.type === 'password') {
+        p.type = 'text';
+        i.className = 'bi bi-eye-slash';
+    } else {
+        p.type = 'password';
+        i.className = 'bi bi-eye';
+    }
+}
+</script>
 {% endblock %}

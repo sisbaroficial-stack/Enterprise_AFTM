@@ -341,3 +341,99 @@ SISBAR1.1_AFTM-SAS
    └─ __init__.py
 
 ```
+
+## Informe QA Backend (auditoria)
+
+Fecha de auditoria: 2026-02-21
+
+### Alcance ejecutado
+
+- `python manage.py test usuarios.test_backend_qa -v 2`
+- `python manage.py test -v 2`
+- `python manage.py check`
+- `python manage.py check --deploy`
+- `python manage.py makemigrations --check --dry-run`
+
+### Resultado general
+
+- Se ejecuto una suite QA de smoke/integracion backend en `usuarios/test_backend_qa.py`.
+- Se detectaron errores funcionales reales en rutas autenticadas.
+- Se detectaron migraciones pendientes en `finanzas`.
+- Se detectaron advertencias de seguridad para entorno productivo.
+
+### Errores exactos encontrados y solucion propuesta
+
+1. Error `NoReverseMatch` en clientes de facturas  
+   Ubicacion: `facturas/views.py:267` (render de `facturas/clientes/lista.html`)  
+   Error exacto: `Reverse for 'crear_cliente' not found`  
+   Causa probable: en plantilla se usa `{% url 'crear_cliente' %}` sin namespace.  
+   Solucion: cambiar a `{% url 'facturas:crear_cliente' %}` en `templates/facturas/clientes/lista.html`.
+
+2. Error `TemplateDoesNotExist` en comparativas de finanzas  
+   Ubicacion: `finanzas/views.py:658`  
+   Error exacto: `finanzas/analisis/comparativas.html` no existe.  
+   Solucion: crear `templates/finanzas/analisis/comparativas.html` o actualizar la vista para renderizar una plantilla existente.
+
+3. Error `TypeError` en busquedas AJAX de inventario  
+   Ubicacion: `inventario/views.py:627` y `inventario/views.py:1001`  
+   Error exacto: `isinstance() arg 2 must be a type...`  
+   Causa: uso invalido `isinstance(sucursal, redirect)`.  
+   Solucion: reemplazar esa validacion por chequeo de tipo de respuesta (`HttpResponseRedirect`) o por logica booleana explicita.
+
+4. Error `TemplateDoesNotExist` en panel inventario (inventario y movimientos)  
+   Ubicacion: `inventario/views.py:705` y `movimientos/views.py:72`  
+   Error exacto: falta `inventario/panel_inventario.html`.  
+   Estado real de archivos: existe `templates/movimientos/panel_inventario.html`.  
+   Solucion: usar `render(..., 'movimientos/panel_inventario.html')` o crear duplicado en `templates/inventario/panel_inventario.html`.
+
+5. Error `FieldError` en alertas de movimientos  
+   Ubicacion: `movimientos/views.py:38`  
+   Error exacto: `Cannot resolve keyword 'resuelta' into field`  
+   Causa: el modelo `AlertaInventario` no tiene campo `resuelta`.  
+   Solucion: o agregar campo `resuelta` con migracion, o retirar ese filtro de la consulta.
+
+6. Error `DoesNotExist` no manejado en detalle de factura  
+   Ubicacion: `movimientos/views.py:80`  
+   Error exacto: `Factura matching query does not exist.`  
+   Solucion: reemplazar `Factura.objects.get(id=id)` por `get_object_or_404(Factura, id=id)` o manejar excepcion y devolver 404.
+
+7. Error en signal de usuarios al iniciar sesion (detectado en corrida inicial)  
+   Ubicacion: `usuarios/signals.py:30` y `usuarios/emails.py:202`  
+   Error exacto: `AttributeError: 'NoneType' object has no attribute 'get_full_name'`  
+   Causa: `aprobado_por` puede quedar en `None` y luego se usa sin validar en plantilla/email.  
+   Solucion: validar `aprobado_por` antes de usarlo y definir fallback seguro en `enviar_email_aprobacion`.
+
+8. Migraciones pendientes en finanzas  
+   Comando: `python manage.py makemigrations --check --dry-run`  
+   Salida: se propone `finanzas/migrations/0003_remove_registroasistencia_empleado_and_more.py`.  
+   Solucion: generar y aplicar migracion:
+   - `python manage.py makemigrations finanzas`
+   - `python manage.py migrate`
+
+### Riesgos de seguridad (check --deploy)
+
+Advertencias detectadas:
+- `DEBUG=True`
+- `SECRET_KEY` debil para produccion
+- `SECURE_SSL_REDIRECT` no activo
+- `SESSION_COOKIE_SECURE` no activo
+- `CSRF_COOKIE_SECURE` no activo
+- `SECURE_HSTS_SECONDS` no configurado
+
+Solucion recomendada (produccion):
+- mover secretos a variables de entorno
+- `DEBUG=False`
+- habilitar cookies seguras, HSTS y redireccion SSL
+
+### Comandos para reproducir QA
+
+```powershell
+cd C:\Users\DANIE\SISBAR1.1_AFTM-SAS
+.\venv\Scripts\Activate.ps1
+
+python manage.py test usuarios.test_backend_qa -v 2
+python manage.py test -v 2
+python manage.py check
+python manage.py check --deploy
+python manage.py makemigrations --check --dry-run
+```

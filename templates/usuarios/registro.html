@@ -1,185 +1,207 @@
 {% extends 'base.html' %}
+{% block title %}Registro Profesional — SISBAR{% endblock %}
+{% block auth_content %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap');
 
-{% block title %}Registro - SISBAR {% endblock %}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-{% block auth_content %}  <!-- CAMBIO AQUI -->
-<div class="row min-vh-100 align-items-center py-5">
-    <div class="col-md-8 col-lg-6 mx-auto">
-        <div class="card card-custom border-0 shadow-lg">
-            <div class="card-body p-5">
+/* ══ FONDO (Igual al Login) ══ */
+.rb {
+    position: fixed; inset: 0; z-index: 0;
+    background: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), 
+                url('https://images.prismic.io/simpliroute/56dc27da-0a15-4ad9-a9f4-74f095b4e815_sistema+de+inventarios.jpg?auto=compress%2Cformat&rect=0%2C187%2C1920%2C836&w=1920&fit=max&q=100');
+    background-size: cover; background-position: center;
+}
 
-                <!-- Header -->
-                <div class="text-center mb-4">
-                    <h1 style="font-size: 2.5rem;">🛒</h1>
-                    <h2 class="mb-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
-                        Crear Cuenta
-                    </h2>
-                    <p class="text-muted">Completa el formulario para registrarte</p>
-                </div>
+/* ══ LAYOUT PRINCIPAL ══ */
+.rw {
+    position: relative; z-index: 10;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Outfit', sans-serif;
+}
 
-                <!-- Mensajes de Django -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+/* ══ CARD DE REGISTRO (Limpia como el Login) ══ */
+.rc {
+    width: 100%; max-width: 600px;
+    background: rgba(255, 255, 255, 0.45); 
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 35px;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+    animation: cardFade 0.8s ease-out;
+    padding: 40px;
+}
 
-                <!-- Formulario de registro -->
-                <form method="post" class="mt-4">
-                    {% csrf_token %}
+@keyframes cardFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-                    <!-- Nombre y Apellido -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-person me-2"></i>Nombre *
-                            </label>
-                            {{ form.first_name }}
-                            {% for error in form.first_name.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
+/* ══ CUADROS DE INFO APARTE (Flotantes) ══ */
+.floating-info {
+    position: absolute;
+    width: 220px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 20px;
+    border-radius: 24px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+    animation: float 4s ease-in-out infinite;
+}
 
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-person me-2"></i>Apellido *
-                            </label>
-                            {{ form.last_name }}
-                            {% for error in form.last_name.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
+/* Posiciones de los cuadros */
+.info-1 { left: -250px; top: 10%; }
+.info-2 { right: -250px; top: 20%; animation-delay: 1s; }
+.info-3 { left: -250px; bottom: 10%; animation-delay: 2s; }
 
-                    <!-- Usuario y Email -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-at me-2"></i>Nombre de Usuario *
-                            </label>
-                            {{ form.username }}
-                            {% for error in form.username.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
 
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-envelope me-2"></i>Correo Electrónico *
-                            </label>
-                            {{ form.email }}
-                            {% for error in form.email.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
+.floating-info h4 { font-family: 'Syne'; font-size: 14px; font-weight: 800; color: #007bff; margin-bottom: 8px; }
+.floating-info p { font-size: 12px; color: #444; line-height: 1.4; margin: 0; }
+.floating-info i { font-size: 20px; margin-bottom: 10px; display: block; color: #007bff; }
 
-                    <!-- Documento y Teléfono -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.documento.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-card-text me-2"></i>Documento de Identidad *
-                            </label>
-                            {{ form.documento }}
-                            {% for error in form.documento.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
+/* ══ ELEMENTOS DEL FORMULARIO ══ */
+.r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fg { margin-bottom: 15px; }
+.flbl { font-size: 12px; color: #333; margin-bottom: 5px; font-weight: 700; display: block; }
+.fwr { position: relative; }
 
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.telefono.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-phone me-2"></i>Teléfono
-                            </label>
-                            {{ form.telefono }}
-                            {% for error in form.telefono.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
+.rc input, .rc select {
+    width: 100% !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 12px 12px 12px 42px !important;
+    font-size: 14px !important;
+    transition: 0.3s;
+}
 
-                    <!-- Rol -->
-                    <div class="mb-3">
-                        <label for="{{ form.rol.id_for_label }}" class="form-label fw-semibold">
-                            <i class="bi bi-person-badge me-2"></i>Rol Solicitado *
-                        </label>
-                        {{ form.rol }}
-                        <small class="text-muted d-block mt-1">
-                            Un administrador revisará y aprobará tu solicitud.
-                        </small>
-                        {% for error in form.rol.errors %}
-                            <div class="text-danger small mt-1">{{ error }}</div>
-                        {% endfor %}
-                    </div>
+.rc input:focus { background: #fff !important; border-color: #007bff !important; outline: none; }
+.fi { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #007bff; }
 
-                    <!-- Contraseñas -->
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-lock me-2"></i>Contraseña *
-                            </label>
-                            {{ form.password1 }}
-                            {% for error in form.password1.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
+.btn-r {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff; border: none; border-radius: 12px;
+    font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer;
+    transition: 0.3s; margin-top: 10px;
+}
+.btn-r:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 86, 179, 0.3); }
 
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
-                                <i class="bi bi-lock-fill me-2"></i>Confirmar Contraseña *
-                            </label>
-                            {{ form.password2 }}
-                            {% for error in form.password2.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
+/* Ocultar info en móviles para que no se amontone */
+@media(max-width: 1200px) {
+    .floating-info { display: none; }
+}
+@media(max-width: 600px) {
+    .r2 { grid-template-columns: 1fr; }
+}
+</style>
 
-                    <div class="alert alert-info mb-4">
-                        <small>
-                            <strong>Requisitos de contraseña:</strong>
-                            <ul class="mb-0 mt-2">
-                                <li>Mínimo 8 caracteres</li>
-                                <li>No puede ser completamente numérica</li>
-                                <li>No puede ser muy común</li>
-                            </ul>
-                        </small>
-                    </div>
+<div class="rb"></div>
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger" role="alert">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}<br>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <button type="submit" class="btn btn-gradient w-100 py-3 mb-3">
-                        <i class="bi bi-person-plus me-2"></i>
-                        Registrarse
-                    </button>
-                </form>
-
-                <div class="text-center my-3">
-                    <hr class="my-3">
-                    <small class="text-muted">¿Ya tienes cuenta?</small>
-                </div>
-
-                <a href="{% url 'usuarios:login' %}" class="btn btn-outline-secondary w-100 py-3">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>
-                    Iniciar Sesión
-                </a>
-            </div>
+<div class="rw">
+    <div class="rc">
+        <div class="floating-info info-1">
+            <i class="bi bi-lightning-charge-fill"></i>
+            <h4>¿Sabías qué?</h4>
+            <p>Kylie Cosmetics procesa miles de pedidos por minuto usando sistemas de inventario como SISBAR.</p>
         </div>
 
-        <div class="text-center mt-4">
-            <p class="text-white">
-                <small>© SISBAR - Sistema de Inventario Empresarial</small>
-            </p>
+        <div class="floating-info info-2">
+            <i class="bi bi-box-seam-fill"></i>
+            <h4>Logística 2026</h4>
+            <p>El 90% de las empresas exitosas automatizan su stock para evitar pérdidas de dinero.</p>
+        </div>
+
+        <div class="floating-info info-3">
+            <i class="bi bi-trophy-fill"></i>
+            <h4>SISBAR Cloud</h4>
+            <p>Gestiona desde cualquier lugar del mundo con nuestra infraestructura en la nube.</p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #007bff, #00d4ff); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 26px; color: white; box-shadow: 0 8px 20px rgba(0,123,255,0.3);">📦</div>
+            <h2 style="font-family: 'Syne'; font-weight: 800; color: #1a1a1a; letter-spacing: -0.5px;">Únete a SISBAR</h2>
+            <p style="font-size: 14px; color: #555;">Registro de Colaboradores Profesionales</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="r2">
+                <div class="fg">
+                    <label class="flbl">Nombre</label>
+                    <div class="fwr"><i class="bi bi-person fi"></i>{{ form.first_name }}</div>
+                </div>
+                <div class="fg">
+                    <label class="flbl">Apellido</label>
+                    <div class="fwr"><i class="bi bi-person fi"></i>{{ form.last_name }}</div>
+                </div>
+            </div>
+
+            <div class="r2">
+                <div class="fg">
+                    <label class="flbl">Usuario</label>
+                    <div class="fwr"><i class="bi bi-at fi"></i>{{ form.username }}</div>
+                </div>
+                <div class="fg">
+                    <label class="flbl">Correo</label>
+                    <div class="fwr"><i class="bi bi-envelope fi"></i>{{ form.email }}</div>
+                </div>
+            </div>
+
+            <div class="r2">
+                <div class="fg">
+                    <label class="flbl">Documento</label>
+                    <div class="fwr"><i class="bi bi-card-text fi"></i>{{ form.documento }}</div>
+                </div>
+                <div class="fg">
+                    <label class="flbl">Teléfono</label>
+                    <div class="fwr"><i class="bi bi-phone fi"></i>{{ form.telefono }}</div>
+                </div>
+            </div>
+
+            <div class="fg">
+                <label class="flbl">Rol del Usuario</label>
+                <div class="fwr"><i class="bi bi-person-badge fi"></i>{{ form.rol }}</div>
+            </div>
+
+            <div class="r2">
+                <div class="fg">
+                    <label class="flbl">Contraseña</label>
+                    <div class="fwr"><i class="bi bi-lock fi"></i>{{ form.password1 }}</div>
+                </div>
+                <div class="fg">
+                    <label class="flbl">Confirmar</label>
+                    <div class="fwr"><i class="bi bi-shield-lock fi"></i>{{ form.password2 }}</div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-r">Crear Mi Cuenta</button>
+        </form>
+
+        <div style="text-align:center; margin-top:25px;">
+            <a href="{% url 'usuarios:login' %}" style="text-decoration:none; color:#007bff; font-weight:700; font-size:14px;">
+                ¿Ya tienes cuenta? Inicia Sesión
+            </a>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input, select').forEach(el => {
+        el.classList.add('form-control');
+        if(el.name === 'first_name') el.placeholder = 'Nombre';
+        if(el.name === 'last_name') el.placeholder = 'Apellido';
+        if(el.name === 'password1') el.placeholder = '********';
+        if(el.name === 'password2') el.placeholder = '********';
+    });
+});
+</script>
 {% endblock %}
