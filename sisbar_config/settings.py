@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',  # para humanizar números
 
     # Apps propias
+    'empresas',
     'usuarios',
     'categorias',
     'inventario',
@@ -145,7 +146,7 @@ if not DEBUG:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sisbar_db',
+        'NAME': 'AFTM.SAS',
         'USER': 'postgres',
         'PASSWORD': 'Holama.1521',
         'HOST': 'localhost',
