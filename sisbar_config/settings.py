@@ -19,7 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',  # para humanizar números
 
     # Apps propias
-    'empresas',
+    
     'usuarios',
     'categorias',
     'inventario',
