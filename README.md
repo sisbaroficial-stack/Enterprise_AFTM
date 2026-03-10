@@ -1,6 +1,6 @@
 
 ```
-sisbar_2026
+SISBAR1.1_AFTM-SAS
 ├─ build.sh
 ├─ categorias
 │  ├─ admin.py
@@ -23,14 +23,35 @@ sisbar_2026
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
+├─ facturas
+│  ├─ admin.py
+│  ├─ apps.py
+│  ├─ migrations
+│  │  ├─ 0001_initial.py
+│  │  └─ __init__.py
+│  ├─ models.py
+│  ├─ tests.py
+│  ├─ urls.py
+│  ├─ views.py
+│  └─ __init__.py
 ├─ inventario
 │  ├─ admin.py
 │  ├─ apps.py
 │  ├─ forms.py
+│  ├─ management
+│  │  ├─ commands
+│  │  │  ├─ stress_test_sisbar.py
+│  │  │  └─ __init__.py
+│  │  └─ __init__.py
 │  ├─ migrations
 │  │  ├─ 0001_initial.py
 │  │  ├─ 0002_alter_transferenciasucursal_estado_alertainventario.py
 │  │  ├─ 0003_alter_movimientoinventario_options_and_more.py
+│  │  ├─ 0004_producto_margen_ganancia_producto_precio_venta_and_more.py
+│  │  ├─ 0005_factura_detallefactura_movimientoinventario_factura.py
+│  │  ├─ 0006_cliente_factura_anulada_factura_cambio_and_more.py
+│  │  ├─ 0007_remove_factura_cliente_remove_detallefactura_factura_and_more.py
+│  │  ├─ 0008_movimientoinventario_factura.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ tests.py
@@ -51,9 +72,11 @@ sisbar_2026
 │  ├─ views.py
 │  └─ __init__.py
 ├─ productos
+│  ├─ Acer_Wallpaper_01_5000x2814_-_copia.jpg
 │  ├─ Acer_Wallpaper_02_5000x2813_-_copia.jpg
 │  ├─ Acer_Wallpaper_03_5000x2814_-_copia.jpg
-│  └─ Planet9_Wallpaper_5000x2813_-_copia.jpg
+│  ├─ Planet9_Wallpaper_5000x2813_-_copia.jpg
+│  └─ WhatsApp_Image_2026-01-22_at_20.42.52.jpeg
 ├─ proveedores
 │  ├─ admin.py
 │  ├─ apps.py
@@ -65,6 +88,7 @@ sisbar_2026
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
+├─ README.md
 ├─ render.yaml
 ├─ reportes
 │  ├─ admin.py
@@ -92,6 +116,7 @@ sisbar_2026
 │  ├─ middleware.py
 │  ├─ migrations
 │  │  ├─ 0001_initial.py
+│  │  ├─ 0002_sucursal_aplica_impuesto_consumo_and_more.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ tests.py
@@ -108,6 +133,15 @@ sisbar_2026
 │  │  └─ listar.html
 │  ├─ dashboard
 │  │  └─ home.html
+│  ├─ facturas
+│  │  ├─ anular.html
+│  │  ├─ clientes
+│  │  │  ├─ crear.html
+│  │  │  ├─ editar.html
+│  │  │  └─ lista.html
+│  │  ├─ imprimir.html
+│  │  ├─ lista.html
+│  │  └─ ver_factura.html
 │  ├─ index.html
 │  ├─ inventario
 │  │  ├─ agregar_producto_existente.html
@@ -115,6 +149,7 @@ sisbar_2026
 │  │  ├─ ajustar_inventario.html
 │  │  ├─ crear_producto.html
 │  │  ├─ descontar_producto.html
+│  │  ├─ detalle_factura.html
 │  │  ├─ eliminar_producto.html
 │  │  ├─ form_producto.html
 │  │  ├─ listar_productos.html
@@ -184,4 +219,4 @@ sisbar_2026
    ├─ views.py
    └─ __init__.py
 
-```JEFE FABIAN
+```

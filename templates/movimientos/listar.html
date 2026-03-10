@@ -49,11 +49,18 @@
                     <tbody>
                         {% if movimientos %}
                             {% for mov in movimientos %}
-                            <tr>
-                                <td><small>{{ mov.fecha|date:"d/m/Y H:i" }}</small></td>
+                            <tr {% if mov.factura %}style="cursor: pointer;" onclick="window.location='{% url 'movimientos:detalle_factura' mov.factura.id %}'"{% endif %}>
+                                <td>
+                                    <small>{{ mov.fecha|date:"d/m/Y H:i" }}</small>
+                                    {% if mov.factura %}
+                                    <br><span class="badge bg-info small">
+                                        <i class="bi bi-receipt"></i> {{ mov.factura.numero_factura }}
+                                    </span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <span class="badge bg-{% if mov.tipo == 'ENTRADA' %}success{% else %}danger{% endif %}">
-                                        {{ mov.get_tipo_icono }} {{ mov.get_tipo_display }}
+                                        {% if mov.tipo == 'ENTRADA' %}📥{% else %}📤{% endif %} {{ mov.get_tipo_display }}
                                     </span>
                                 </td>
                                 <td>
@@ -65,9 +72,22 @@
                                         {% if mov.tipo == 'ENTRADA' %}+{% else %}-{% endif %}{{ mov.cantidad }}
                                     </strong>
                                 </td>
-                                <td><small>{{ mov.cantidad_anterior }} → {{ mov.cantidad_nueva }}</small></td>
-                                <td><small>{{ mov.usuario.username }}</small></td>
-                                <td><small>{{ mov.motivo|default:"-" }}</small></td>
+                                <td>
+                                    <small class="text-muted">
+                                        {% if mov.producto.inventarios.first %}
+                                            {{ mov.producto.inventarios.first.cantidad }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td><small>{{ mov.usuario.username|default:"-" }}</small></td>
+                                <td>
+                                    <small>{{ mov.get_motivo_display|default:mov.motivo|default:"-" }}</small>
+                                    {% if mov.observaciones %}
+                                    <br><small class="text-muted">{{ mov.observaciones|truncatewords:10 }}</small>
+                                    {% endif %}
+                                </td>
                                 {% if user.rol in "ADMIN,SUPER_ADMIN" %}
                                 <td><small>{{ mov.sucursal.nombre }}</small></td>
                                 {% endif %}
@@ -87,6 +107,21 @@
         </div>
     </div>
 </div>
+
+<style>
+tbody tr[onclick]:hover {
+    background-color: rgba(102, 126, 234, 0.1) !important;
+    cursor: pointer;
+}
+
+body.modo-oscuro tbody tr[onclick]:hover {
+    background-color: rgba(102, 126, 234, 0.2) !important;
+}
+
+.badge.bg-info {
+    font-size: 0.75rem;
+}
+</style>
 {% endblock %}
 
 

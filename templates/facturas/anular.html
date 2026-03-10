@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Anular Factura {{ factura.numero_factura }} - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'facturas:ver_factura_completa' factura.id %}" class="btn btn-outline-secondary mb-3">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+            <h1 class="h2 mb-1">⚠️ Anular Factura</h1>
+            <p class="text-muted">Confirma la anulación de la factura y devolución de inventario</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-danger border-2 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Advertencia:</strong> Esta acción anulará la factura y devolverá el inventario a la sucursal.
+                    </div>
+
+                    <!-- Información de la factura -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-3">📄 Información de la Factura</h5>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>Número:</strong> {{ factura.numero_factura }}</p>
+                                    <p class="mb-2"><strong>Fecha:</strong> {{ factura.fecha|date:"d/m/Y H:i" }}</p>
+                                    <p class="mb-2"><strong>Vendedor:</strong> {{ factura.usuario.username }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>Cliente:</strong> 
+                                        {% if factura.cliente %}
+                                            {{ factura.cliente.nombre_completo }}
+                                        {% else %}
+                                            Cliente General
+                                        {% endif %}
+                                    </p>
+                                    <p class="mb-2"><strong>Método de Pago:</strong> {{ factura.get_metodo_pago_display }}</p>
+                                    <p class="mb-2"><strong>Total:</strong> <span class="text-success">${{ factura.total|floatformat:2 }}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos que se devolverán -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-3">📦 Productos a Devolver</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for detalle in factura.detalles.all %}
+                                        <tr>
+                                            <td>{{ detalle.producto.nombre }}</td>
+                                            <td class="text-center">{{ detalle.cantidad }}</td>
+                                            <td class="text-end">${{ detalle.subtotal|floatformat:2 }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de anulación -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="motivo" class="form-label">
+                                <i class="bi bi-chat-left-text me-2"></i>Motivo de Anulación *
+                            </label>
+                            <textarea name="motivo" id="motivo" class="form-control" rows="4" 
+                                      placeholder="Describe el motivo de la anulación..." required></textarea>
+                            <small class="text-muted">Este motivo quedará registrado en el sistema</small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <small>
+                                <strong>Nota:</strong> Al anular esta factura:
+                                <ul class="mb-0 mt-2">
+                                    <li>Se marcará como ANULADA en el sistema</li>
+                                    <li>Se devolverá el inventario a la sucursal {{ factura.sucursal.nombre }}</li>
+                                    <li>Se registrarán los movimientos de devolución</li>
+                                    <li>Esta acción no se puede deshacer</li>
+                                </ul>
+                            </small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger flex-grow-1 py-3">
+                                <i class="bi bi-x-circle me-2"></i>
+                                Sí, Anular Factura
+                            </button>
+                            <a href="{% url 'facturas:ver_factura_completa' factura.id %}" 
+                               class="btn btn-outline-secondary py-3">
+                                <i class="bi bi-arrow-left me-2"></i>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

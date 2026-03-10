@@ -5,7 +5,7 @@ from django.utils import timezone
 
 # Importar los modelos correctos desde la app inventario
 from inventario.models import MovimientoInventario, AlertaInventario
-
+from facturas.models import Factura
 @login_required
 def listar_movimientos_view(request):
     """Lista todos los movimientos"""
@@ -64,4 +64,13 @@ def panel_inventario(request):
         'movimientos': movimientos,
         'alertas': alertas,
         'dias': dias
+    })
+
+@login_required
+def detalle_factura(request, id):
+    factura = Factura.objects.get(id=id)
+    detalles = factura.detalles.all()  # <- relacionado con el related_name
+    return render(request, 'facturas/ver_factura.html', {
+        'factura': factura,
+        'detalles': detalles,
     })

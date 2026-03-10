@@ -942,6 +942,15 @@
                         </li>
                         {% endif %}
 
+                        <!-- ✅ AGREGAR ESTE BLOQUE NUEVO -->
+                        <li class="nav-item">
+                            <a href="{% url 'facturas:lista_facturas' %}" 
+                            class="nav-link {% if request.resolver_match.namespace == 'facturas' %}active{% endif %}">
+                                <i class="bi bi-receipt me-2"></i>
+                                Facturas
+                            </a>
+                        </li>
+
                         <!-- ========== TRANSFERENCIAS (ADMIN Y SUPER_ADMIN) ========== -->
                         {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' or user.rol == 'EMPLEADO' %}
                         <li class="nav-item">

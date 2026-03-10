@@ -136,7 +136,11 @@ class Producto(models.Model):
         verbose_name='Margen de Ganancia (%)',
         help_text='Calculado automáticamente'
     )
-    
+    aplica_impuesto = models.BooleanField(
+    default=False,
+    verbose_name='Aplica Impuesto al Consumo (8%)',
+    help_text='Marcar si este producto tiene impuesto al consumo'
+    )
     # Proveedor
     proveedor = models.ForeignKey(
         Proveedor,
@@ -522,30 +526,39 @@ class MovimientoInventario(models.Model):
         ('VENTA', 'Venta'),
         ('TRANSFERENCIA', 'Transferencia'),
         ('AJUSTE', 'Ajuste de inventario'),
-        ('MERMA', 'Merma/Pérdida'),  # ✅ NUEVO
-        ('DEVOLUCION', 'Devolución'),  # ✅ NUEVO
-        ('VENCIDO', 'Producto vencido'),  # ✅ NUEVO
-        ('ROBO', 'Robo/Hurto'),  # ✅ NUEVO
-        ('DAÑADO', 'Producto dañado'),  # ✅ NUEVO
+        ('MERMA', 'Merma/Pérdida'),
+        ('DEVOLUCION', 'Devolución'),
+        ('VENCIDO', 'Producto vencido'),
+        ('ROBO', 'Robo/Hurto'),
+        ('DAÑADO', 'Producto dañado'),
     )
-
+    
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='movimientos')
     sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE, related_name='movimientos')
     tipo = models.CharField(max_length=10, choices=TIPOS)
     cantidad = models.PositiveIntegerField()
-    motivo = models.CharField(max_length=100, choices=MOTIVOS)  # ✅ CAMBIADO A CHOICES
+    motivo = models.CharField(max_length=100, choices=MOTIVOS)
     usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
     observaciones = models.TextField(blank=True, null=True)
     fecha = models.DateTimeField(auto_now_add=True)
-
+    
+    # ✅ AGREGAR ESTE CAMPO:
+    factura = models.ForeignKey(
+        'facturas.Factura',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='movimientos',
+        verbose_name='Factura Asociada'
+    )
+    
     class Meta:
         verbose_name = 'Movimiento de Inventario'
         verbose_name_plural = 'Movimientos de Inventario'
         ordering = ['-fecha']
-
+    
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.cantidad} {self.producto.nombre}"
-    
 class AlertaInventario(models.Model):
     TIPOS = (
         ('STOCK_BAJO', 'Stock Bajo'),

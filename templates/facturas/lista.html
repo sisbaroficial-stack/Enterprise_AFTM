@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Facturas - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">🧾 Facturas</h1>
+            <p class="text-muted">
+                {% if sucursal %}
+                    <span class="badge bg-primary">{{ sucursal.nombre }}</span>
+                {% else %}
+                    <span class="badge bg-success">Todas las Sucursales</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'inventario:venta_rapida' %}" class="btn btn-success">
+                <i class="bi bi-plus-lg me-2"></i>Nueva Venta
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Total Facturas</h6>
+                    <h3 class="mb-0">{{ stats.total_facturas|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-success border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Total Ventas</h6>
+                    <h3 class="mb-0 text-success">${{ stats.total_ventas|default:0|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-danger border-4">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Facturas Anuladas</h6>
+                    <h3 class="mb-0 text-danger">{{ stats.total_anuladas|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Número de Factura</label>
+                    <input type="text" name="numero_factura" class="form-control" 
+                           placeholder="FAC-00000001" value="{{ request.GET.numero_factura }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Fecha Desde</label>
+                    <input type="date" name="fecha_desde" class="form-control" 
+                           value="{{ request.GET.fecha_desde }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Fecha Hasta</label>
+                    <input type="date" name="fecha_hasta" class="form-control" 
+                           value="{{ request.GET.fecha_hasta }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Cliente</label>
+                    <select name="cliente" class="form-select">
+                        <option value="">Todos los clientes</option>
+                        {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}" 
+                                {% if request.GET.cliente == cliente.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cliente.nombre_completo }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-2"></i>Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de facturas -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if facturas %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Número</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Vendedor</th>
+                            <th>Método Pago</th>
+                            <th class="text-end">Total</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for factura in facturas %}
+                        <tr {% if factura.anulada %}class="table-danger"{% endif %}>
+                            <td>
+                                <strong>{{ factura.numero_factura }}</strong>
+                            </td>
+                            <td>{{ factura.fecha|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if factura.cliente %}
+                                    {{ factura.cliente.nombre_completo|truncatechars:30 }}
+                                    <br><small class="text-muted">{{ factura.cliente.numero_documento }}</small>
+                                {% else %}
+                                    <span class="text-muted">Cliente General</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ factura.usuario.username }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ factura.get_metodo_pago_display }}</span>
+                            </td>
+                            <td class="text-end">
+                                <strong class="text-success">${{ factura.total|floatformat:2 }}</strong>
+                            </td>
+                            <td>
+                                {% if factura.anulada %}
+                                    <span class="badge bg-danger">❌ Anulada</span>
+                                {% else %}
+                                    <span class="badge bg-success">✅ Activa</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'facturas:ver_factura_completa' factura.id %}" 
+                                       class="btn btn-outline-primary" title="Ver detalles">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'facturas:imprimir_factura' factura.id %}" 
+                                       class="btn btn-outline-secondary" target="_blank" title="Imprimir">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                    {% if not factura.anulada and user.rol in 'SUPER_ADMIN,ADMIN' %}
+                                    <a href="{% url 'facturas:anular_factura' factura.id %}" 
+                                       class="btn btn-outline-danger" title="Anular">
+                                        <i class="bi bi-x-circle"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-receipt fs-1 d-block mb-3"></i>
+                <h5>No hay facturas</h5>
+                <p class="mb-3">No se encontraron facturas con los filtros aplicados</p>
+                <a href="{% url 'inventario:venta_rapida' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-2"></i>Nueva Venta
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

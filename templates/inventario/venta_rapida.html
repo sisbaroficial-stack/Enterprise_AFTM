@@ -122,14 +122,186 @@
                             <h3 class="mb-0 text-primary" id="totalVenta">$0.00</h3>
                         </div>
 
-                        <button type="button" onclick="finalizarVenta()" class="btn btn-success btn-lg w-100" id="btnFinalizar" disabled>
-                            <i class="bi bi-check-circle me-2"></i>
-                            Finalizar Venta
+                        <button type="button" onclick="scrollToFormulario()" class="btn btn-success btn-lg w-100" id="btnFinalizar" disabled>
+                            <i class="bi bi-arrow-down-circle me-2"></i>
+                            Continuar con Pago
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+                <!-- ✅ NUEVA SECCIÓN: FORMULARIO DE VENTA CON CLIENTE -->
+        <div class="col-lg-7 mb-4">
+            <div class="card card-custom border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="mb-0">💳 Finalizar Venta</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="formVenta">
+                        {% csrf_token %}
+                        <input type="hidden" name="carrito" id="carritoData">
+                        
+                        <!-- SECCIÓN CLIENTE -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6 class="mb-3">👤 Información del Cliente</h6>
+                                
+                                <div class="row g-3">
+                                    <!-- Buscar Cliente Existente -->
+                                    <div class="col-md-12">
+                                        <label class="form-label">Buscar Cliente (Opcional)</label>
+                                        <select class="form-select" id="clienteSelect">
+                                            <option value="">-- Cliente General --</option>
+                                            {% for cliente in clientes %}
+                                            <option value="{{ cliente.id }}" 
+                                                    data-tipo="{{ cliente.tipo_documento }}"
+                                                    data-numero="{{ cliente.numero_documento }}"
+                                                    data-nombre="{{ cliente.nombre_completo }}"
+                                                    data-email="{{ cliente.email }}"
+                                                    data-telefono="{{ cliente.telefono }}">
+                                                {{ cliente.nombre_completo }} - {{ cliente.numero_documento }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                        <input type="hidden" name="cliente_id" id="clienteId">
+                                    </div>
+
+                                    <!-- O Crear Cliente Rápido -->
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="nuevoCliente">
+                                            <label class="form-check-label" for="nuevoCliente">
+                                                Crear nuevo cliente
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Campos de nuevo cliente (ocultos inicialmente) -->
+                                    <div id="camposNuevoCliente" style="display: none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Tipo de Documento</label>
+                                                <select name="tipo_documento" class="form-select">
+                                                    <option value="CC">CC</option>
+                                                    <option value="CE">CE</option>
+                                                    <option value="NIT">NIT</option>
+                                                    <option value="TI">TI</option>
+                                                    <option value="PP">PP</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <label class="form-label">Número de Documento</label>
+                                                <input type="text" name="numero_documento" class="form-control" 
+                                                       placeholder="1234567890">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Nombre Completo</label>
+                                                <input type="text" name="nombre_completo" class="form-control" 
+                                                       placeholder="Juan Pérez">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Email</label>
+                                                <input type="email" name="email" class="form-control" 
+                                                       placeholder="correo@ejemplo.com">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Teléfono</label>
+                                                <input type="text" name="telefono" class="form-control" 
+                                                       placeholder="3001234567">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN PAGO -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6 class="mb-3">💰 Información de Pago</h6>
+                                
+                                <div class="row g-3">
+                                    <!-- Método de Pago -->
+                                    <div class="col-md-6">
+                                        <label for="metodoPago" class="form-label">Método de Pago *</label>
+                                        <select name="metodo_pago" id="metodoPago" class="form-select" required>
+                                            <option value="EFECTIVO">💵 Efectivo</option>
+                                            <option value="TARJETA_DEBITO">💳 Tarjeta Débito</option>
+                                            <option value="TARJETA_CREDITO">💳 Tarjeta Crédito</option>
+                                            <option value="TRANSFERENCIA">🏦 Transferencia</option>
+                                            <option value="NEQUI">📱 Nequi</option>
+                                            <option value="DAVIPLATA">📱 Daviplata</option>
+                                            <option value="CREDITO">📋 Crédito</option>
+                                            <option value="OTRO">🔄 Otro</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Monto Recibido (solo para efectivo) -->
+                                    <div class="col-md-6" id="campoMontoRecibido" style="display: none;">
+                                        <label for="montoRecibido" class="form-label">Monto Recibido</label>
+                                        <input type="number" name="monto_recibido" id="montoRecibido" 
+                                               class="form-control" step="0.01" min="0" value="0">
+                                        <small class="text-muted">Cambio: $<span id="cambioDisplay">0.00</span></small>
+                                    </div>
+
+                                    <!-- Descuento -->
+                                    <div class="col-md-6">
+                                        <label for="descuento" class="form-label">Descuento</label>
+                                        <input type="number" name="descuento" id="descuento" 
+                                               class="form-control" step="0.01" min="0" value="0">
+                                    </div>
+
+                                    <!-- Observaciones -->
+                                    <div class="col-12">
+                                        <label for="observaciones" class="form-label">Observaciones</label>
+                                        <textarea name="observaciones" id="observaciones" 
+                                                  class="form-control" rows="2" 
+                                                  placeholder="Notas adicionales..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumen de Totales -->
+                        <div class="card bg-success bg-opacity-10 border-success">
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <h6 class="mb-0">Subtotal:</h6>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <h6 class="mb-0">$<span id="resumenSubtotal">0.00</span></h6>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="mb-0">Descuento:</h6>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <h6 class="mb-0 text-danger">- $<span id="resumenDescuento">0.00</span></h6>
+                                    </div>
+                                    <div class="col-12"><hr></div>
+                                    <div class="col-6">
+                                        <h4 class="mb-0">TOTAL:</h4>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <h3 class="mb-0 text-success">$<span id="resumenTotal">0.00</span></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg py-3" id="btnCompletarVenta" disabled>
+                                <i class="bi bi-check-circle me-2"></i>
+                                Completar Venta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de productos -->
+        <div class="col-lg-12">
 
         <!-- Panel de productos -->
         <div class="col-lg-7">
@@ -517,6 +689,7 @@ function actualizarCarrito() {
     const total = carrito.reduce((sum, item) => sum + item.subtotal, 0);
     document.getElementById('totalVenta').textContent = `$${total.toFixed(2)}`;
     document.getElementById('btnFinalizar').disabled = false;
+    actualizarResumen();
 }
 
 function eliminarDelCarrito(index) {
@@ -540,24 +713,112 @@ function limpiarFormularioProducto() {
     codigoInput.focus();
 }
 
-// === FINALIZAR VENTA ===
-function finalizarVenta() {
-    if (carrito.length === 0) return;
-    
-    const total = carrito.reduce((sum, item) => sum + item.subtotal, 0);
-    
-    if (!confirm(`¿Finalizar venta por $${total.toFixed(2)}?`)) return;
-    
-    // Crear formulario y enviar
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.innerHTML = `
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <input type="hidden" name="carrito" value='${JSON.stringify(carrito)}'>
-    `;
-    document.body.appendChild(form);
-    form.submit();
+// === SCROLL AL FORMULARIO ===
+function scrollToFormulario() {
+    document.getElementById('formVenta').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('btnCompletarVenta').disabled = false;
 }
+
+// ========================================
+// GESTIÓN DE CLIENTE
+// ========================================
+
+// Mostrar/ocultar campos de nuevo cliente
+document.getElementById('nuevoCliente').addEventListener('change', function() {
+    const campos = document.getElementById('camposNuevoCliente');
+    const selectCliente = document.getElementById('clienteSelect');
+    
+    if (this.checked) {
+        campos.style.display = 'block';
+        selectCliente.value = '';
+        selectCliente.disabled = true;
+        document.getElementById('clienteId').value = '';
+    } else {
+        campos.style.display = 'none';
+        selectCliente.disabled = false;
+    }
+});
+
+// Autocompletar al seleccionar cliente existente
+document.getElementById('clienteSelect').addEventListener('change', function() {
+    if (this.value) {
+        document.getElementById('clienteId').value = this.value;
+        document.getElementById('nuevoCliente').checked = false;
+        document.getElementById('camposNuevoCliente').style.display = 'none';
+    } else {
+        document.getElementById('clienteId').value = '';
+    }
+});
+
+// ========================================
+// MÉTODO DE PAGO
+// ========================================
+
+document.getElementById('metodoPago').addEventListener('change', function() {
+    const campoMonto = document.getElementById('campoMontoRecibido');
+    if (this.value === 'EFECTIVO') {
+        campoMonto.style.display = 'block';
+    } else {
+        campoMonto.style.display = 'none';
+        document.getElementById('montoRecibido').value = '0';
+    }
+});
+
+// Calcular cambio automáticamente
+document.getElementById('montoRecibido').addEventListener('input', function() {
+    const total = calcularTotal();
+    const recibido = parseFloat(this.value) || 0;
+    const cambio = Math.max(0, recibido - total);
+    document.getElementById('cambioDisplay').textContent = cambio.toFixed(2);
+});
+
+// ========================================
+// DESCUENTO
+// ========================================
+
+document.getElementById('descuento').addEventListener('input', function() {
+    actualizarResumen();
+});
+
+// Actualizar resumen de totales
+function actualizarResumen() {
+    const subtotal = calcularSubtotal();
+    const descuento = parseFloat(document.getElementById('descuento').value) || 0;
+    const total = Math.max(0, subtotal - descuento);
+    
+    document.getElementById('resumenSubtotal').textContent = subtotal.toFixed(2);
+    document.getElementById('resumenDescuento').textContent = descuento.toFixed(2);
+    document.getElementById('resumenTotal').textContent = total.toFixed(2);
+}
+
+function calcularSubtotal() {
+    return carrito.reduce((sum, item) => sum + item.subtotal, 0);
+}
+
+function calcularTotal() {
+    const subtotal = calcularSubtotal();
+    const descuento = parseFloat(document.getElementById('descuento').value) || 0;
+    return Math.max(0, subtotal - descuento);
+}
+
+// ========================================
+// ENVIAR FORMULARIO
+// ========================================
+
+document.getElementById('formVenta').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (carrito.length === 0) {
+        alert('❌ El carrito está vacío');
+        return;
+    }
+    
+    // Pasar datos del carrito al campo oculto
+    document.getElementById('carritoData').value = JSON.stringify(carrito);
+    
+    // Enviar formulario
+    this.submit();
+});
 
 // === ATAJOS ===
 document.addEventListener('keydown', function(e) {

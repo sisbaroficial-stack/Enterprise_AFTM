@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'dev-secret-key'
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-
+#----------------------------------------------LO DE ARRIBAAGREGUE PARA EL HOSTINGE
 # ===================== APPS =====================
 INSTALLED_APPS = [
     # Django core
@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     #'dashboard',
     'proveedores',
     'sucursales',
-
+    'facturas',
     # Librerías externas
     'crispy_forms',
 ]
@@ -69,16 +69,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sisbar_config.wsgi.application'
 
-
-# -------------------------
-# BASE DE DATOS PARA LOCAL + RENDER
-# -------------------------
-
-# Detectar si estamos ejecutando en Render
-
-
-
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -116,7 +106,7 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 
 
-
+#AGREGUE PARA EL HOSTINGE--------------------------
 
 
 # Login/Logout URLs

@@ -7,4 +7,5 @@ urlpatterns = [
     path('', views.panel_inventario, name='panel_inventario'),  # Panel general
     path('listar/', views.listar_movimientos_view, name='listar_movimientos'),  # Lista de movimientos
     path('alertas/', views.listar_alertas_view, name='listar_alertas'),  # Lista de alertas
+    path('factura/<int:id>/', views.detalle_factura, name='detalle_factura'),
 ]

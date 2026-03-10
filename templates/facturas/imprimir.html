@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura {{ factura.numero_factura }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 80mm;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 11px;
+            margin: 2px 0;
+        }
+        
+        .section {
+            margin: 10px 0;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #000;
+        }
+        
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        
+        .productos {
+            margin: 15px 0;
+        }
+        
+        .productos table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .productos th {
+            border-bottom: 1px solid #000;
+            text-align: left;
+            padding: 5px 0;
+        }
+        
+        .productos td {
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .productos .text-right {
+            text-align: right;
+        }
+        
+        .totales {
+            margin-top: 15px;
+            border-top: 2px solid #000;
+            padding-top: 10px;
+        }
+        
+        .totales .row {
+            margin: 5px 0;
+        }
+        
+        .total-final {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            border-top: 2px solid #000;
+            padding-top: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            border-top: 2px dashed #000;
+            padding-top: 10px;
+            font-size: 10px;
+        }
+        
+        @media print {
+            body {
+                width: 80mm;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón de imprimir -->
+    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer;">
+            🖨️ Imprimir
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; font-size: 14px; cursor: pointer;">
+            ❌ Cerrar
+        </button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>{{ factura.sucursal.razon_social }}</h1>
+        <p>NIT: {{ factura.sucursal.nit }}</p>
+        <p>{{ factura.sucursal.direccion|default:"" }}</p>
+        <p>Tel: {{ factura.sucursal.telefono|default:"" }}</p>
+        <p>{{ factura.sucursal.email_facturacion }}</p>
+    </div>
+
+    <!-- Información de la factura -->
+    <div class="section">
+        <div class="section-title">FACTURA DE VENTA</div>
+        <div class="row">
+            <span>No. Factura:</span>
+            <strong>{{ factura.numero_factura }}</strong>
+        </div>
+        <div class="row">
+            <span>Fecha:</span>
+            <span>{{ factura.fecha|date:"d/m/Y H:i" }}</span>
+        </div>
+        <div class="row">
+            <span>Vendedor:</span>
+            <span>{{ factura.usuario.username }}</span>
+        </div>
+        {% if factura.anulada %}
+        <div class="row" style="color: red; font-weight: bold;">
+            <span>ESTADO:</span>
+            <span>ANULADA</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Cliente -->
+    {% if factura.cliente %}
+    <div class="section">
+        <div class="section-title">CLIENTE</div>
+        <p>{{ factura.cliente.nombre_completo }}</p>
+        <div class="row">
+            <span>{{ factura.cliente.get_tipo_documento_display }}:</span>
+            <span>{{ factura.cliente.numero_documento }}</span>
+        </div>
+        {% if factura.cliente.telefono %}
+        <div class="row">
+            <span>Tel:</span>
+            <span>{{ factura.cliente.telefono }}</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Productos -->
+    <div class="productos">
+        <div class="section-title">PRODUCTOS</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th style="text-align: center;">Cant</th>
+                    <th style="text-align: right;">Precio</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.producto.nombre|truncatechars:20 }}</td>
+                    <td style="text-align: center;">{{ detalle.cantidad }}</td>
+                    <td style="text-align: right;">${{ detalle.precio_unitario|floatformat:0 }}</td>
+                    <td style="text-align: right;">${{ detalle.subtotal|floatformat:0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totales -->
+    <div class="totales">
+        <div class="row">
+            <span>Subtotal:</span>
+            <strong>${{ factura.subtotal|floatformat:2 }}</strong>
+        </div>
+        {% if factura.impuesto_consumo > 0 %}
+        <div class="row">
+            <span>Impuesto ({{ factura.sucursal.porcentaje_impuesto }}%):</span>
+            <strong>${{ factura.impuesto_consumo|floatformat:2 }}</strong>
+        </div>
+        {% endif %}
+        {% if factura.descuento > 0 %}
+        <div class="row">
+            <span>Descuento:</span>
+            <strong>- ${{ factura.descuento|floatformat:2 }}</strong>
+        </div>
+        {% endif %}
+        <div class="total-final row">
+            <span>TOTAL:</span>
+            <strong>${{ factura.total|floatformat:2 }}</strong>
+        </div>
+    </div>
+
+    <!-- Pago -->
+    <div class="section">
+        <div class="section-title">PAGO</div>
+        <div class="row">
+            <span>Método:</span>
+            <strong>{{ factura.get_metodo_pago_display }}</strong>
+        </div>
+        {% if factura.metodo_pago == 'EFECTIVO' %}
+        <div class="row">
+            <span>Recibido:</span>
+            <span>${{ factura.monto_recibido|floatformat:2 }}</span>
+        </div>
+        <div class="row">
+            <span>Cambio:</span>
+            <strong>${{ factura.cambio|floatformat:2 }}</strong>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Resolución DIAN -->
+    <div class="section">
+        <div class="section-title">RESOLUCIÓN</div>
+        <p style="font-size: 10px;">{{ factura.sucursal.resolucion_dian }}</p>
+        <p style="font-size: 10px;">Rango: {{ factura.sucursal.prefijo_factura }}-{{ factura.sucursal.rango_desde }} a {{ factura.sucursal.prefijo_factura }}-{{ factura.sucursal.rango_hasta }}</p>
+        {% if factura.sucursal.fecha_resolucion %}
+        <p style="font-size: 10px;">Fecha: {{ factura.sucursal.fecha_resolucion|date:"d/m/Y" }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>¡Gracias por su compra!</p>
+        <p>Sistema SISBAR</p>
+        <p>{{ factura.fecha|date:"d/m/Y H:i:s" }}</p>
+    </div>
+
+    <script>
+        // Auto-imprimir al cargar
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        }
+    </script>
+</body>
+</html>

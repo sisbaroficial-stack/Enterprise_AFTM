@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}Factura {{ factura.numero_factura }} - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">🧾 Factura {{ factura.numero_factura }}</h1>
+            <p class="text-muted">
+                {% if factura.anulada %}
+                    <span class="badge bg-danger">❌ ANULADA</span>
+                {% else %}
+                    <span class="badge bg-success">✅ ACTIVA</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'facturas:lista_facturas' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+            {% if not factura.anulada %}
+            <a href="{% url 'facturas:imprimir_factura' factura.id %}" 
+               class="btn btn-primary" target="_blank">
+                <i class="bi bi-printer me-2"></i>Imprimir
+            </a>
+            {% if user.rol == 'SUPER_ADMIN' or user.rol == 'ADMIN' %}
+            <a href="{% url 'facturas:anular_factura' factura.id %}" 
+               class="btn btn-danger">
+                <i class="bi bi-x-circle me-2"></i>Anular
+            </a>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Información de la factura -->
+    <div class="row g-4 mb-4">
+        <!-- Datos de la empresa -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">🏢 Datos de la Empresa</h5>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th width="40%">Razón Social:</th>
+                            <td>{{ factura.sucursal.razon_social }}</td>
+                        </tr>
+                        <tr>
+                            <th>NIT:</th>
+                            <td>{{ factura.sucursal.nit }}</td>
+                        </tr>
+                        <tr>
+                            <th>Sucursal:</th>
+                            <td>{{ factura.sucursal.nombre }}</td>
+                        </tr>
+                        <tr>
+                            <th>Dirección:</th>
+                            <td>{{ factura.sucursal.direccion|default:"No especificada" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Teléfono:</th>
+                            <td>{{ factura.sucursal.telefono|default:"No especificado" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ factura.sucursal.email_facturacion }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Datos del cliente -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">👤 Datos del Cliente</h5>
+                    {% if factura.cliente %}
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th width="40%">Nombre:</th>
+                            <td>{{ factura.cliente.nombre_completo }}</td>
+                        </tr>
+                        <tr>
+                            <th>Documento:</th>
+                            <td>{{ factura.cliente.get_tipo_documento_display }} {{ factura.cliente.numero_documento }}</td>
+                        </tr>
+                        {% if factura.cliente.email %}
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ factura.cliente.email }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if factura.cliente.telefono %}
+                        <tr>
+                            <th>Teléfono:</th>
+                            <td>{{ factura.cliente.telefono }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if factura.cliente.direccion %}
+                        <tr>
+                            <th>Dirección:</th>
+                            <td>{{ factura.cliente.direccion }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                    {% else %}
+                    <p class="text-muted">Cliente General - Sin datos registrados</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de la factura -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">📄 Información de la Factura</h5>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th width="40%">Número:</th>
+                            <td><strong>{{ factura.numero_factura }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Fecha Emisión:</th>
+                            <td>{{ factura.fecha|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Vendedor:</th>
+                            <td>{{ factura.usuario.get_full_name|default:factura.usuario.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Resolución:</th>
+                            <td>{{ factura.sucursal.resolucion_dian }}</td>
+                        </tr>
+                        <tr>
+                            <th>Rango Autorizado:</th>
+                            <td>{{ factura.sucursal.prefijo_factura }}-{{ factura.sucursal.rango_desde }} a {{ factura.sucursal.prefijo_factura }}-{{ factura.sucursal.rango_hasta }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de pago -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">💳 Información de Pago</h5>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th width="40%">Método de Pago:</th>
+                            <td><span class="badge bg-info">{{ factura.get_metodo_pago_display }}</span></td>
+                        </tr>
+                        {% if factura.metodo_pago == 'EFECTIVO' %}
+                        <tr>
+                            <th>Monto Recibido:</th>
+                            <td>${{ factura.monto_recibido|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Cambio:</th>
+                            <td class="text-success"><strong>${{ factura.cambio|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% endif %}
+                        {% if factura.descuento > 0 %}
+                        <tr>
+                            <th>Descuento:</th>
+                            <td class="text-danger">- ${{ factura.descuento|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle de productos -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">📦 Detalle de Productos</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="15%">Código</th>
+                            <th width="40%">Producto</th>
+                            <th width="10%" class="text-center">Cantidad</th>
+                            <th width="15%" class="text-end">Precio Unit.</th>
+                            <th width="15%" class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><code class="badge bg-secondary">{{ detalle.producto.codigo }}</code></td>
+                            <td>
+                                <strong>{{ detalle.producto.nombre }}</strong>
+                                <br><small class="text-muted">{{ detalle.producto.categoria.nombre }}</small>
+                            </td>
+                            <td class="text-center">{{ detalle.cantidad }}</td>
+                            <td class="text-end">${{ detalle.precio_unitario|floatformat:2 }}</td>
+                            <td class="text-end"><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="5" class="text-end"><strong>Subtotal:</strong></td>
+                            <td class="text-end"><strong>${{ factura.subtotal|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% if factura.impuesto_consumo > 0 %}
+                        <tr>
+                            <td colspan="5" class="text-end">Impuesto al Consumo ({{ factura.sucursal.porcentaje_impuesto }}%):</td>
+                            <td class="text-end">${{ factura.impuesto_consumo|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if factura.descuento > 0 %}
+                        <tr>
+                            <td colspan="5" class="text-end">Descuento:</td>
+                            <td class="text-end text-danger">- ${{ factura.descuento|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr class="table-success">
+                            <td colspan="5" class="text-end"><h4 class="mb-0">TOTAL:</h4></td>
+                            <td class="text-end"><h3 class="mb-0 text-success">${{ factura.total|floatformat:2 }}</h3></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Observaciones -->
+    {% if factura.observaciones %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">📝 Observaciones</h5>
+            <p class="mb-0">{{ factura.observaciones }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Mensaje de anulación -->
+    {% if factura.anulada %}
+    <div class="alert alert-danger">
+        <h5 class="alert-heading">❌ Factura Anulada</h5>
+        <p class="mb-0"><strong>Motivo:</strong> {{ factura.motivo_anulacion }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

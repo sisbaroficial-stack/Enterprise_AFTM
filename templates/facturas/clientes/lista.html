@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">👥 Clientes</h1>
+            <p class="text-muted">Gestión de clientes del sistema</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'inventario:crear_cliente' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Nuevo Cliente
+            </a>
+        </div>
+    </div>
+
+    <!-- Búsqueda -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="Buscar por nombre, documento o email..." 
+                           value="{{ busqueda }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-2"></i>Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de clientes -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% if clientes %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Documento</th>
+                            <th>Contacto</th>
+                            <th>Ciudad</th>
+                            <th>Registro</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in clientes %}
+                        <tr>
+                            <td>
+                                <strong>{{ cliente.nombre_completo }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ cliente.get_tipo_documento_display }}</span>
+                                <br>{{ cliente.numero_documento }}
+                            </td>
+                            <td>
+                                {% if cliente.email %}
+                                    <i class="bi bi-envelope me-1"></i>{{ cliente.email }}<br>
+                                {% endif %}
+                                {% if cliente.telefono %}
+                                    <i class="bi bi-telephone me-1"></i>{{ cliente.telefono }}
+                                {% endif %}
+                                {% if not cliente.email and not cliente.telefono %}
+                                    <span class="text-muted">Sin contacto</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ cliente.ciudad|default:"No especificada" }}</td>
+                            <td>{{ cliente.fecha_registro|date:"d/m/Y" }}</td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'inventario:editar_cliente' cliente.id %}" 
+                                       class="btn btn-outline-primary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-person-x fs-1 d-block mb-3"></i>
+                <h5>No hay clientes</h5>
+                <p class="mb-3">
+                    {% if busqueda %}
+                        No se encontraron clientes con "{{ busqueda }}"
+                    {% else %}
+                        Aún no has registrado clientes
+                    {% endif %}
+                </p>
+                <a href="{% url 'inventario:crear_cliente' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-2"></i>Crear Primer Cliente
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

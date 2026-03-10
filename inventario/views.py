@@ -9,14 +9,26 @@ from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # <- AGREGA ESTO
 
 
-from .models import Producto, Categoria, MovimientoInventario, InventarioSucursal, AlertaInventario
+from .models import (
+    Producto, Categoria, MovimientoInventario, InventarioSucursal, 
+    AlertaInventario  # ✅ AGREGAR Cliente
+)
+from facturas.models import Cliente, Factura, DetalleFactura
 from sucursales.models import Sucursal
 from .forms import ProductoForm
 from usuarios.views import registrar_actividad
 
-
+from django.db import transaction
+from .models import (
+    Producto, 
+    InventarioSucursal, 
+    MovimientoInventario, 
+    TransferenciaSucursal,
+)
+ # ✅ ASEGURARSE DE TENER ESTE IMPORT
 # ===============================
 # HELPERS
 # ===============================
@@ -139,6 +151,19 @@ def lista_productos(request):
     }
 
     categorias = Categoria.objects.filter(activa=True)
+
+
+    # === PAGINACIÓN ===
+    page = request.GET.get('page', 1)
+    paginador = Paginator(productos_con_stock, 50)  # 50 productos por página
+
+    try:
+        productos_con_stock = paginador.page(page)
+    except PageNotAnInteger:
+        productos_con_stock = paginador.page(1)
+    except EmptyPage:
+        productos_con_stock = paginador.page(paginador.num_pages)
+
 
     return render(request, 'inventario/listar_productos.html', {
         'productos_con_stock': productos_con_stock,
@@ -640,100 +665,11 @@ def panel_inventario(request):
         'alertas': alertas,
         'dias': dias
     })
-@login_required
-def venta_rapida(request):
-    """Vista para descuento rápido de productos (ventas)"""
-    # Obtener sucursal del usuario (obligatoria para esta acción)
-    sucursal = obtener_sucursal_usuario(request)
-    if isinstance(sucursal, HttpResponseRedirect):
-        return sucursal
-    
-    # SUPER_ADMIN sin sucursal debe seleccionar una
-    if request.user.rol == 'SUPER_ADMIN' and sucursal is None:
-        messages.warning(request, '⚠️ Debes seleccionar una sucursal para realizar ventas')
-        return redirect('sucursales:seleccionar')
-    
-    if request.method == 'POST':
-        codigo = request.POST.get('codigo', '').strip()
-        cantidad_str = request.POST.get('cantidad', '1')
-        
-        try:
-            cantidad = int(cantidad_str)
-            if cantidad <= 0:
-                messages.error(request, '❌ La cantidad debe ser mayor a cero')
-                return redirect('inventario:venta_rapida')
-            
-            # Buscar producto por código o código de barras
-            inventario = InventarioSucursal.objects.select_related('producto').filter(
-                Q(producto__codigo=codigo) | Q(producto__codigo_barras=codigo),
-                sucursal=sucursal,
-                producto__activo=True
-            ).first()
-            
-            if not inventario:
-                messages.error(request, f'❌ Producto con código "{codigo}" no encontrado en esta sucursal')
-                return redirect('inventario:venta_rapida')
-            
-            # Verificar stock
-            if inventario.cantidad < cantidad:
-                messages.error(
-                    request,
-                    f'❌ Stock insuficiente. Disponible: {inventario.cantidad} {inventario.producto.unidad_medida}'
-                )
-                return redirect('inventario:venta_rapida')
-            
-            # Descontar stock
-            inventario.cantidad -= cantidad
-            inventario.save()
-            
-            # Registrar movimiento
-            MovimientoInventario.objects.create(
-                producto=inventario.producto,
-                sucursal=sucursal,
-                tipo='SALIDA',
-                cantidad=cantidad,
-                motivo='VENTA',
-                usuario=request.user,
-                observaciones=f'Venta rápida - {sucursal.nombre}'
-            )
-            
-            # Registrar actividad
-            registrar_actividad(
-                request.user,
-                tipo='DESCONTAR',
-                descripcion=f'Venta rápida: {cantidad} {inventario.producto.unidad_medida} de {inventario.producto.nombre}',
-                request=request
-            )
-            
-            messages.success(
-                request,
-                f'✅ Venta registrada: {cantidad} {inventario.producto.unidad_medida} de {inventario.producto.nombre}'
-            )
-            return redirect('inventario:venta_rapida')
-            
-        except ValueError:
-            messages.error(request, '❌ Cantidad inválida')
-            return redirect('inventario:venta_rapida')
-        except Exception as e:
-            messages.error(request, f'❌ Error al procesar venta: {str(e)}')
-            return redirect('inventario:venta_rapida')
-    
-    # GET - Obtener productos recientes para referencia
-    productos_recientes = InventarioSucursal.objects.filter(
-        sucursal=sucursal,
-        producto__activo=True,
-        cantidad__gt=0
-    ).select_related('producto', 'producto__categoria').order_by('-producto__id')[:15]
-    
-    return render(request, 'inventario/venta_rapida.html', {
-        'sucursal': sucursal,
-        'productos_recientes': productos_recientes,
-    })
 
 
 @login_required
 def venta_rapida(request):
-    """Vista para descuento rápido de productos (ventas múltiples)"""
+    """Vista para venta rápida con facturación legal completa"""
     sucursal = obtener_sucursal_usuario(request)
     if isinstance(sucursal, HttpResponseRedirect):
         return sucursal
@@ -744,6 +680,7 @@ def venta_rapida(request):
     
     if request.method == 'POST':
         import json
+        from decimal import Decimal
         
         try:
             carrito_json = request.POST.get('carrito', '[]')
@@ -753,47 +690,111 @@ def venta_rapida(request):
                 messages.error(request, '❌ El carrito está vacío')
                 return redirect('inventario:venta_rapida')
             
-            total_venta = 0
-            productos_vendidos = []
+            # ✅ DATOS DEL CLIENTE
+            cliente_id = request.POST.get('cliente_id')
+            cliente = None
             
-            # Procesar cada producto del carrito
+            if cliente_id:
+                # Cliente existente
+                cliente = get_object_or_404(Cliente, id=cliente_id)
+            else:
+                # Crear cliente rápido
+                tipo_doc = request.POST.get('tipo_documento', 'CC')
+                num_doc = request.POST.get('numero_documento', '').strip()
+                nombre = request.POST.get('nombre_completo', '').strip()
+                email = request.POST.get('email', '').strip()
+                telefono = request.POST.get('telefono', '').strip()
+                
+                if num_doc and nombre:
+                    # Buscar si ya existe
+                    cliente, created = Cliente.objects.get_or_create(
+                        numero_documento=num_doc,
+                        defaults={
+                            'tipo_documento': tipo_doc,
+                            'nombre_completo': nombre,
+                            'email': email,
+                            'telefono': telefono,
+                        }
+                    )
+            
+            # ✅ DATOS DE PAGO
+            metodo_pago = request.POST.get('metodo_pago', 'EFECTIVO')
+            monto_recibido = Decimal(request.POST.get('monto_recibido', 0))
+            descuento = Decimal(request.POST.get('descuento', 0))
+            observaciones = request.POST.get('observaciones', '')
+            
+            # ✅ CREAR FACTURA
             with transaction.atomic():
-                    for item in carrito:
-                        codigo = item['codigo']
-                        cantidad = int(item['cantidad'])
-                        precio = float(item['precio'])
-                        subtotal = float(item['subtotal'])
-                        precio_minimo = float(item.get('precioMinimo', 0))  # ✅ NUEVO
-                        
-                        # Buscar inventario
-                        inventario = InventarioSucursal.objects.select_related('producto').filter(
-                            Q(producto__codigo=codigo),
-                            sucursal=sucursal,
-                            producto__activo=True
-                        ).first()
-                        
-                        if not inventario:
-                            raise ValueError(f'Producto {codigo} no encontrado')
-                        
-                        # ✅ VALIDAR PRECIO MÍNIMO EN BACKEND
-                        if inventario.producto.precio_venta_minimo > 0 and precio < float(inventario.producto.precio_venta_minimo):
-                            raise ValueError(
-                                f'NO se puede vender {inventario.producto.nombre} por ${precio:.2f}. '
-                                f'Precio mínimo: ${inventario.producto.precio_venta_minimo:.2f}'
-                            )
-                        
-                        # Verificar stock
-                        if inventario.cantidad < cantidad:
-                            raise ValueError(
-                                f'Stock insuficiente para {inventario.producto.nombre}. '
-                                f'Disponible: {inventario.cantidad}'
-                            )
+                # 1. Crear factura
+                factura = Factura.objects.create(
+                    sucursal=sucursal,
+                    cliente=cliente,
+                    usuario=request.user,
+                    metodo_pago=metodo_pago,
+                    monto_recibido=monto_recibido,
+                    descuento=descuento,
+                    observaciones=observaciones,
+                    subtotal=0,
+                    impuesto_consumo=0,
+                    total=0
+                )
+                
+                subtotal = Decimal(0)
+                impuesto_total = Decimal(0)
+                
+                # 2. Procesar cada producto del carrito
+                for item in carrito:
+                    codigo = item['codigo']
+                    cantidad = int(item['cantidad'])
+                    precio = Decimal(str(item['precio']))
+                    
+                    # Buscar inventario
+                    inventario = InventarioSucursal.objects.select_related('producto').filter(
+                        Q(producto__codigo=codigo),
+                        sucursal=sucursal,
+                        producto__activo=True
+                    ).first()
+                    
+                    if not inventario:
+                        raise ValueError(f'Producto {codigo} no encontrado')
+                    
+                    # Validar precio mínimo
+                    if inventario.producto.precio_venta_minimo > 0 and precio < inventario.producto.precio_venta_minimo:
+                        raise ValueError(
+                            f'NO se puede vender {inventario.producto.nombre} por ${precio}. '
+                            f'Precio mínimo: ${inventario.producto.precio_venta_minimo}'
+                        )
+                    
+                    # Verificar stock
+                    if inventario.cantidad < cantidad:
+                        raise ValueError(
+                            f'Stock insuficiente para {inventario.producto.nombre}. '
+                            f'Disponible: {inventario.cantidad}'
+                        )
                     
                     # Descontar stock
                     inventario.cantidad -= cantidad
                     inventario.save()
                     
-                    # Registrar movimiento
+                    # Calcular subtotal
+                    item_subtotal = cantidad * precio
+                    subtotal += item_subtotal
+                    
+                    # Calcular impuesto si aplica
+                    if inventario.producto.aplica_impuesto and sucursal.aplica_impuesto_consumo:
+                        item_impuesto = item_subtotal * (sucursal.porcentaje_impuesto / 100)
+                        impuesto_total += item_impuesto
+                    
+                    # ✅ Crear detalle de factura
+                    DetalleFactura.objects.create(
+                        factura=factura,
+                        producto=inventario.producto,
+                        cantidad=cantidad,
+                        precio_unitario=precio,
+                        subtotal=item_subtotal
+                    )
+                    
+                    # ✅ Registrar movimiento
                     MovimientoInventario.objects.create(
                         producto=inventario.producto,
                         sucursal=sucursal,
@@ -801,25 +802,36 @@ def venta_rapida(request):
                         cantidad=cantidad,
                         motivo='VENTA',
                         usuario=request.user,
-                        observaciones=f'Venta: {cantidad} x ${precio:.2f} = ${subtotal:.2f} - {sucursal.nombre}'
+                        factura=factura,
+                        observaciones=f'{cantidad} x ${precio} = ${item_subtotal}'
                     )
-                    
-                    productos_vendidos.append(f'{inventario.producto.nombre} ({cantidad})')
-                    total_venta += subtotal
                 
-                    # Registrar actividad
-                    registrar_actividad(
-                        request.user,
-                        tipo='DESCONTAR',
-                        descripcion=f'Venta múltiple: {len(carrito)} productos por ${total_venta:.2f}',
-                        request=request
-                    )
-                    
-                    messages.success(
-                        request,
-                        f'✅ Venta registrada exitosamente: {len(carrito)} productos por ${total_venta:.2f}'
-                    )
-                    return redirect('inventario:venta_rapida')
+                # 3. Actualizar totales de factura
+                factura.subtotal = subtotal
+                factura.impuesto_consumo = impuesto_total
+                factura.total = subtotal + impuesto_total - descuento
+                
+                # Calcular cambio si es efectivo
+                if metodo_pago == 'EFECTIVO' and monto_recibido > 0:
+                    factura.cambio = monto_recibido - factura.total
+                
+                factura.save()
+                
+                # 4. Registrar actividad
+                registrar_actividad(
+                    request.user,
+                    tipo='VENTA',
+                    descripcion=f'Venta {factura.numero_factura}: {len(carrito)} productos por ${factura.total}',
+                    request=request
+                )
+                
+                messages.success(
+                    request,
+                    f'✅ Venta registrada: Factura {factura.numero_factura} - ${factura.total}'
+                )
+                
+                # Redirigir a ver factura
+                return redirect('facturas:ver_factura_completa', factura.id)
                 
         except ValueError as e:
             messages.error(request, f'❌ {str(e)}')
@@ -835,9 +847,12 @@ def venta_rapida(request):
         cantidad__gt=0
     ).select_related('producto', 'producto__categoria').order_by('-producto__id')[:20]
     
+    clientes = Cliente.objects.filter(activo=True).order_by('-fecha_registro')[:50]
+    
     return render(request, 'inventario/venta_rapida.html', {
         'sucursal': sucursal,
         'productos_recientes': productos_recientes,
+        'clientes': clientes,
     })
 
 # ===============================

@@ -258,8 +258,15 @@
                                         <small class="text-muted">{{ mov.producto.unidad_medida }}</small>
                                     </td>
                                     <td>
-                                        <small>{{ mov.usuario.get_full_name|default:mov.usuario.username }}</small>
+                                        <small>
+                                            {% if mov.usuario %}
+                                                {{ mov.usuario.get_full_name|default:mov.usuario.username }}
+                                            {% else %}
+                                                Usuario eliminado
+                                            {% endif %}
+                                        </small>
                                     </td>
+
                                     <td>
                                         <small>{{ mov.fecha|date:"d/m/Y H:i" }}</small>
                                     </td>
@@ -353,7 +360,7 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <span class="badge bg-white text-primary px-3 py-2 fs-6">
-                                Versión 1.0
+                                Versión 1.1
                             </span>
                         </div>
                     </div>

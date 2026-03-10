@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Factura {{ factura.numero_factura }} - SISBAR{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">🧾 Detalle de Factura</h1>
+            <p class="text-muted">{{ factura.numero_factura }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'movimientos:listar_movimientos' %}" class="btn btn-outline-secondary">
+                ← Volver a Movimientos
+            </a>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bi bi-printer me-2"></i>Imprimir
+            </button>
+        </div>
+    </div>
+
+    <!-- Factura -->
+    <div class="card border-0 shadow-sm" id="factura-imprimible">
+        <div class="card-body p-5">
+            <!-- Encabezado -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h2 class="mb-3">🛒 SISBAR</h2>
+                    <p class="mb-1"><strong>Sucursal:</strong> {{ factura.sucursal.nombre }}</p>
+                    <p class="mb-1"><strong>Dirección:</strong> {{ factura.sucursal.direccion|default:"No especificada" }}</p>
+                    <p class="mb-0"><strong>Teléfono:</strong> {{ factura.sucursal.telefono|default:"No especificado" }}</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h3 class="text-primary mb-3">FACTURA DE VENTA</h3>
+                    <p class="mb-1"><strong>No. Factura:</strong> {{ factura.numero_factura }}</p>
+                    <p class="mb-1"><strong>Fecha:</strong> {{ factura.fecha|date:"d/m/Y H:i" }}</p>
+                    <p class="mb-0"><strong>Vendedor:</strong> {{ factura.usuario.get_full_name|default:factura.usuario.username }}</p>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Tabla de productos -->
+            <div class="table-responsive mb-4">
+                <table class="table table-hover">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <tr>
+                            <th style="width: 10%;">#</th>
+                            <th style="width: 15%;">Código</th>
+                            <th style="width: 40%;">Producto</th>
+                            <th style="width: 10%;" class="text-center">Cantidad</th>
+                            <th style="width: 12%;" class="text-end">Precio Unit.</th>
+                            <th style="width: 13%;" class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in detalles %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><code class="badge bg-secondary">{{ detalle.producto.codigo }}</code></td>
+                            <td>
+                                <strong>{{ detalle.producto.nombre }}</strong>
+                                <br><small class="text-muted">{{ detalle.producto.categoria.nombre }}</small>
+                            </td>
+                            <td class="text-center">{{ detalle.cantidad }}</td>
+                            <td class="text-end">${{ detalle.precio_unitario|floatformat:2 }}</td>
+                            <td class="text-end"><strong>${{ detalle.subtotal|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" class="text-end"><h4 class="mb-0">TOTAL:</h4></td>
+                            <td class="text-end">
+                                <h3 class="mb-0 text-primary">${{ factura.total|floatformat:2 }}</h3>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Observaciones -->
+            {% if factura.observaciones %}
+            <div class="alert alert-light">
+                <strong>Observaciones:</strong> {{ factura.observaciones }}
+            </div>
+            {% endif %}
+
+            <!-- Footer -->
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <p class="small text-muted mb-0">Gracias por su compra</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="small text-muted mb-0">Sistema SISBAR - Gestión de Inventario</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen adicional (no se imprime) -->
+    <div class="card border-0 shadow-sm mt-4 no-print">
+        <div class="card-body">
+            <h5 class="card-title">📊 Resumen de la Venta</h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="border-start border-primary border-4 ps-3">
+                        <small class="text-muted">Total de Productos</small>
+                        <h4 class="mb-0">{{ detalles.count }}</h4>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border-start border-success border-4 ps-3">
+                        <small class="text-muted">Unidades Vendidas</small>
+                        <h4 class="mb-0">{% widthratio detalles|length 1 1 %}</h4>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border-start border-warning border-4 ps-3">
+                        <small class="text-muted">Promedio por Producto</small>
+                        <h4 class="mb-0">${{ factura.total|floatformat:2|slice:"1:" }}</h4>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border-start border-info border-4 ps-3">
+                        <small class="text-muted">Vendedor</small>
+                        <h6 class="mb-0">{{ factura.usuario.username }}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .navbar, .sidebar, footer {
+        display: none !important;
+    }
+    
+    body {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    #factura-imprimible {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    .btn {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}
